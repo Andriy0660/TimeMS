@@ -10,6 +10,7 @@ export default function ConfirmationModal({
   children,
   actionText,
   onConfirm,
+  onCancel,
   onClose,
 }) {
 
@@ -54,7 +55,12 @@ export default function ConfirmationModal({
           variant="outlined"
           color="info"
           size="large"
-          onClick={onClose}
+          onClick={() => {
+            if (onCancel) {
+              onCancel();
+            }
+            onClose();
+          }}
         >
           Cancel
         </Button>
