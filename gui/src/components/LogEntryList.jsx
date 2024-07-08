@@ -55,14 +55,7 @@ export default function LogEntryList({}) {
                 format="HH:mm"
               />
             </div>
-            <div className="px-2 py-2">
-              <TimeField
-                className="w-20"
-                label="End"
-                size="small"
-                format="HH:mm"
-              />
-            </div>
+
             <div className="min-w-40 w-full px-2 py-2">
               <TextField
                 className="w-full"
