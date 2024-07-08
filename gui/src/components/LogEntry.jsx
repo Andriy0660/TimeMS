@@ -2,15 +2,36 @@ import {Button, TextField} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useState} from "react";
+import ConfirmationModal from "./ConfirmationModal.jsx";
 
 export default function LogEntry({logEntry}) {
   const [ticket, setTicket] = useState(logEntry.ticket || "");
   const [startTime, setStartTime] = useState(dayjs(logEntry.startTime, "hh:mm"));
   const [endTime, setEndTime] = useState(logEntry.endTime ? dayjs(logEntry.endTime, "hh:mm") : null);
   const [description, setDescription] = useState(logEntry.description || "");
+  const [showConfirmStoppingModal, setShowConfirmStoppingModal] = useState(false);
 
+  const handleSaveLogEntry = () => {
+    //TODO save request
+    console.log("saved")
+  }
+  const onChanges = () => {
+    if (!logEntry.endTime && endTime) {
+      setShowConfirmStoppingModal(true)
+    } else {
+      handleSaveLogEntry();
+    }
+  }
   return (
-    <div onBlur={() => console.log("hello")} className="flex items-center">
+    <div className="flex items-center"
+         onKeyDown={async (e) => {
+           if (e.key === "Enter") {
+             onChanges();
+           }
+         }}
+         onBlur={() => {
+           onChanges();
+         }}>
       <div className="px-2 py-2">
         <TextField
           className="w-24"
@@ -42,6 +63,19 @@ export default function LogEntry({logEntry}) {
           size="small"
           format="HH:mm"
         />
+        <ConfirmationModal
+          show={showConfirmStoppingModal}
+          type="info"
+          actionText="Save"
+          onConfirm={() => {
+            handleSaveLogEntry();
+          }}
+          onClose={() => {
+            setEndTime(null);
+            setShowConfirmStoppingModal(false);
+          }}
+        >Are you sure you want to stop task and set end time?</ConfirmationModal>
+
       </div>
       <div className="min-w-40 w-full px-2 py-2">
         <TextField
