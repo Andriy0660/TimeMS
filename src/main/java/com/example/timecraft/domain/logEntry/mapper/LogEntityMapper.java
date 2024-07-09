@@ -8,6 +8,7 @@ import org.mapstruct.Named;
 
 import com.example.timecraft.domain.logEntry.dto.LogEntryCreateRequest;
 import com.example.timecraft.domain.logEntry.dto.LogEntryCreateResponse;
+import com.example.timecraft.domain.logEntry.dto.LogEntryGetResponse;
 import com.example.timecraft.domain.logEntry.dto.LogEntryListAllResponse;
 import com.example.timecraft.domain.logEntry.persistence.LogEntryEntity;
 
@@ -24,5 +25,6 @@ public interface LogEntityMapper {
 
   LogEntryEntity fromCreateRequest(final LogEntryCreateRequest request);
   LogEntryCreateResponse toCreateResponse(final LogEntryEntity entity);
+  LogEntryGetResponse toGetResponse(final LogEntryEntity entity);
 
 }

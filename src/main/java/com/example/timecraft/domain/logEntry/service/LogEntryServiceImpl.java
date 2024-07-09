@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.timecraft.core.exception.BadRequestException;
+import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.logEntry.dto.LogEntryCreateRequest;
 import com.example.timecraft.domain.logEntry.dto.LogEntryCreateResponse;
 import com.example.timecraft.domain.logEntry.dto.LogEntryGetResponse;
@@ -45,7 +46,13 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryGetResponse get(final long logEntryId) {
-    return null;
+    final LogEntryEntity logEntryEntity = getRaw(logEntryId);
+    return mapper.toGetResponse(logEntryEntity);
+  }
+
+  private LogEntryEntity getRaw(final long logEntryId) {
+    return repository.findById(logEntryId)
+        .orElseThrow(() -> new NotFoundException("Log entry with such id does not exist"));
   }
 
   @Override
