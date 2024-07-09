@@ -1,10 +1,12 @@
 package com.example.timecraft.domain.logEntry.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.logEntry.dto.LogEntryCreateRequest;
 import com.example.timecraft.domain.logEntry.dto.LogEntryCreateResponse;
 import com.example.timecraft.domain.logEntry.dto.LogEntryGetResponse;
@@ -32,7 +34,13 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryCreateResponse create(final LogEntryCreateRequest request) {
-    return null;
+    if (request.getStartTime() == null) {
+      throw new BadRequestException("Start time must be provided");
+    }
+    LogEntryEntity logEntryEntity = mapper.fromCreateRequest(request);
+    logEntryEntity.setDate(LocalDate.now());
+    logEntryEntity = repository.save(logEntryEntity);
+    return mapper.toCreateResponse(logEntryEntity);
   }
 
   @Override
