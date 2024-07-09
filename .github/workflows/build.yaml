@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/pom.xml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          architecture: x64
+
+      - name: Cache Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Maven Build
+        run: mvn --batch-mode --update-snapshots verify

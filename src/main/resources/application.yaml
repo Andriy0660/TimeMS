@@ -1,0 +1,24 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: time-craft
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: time-craft
+    password: time-craft
+    url: jdbc:postgresql://localhost:5441/time-craft
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database: postgresql
+    open-in-view: false
+
+  liquibase:
+    change-log: db/changelog/main-changelog.yaml
+
+app:
+  cors:
+    allowed-origins:
+      - http://localhost:*
+      - http://127.0.0.1:*

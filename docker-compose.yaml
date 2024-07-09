@@ -1,0 +1,21 @@
+services:
+  postgres:
+    container_name: postgres-time-craft
+    image: postgres:16.3
+    environment:
+      POSTGRES_USER: time-craft
+      POSTGRES_PASSWORD: time-craft
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+    networks:
+      - time-craft-network
+    ports:
+      - "5441:5432"
+    restart: unless-stopped
+
+networks:
+  time-craft-network:
+    driver: bridge
+
+volumes:
+  postgres_volume:
