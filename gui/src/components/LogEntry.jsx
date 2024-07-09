@@ -16,8 +16,8 @@ export default function LogEntry({logEntry}) {
   const resetChanges = () => {
     console.log("reset")
     setTicket(logEntry.ticket || "");
-    setStartTime(dayjs(logEntry.startTime, "hh:mm"));
-    setEndTime(logEntry.endTime ? dayjs(logEntry.endTime, "hh:mm") : null);
+    setStartTime(dayjs(logEntry.startTime));
+    setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
     setDescription(logEntry.description || "")
     setShowTimeFields(true)
     localStorage.removeItem(`LogEntry_${logEntry.id}`)
@@ -90,7 +90,7 @@ export default function LogEntry({logEntry}) {
                 size="small"
                 value={startTime}
                 onChange={(date) =>
-                  setStartTime(dayjs(`${date.$d.getHours()}:${date.$d.getMinutes()}`, "hh:mm"))}
+                  setStartTime(dayjs(date))}
                 format="HH:mm"
               />
             </div>
@@ -102,7 +102,7 @@ export default function LogEntry({logEntry}) {
                 label="End"
                 value={endTime}
                 onChange={(date) =>
-                  setEndTime(date ? dayjs(`${date.$d.getHours()}:${date.$d.getMinutes()}`, "hh:mm") : null)}
+                  setEndTime(date ? dayjs(date) : null)}
                 size="small"
                 format="HH:mm"
               />
@@ -119,7 +119,7 @@ export default function LogEntry({logEntry}) {
           onChange={(event) => setDescription(event.target.value)}
           size="small"
           autoComplete="off"
-          onClick={() => setShowTimeFields(false)} // Call handleFocus when Description field is focused
+          onClick={() => setShowTimeFields(false)}
           onBlur={(e) => {
             if (!e.relatedTarget) {
               setShowTimeFields(true)
