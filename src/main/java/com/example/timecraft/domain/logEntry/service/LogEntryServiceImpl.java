@@ -1,6 +1,8 @@
 package com.example.timecraft.domain.logEntry.service;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -35,13 +37,17 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryCreateResponse create(final LogEntryCreateRequest request) {
-    if (request.getStartTime() == null) {
-      throw new BadRequestException("Start time must be provided");
-    }
+    validateStartTime(request.getStartTime());
     LogEntryEntity logEntryEntity = mapper.fromCreateRequest(request);
     logEntryEntity.setDate(LocalDate.now());
     logEntryEntity = repository.save(logEntryEntity);
     return mapper.toCreateResponse(logEntryEntity);
+  }
+
+  private void validateStartTime(final LocalDateTime startTime) {
+    if (startTime == null) {
+      throw new BadRequestException("Start time must be provided");
+    }
   }
 
   @Override
@@ -57,7 +63,14 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryUpdateResponse update(final long logEntryId, final LogEntryUpdateRequest request) {
-    return null;
+    validateStartTime(request.getStartTime());
+    LogEntryEntity entity = getRaw(logEntryId);
+    mapper.fromUpdateRequest(request, entity);
+    if (request.getEndTime() != null) {
+      entity.setTimeSpentSeconds((int) Duration.between(entity.getStartTime(), entity.getEndTime()).toSeconds());
+    }
+    entity = repository.save(entity);
+    return mapper.toUpdateResponse(entity);
   }
 
   @Override
