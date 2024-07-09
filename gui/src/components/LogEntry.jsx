@@ -121,7 +121,7 @@ export default function LogEntry({logEntry}) {
           autoComplete="off"
           onClick={() => setShowTimeFields(false)}
           onBlur={(e) => {
-            if (!e.relatedTarget) {
+            if (!(typeof e.relatedTarget?.onclick === "function")) {
               setShowTimeFields(true)
             }
           }}
