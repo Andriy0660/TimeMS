@@ -33,7 +33,7 @@ public class LogEntryEntity {
 
   @Column(name = "ticket_number")
   @ToString.Include
-  private String ticketNumber;
+  private String ticket;
 
   @Column(name = "description")
   @ToString.Include
