@@ -20,13 +20,11 @@ export default function LogEntry({logEntry}) {
     setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
     setDescription(logEntry.description || "")
     setShowTimeFields(true)
-    localStorage.removeItem(`LogEntry_${logEntry.id}`)
   }
 
   const handleSaveLogEntry = () => {
     console.log("saved")
     setShowTimeFields(true)
-    localStorage.removeItem(`LogEntry_${logEntry.id}`)
   }
 
   const isBodyModified = ticket !== logEntry.ticket || description !== logEntry.description;
@@ -35,23 +33,6 @@ export default function LogEntry({logEntry}) {
     !startTime.isSame(dayjs(logEntry.startTime, "HH:mm")) ||
     (endTime !== null && !endTime.isSame(dayjs(logEntry.endTime, "HH:mm")))
   );
-
-  useEffect(() => {
-    const storedLogEntry = JSON.parse(localStorage.getItem(`LogEntry_${logEntry.id}`));
-    if (storedLogEntry) {
-      setTicket(storedLogEntry.ticket || "");
-      setDescription(storedLogEntry.description || "");
-    }
-  }, [logEntry.id]);
-
-  const addToLocalStorage = () => {
-    const savedLogEntry = {
-      ticket,
-      description,
-    };
-    localStorage.setItem(`LogEntry_${logEntry.id}`, JSON.stringify(savedLogEntry));
-    console.log("Saved to localStorage");
-  };
 
   return (
     <div
@@ -62,9 +43,7 @@ export default function LogEntry({logEntry}) {
         }
       }}
       onBlur={(e) => {
-        if (isBodyModified) {
-          addToLocalStorage();
-        }
+
         if (isTimeModified) {
           handleSaveLogEntry();
         }
