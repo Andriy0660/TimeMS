@@ -1,5 +1,7 @@
 package com.example.timecraft.domain.logEntry.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +11,8 @@ import com.example.timecraft.domain.logEntry.dto.LogEntryGetResponse;
 import com.example.timecraft.domain.logEntry.dto.LogEntryListAllResponse;
 import com.example.timecraft.domain.logEntry.dto.LogEntryUpdateRequest;
 import com.example.timecraft.domain.logEntry.dto.LogEntryUpdateResponse;
+import com.example.timecraft.domain.logEntry.mapper.LogEntityMapper;
+import com.example.timecraft.domain.logEntry.persistence.LogEntryEntity;
 import com.example.timecraft.domain.logEntry.persistence.LogEntryRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -17,10 +21,13 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class LogEntryServiceImpl implements LogEntryService {
   private final LogEntryRepository repository;
+  private final LogEntityMapper mapper;
 
   @Override
   public LogEntryListAllResponse listAll() {
-    return null;
+    final List<LogEntryEntity> logEntryEntityList = repository.findAll();
+    final List<LogEntryListAllResponse.LogEntryDto> logEntryDtoList = logEntryEntityList.stream().map(mapper::toListItem).toList();
+    return new LogEntryListAllResponse(logEntryDtoList);
   }
 
   @Override
