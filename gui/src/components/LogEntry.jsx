@@ -1,7 +1,7 @@
-import {Button, Grow, IconButton, TextField, Tooltip} from "@mui/material";
+import {Button, IconButton, TextField, Tooltip} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 
@@ -11,20 +11,16 @@ export default function LogEntry({logEntry}) {
   const [endTime, setEndTime] = useState(logEntry.endTime ? dayjs(logEntry.endTime, "hh:mm") : null);
   const [description, setDescription] = useState(logEntry.description || "");
 
-  const [showTimeFields, setShowTimeFields] = useState(true);
-
   const resetChanges = () => {
     console.log("reset")
     setTicket(logEntry.ticket || "");
     setStartTime(dayjs(logEntry.startTime));
     setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
     setDescription(logEntry.description || "")
-    setShowTimeFields(true)
   }
 
   const handleSaveLogEntry = () => {
     console.log("saved")
-    setShowTimeFields(true)
   }
 
   const isBodyModified = ticket !== logEntry.ticket || description !== logEntry.description;
@@ -35,62 +31,90 @@ export default function LogEntry({logEntry}) {
   );
 
   return (
-    <div
-      className="flex items-center"
-      onKeyDown={async (e) => {
-        if (e.key === "Enter") {
-          handleSaveLogEntry();
-        }
-      }}
-      onBlur={(e) => {
+    <div className="hover:bg-gray-200 p-2">
+      <div className="flex justify-between">
+        <div
+          className="flex items-center"
+          onKeyDown={async (e) => {
+            if (e.key === "Enter") {
+              handleSaveLogEntry();
+            }
+          }}
+          onBlur={(e) => {
 
-        if (isTimeModified) {
-          handleSaveLogEntry();
-        }
-      }}
-    >
-      <div className="mx-2 my-2">
-        <TextField
-          className="w-24"
-          label="Ticket"
-          size="small"
-          value={ticket}
-          onChange={(event) => setTicket(event.target.value)}
-          autoComplete="off"
-        />
+            if (isTimeModified) {
+              handleSaveLogEntry();
+            }
+          }}
+        >
+          <div className="mr-2 my-2">
+            <TextField
+              className="w-24"
+              label="Ticket"
+              size="small"
+              value={ticket}
+              onChange={(event) => setTicket(event.target.value)}
+              autoComplete="off"
+            />
+          </div>
+
+          <div className="mx-2 my-2">
+            <TimeField
+              className="w-20"
+              label="Start"
+              size="small"
+              value={startTime}
+              onChange={(date) =>
+                setStartTime(dayjs(date))}
+              format="HH:mm"
+            />
+          </div>
+
+          <div className="mx-2 my-2">
+            <TimeField
+              className="w-20"
+              label="End"
+              value={endTime}
+              onChange={(date) =>
+                setEndTime(date ? dayjs(date) : null)}
+              size="small"
+              format="HH:mm"
+            />
+          </div>
+
+
+          <div className="mx-2 my-2 text-sm whitespace-nowrap">
+            {logEntry.totalTime ?? "In Progress..."}
+          </div>
+        </div>
+        <div className="flex items-center">
+          <div className="flex ">
+            {isBodyModified && (
+              <div>
+                <Tooltip onClick={() => resetChanges()} title="Reset">
+                  <IconButton className="mr-0">
+                    <BackspaceOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="Save">
+                  <IconButton onClick={() => handleSaveLogEntry()} className="mr-0" color="success">
+                    <SaveOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+
+              </div>)
+            }
+
+            {logEntry.totalTime ?
+              <Button variant="outlined">Continue</Button> :
+              <Button color="warning" variant="outlined">Stop</Button>
+            }
+          </div>
+        </div>
       </div>
-      {showTimeFields ? (
-        <>
-          <Grow timeout={500} in={showTimeFields}>
-            <div className="mx-2 my-2">
-              <TimeField
-                className="w-20"
-                label="Start"
-                size="small"
-                value={startTime}
-                onChange={(date) =>
-                  setStartTime(dayjs(date))}
-                format="HH:mm"
-              />
-            </div>
-          </Grow>
-          <Grow timeout={500} in={showTimeFields}>
-            <div className="mx-2 my-2">
-              <TimeField
-                className="w-20"
-                label="End"
-                value={endTime}
-                onChange={(date) =>
-                  setEndTime(date ? dayjs(date) : null)}
-                size="small"
-                format="HH:mm"
-              />
-            </div>
-          </Grow>
-        </>
-      ) : null}
 
-      <div className="min-w-40 w-full mx-2 my-2">
+      <div>
         <TextField
           className="w-full"
           label="Description"
@@ -98,46 +122,9 @@ export default function LogEntry({logEntry}) {
           onChange={(event) => setDescription(event.target.value)}
           size="small"
           autoComplete="off"
-          onClick={() => setShowTimeFields(false)}
-          onBlur={(e) => {
-            if (!(typeof e.relatedTarget?.onclick === "function")) {
-              setShowTimeFields(true)
-            }
-          }}
-          onKeyDown={async (e) => {
-            if (e.key === "Enter") {
-              setShowTimeFields(true);
-            }
-          }}
+          multiline
         />
       </div>
-      <div className="mx-0 my-2 flex">
-        {isBodyModified ? (<div className="flex">
-          <Tooltip onClick={() => resetChanges()} title="Reset">
-            <IconButton className="mr-1">
-              <BackspaceOutlinedIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Save">
-            <IconButton onClick={() => handleSaveLogEntry()} className="mr-1" color="success">
-              <SaveOutlinedIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-
-        </div>) : null}
-
-        {logEntry.totalTime ?
-          <Button variant="outlined">Continue</Button> :
-          <Button color="warning" variant="outlined">Stop</Button>
-        }
-      </div>
-
-      <div className="mx-2 my-2 text-sm whitespace-nowrap">
-        {logEntry.totalTime ?? "In Progress..."}
-      </div>
-
     </div>
-
   );
 }
