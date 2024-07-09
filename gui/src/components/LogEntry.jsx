@@ -36,7 +36,7 @@ export default function LogEntry({logEntry}) {
     ticket !== logEntry.ticket ||
     description !== logEntry.description ||
     !startTime.isSame(dayjs(logEntry.startTime, "HH:mm")) ||
-    (endTime !== null && !endTime.isSame(dayjs(logEntry.endTime, "HH:mm")))
+    ((endTime || logEntry.endTime) && !endTime?.isSame(dayjs(logEntry?.endTime, "HH:mm")))
   );
 
   const handleClickOutside = (event) => {
