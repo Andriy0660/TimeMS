@@ -75,6 +75,7 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public void delete(final long logEntryId) {
-
+    final LogEntryEntity entity = getRaw(logEntryId);
+    repository.delete(entity);
   }
 }
