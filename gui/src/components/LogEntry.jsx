@@ -156,7 +156,7 @@ export default function LogEntry({logEntry}) {
         <div className="flex items-center">
           <div className="flex ">
 
-            {(isModified && isEditing) && (
+            {(isEditing) && (
               <div>
                 <Tooltip onClick={() => resetChanges()} title="Reset">
                   <IconButton className="mr-0">
