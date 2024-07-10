@@ -5,6 +5,7 @@ import {useEffect, useRef, useState} from "react";
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import Divider from "@mui/material/Divider";
 
 export default function LogEntry({logEntry}) {
   const [ticket, setTicket] = useState(logEntry.ticket || "");
@@ -112,15 +113,18 @@ export default function LogEntry({logEntry}) {
           ) : (
             <>
               {ticket && (
-                <div
-                  className="mr-4 my-2 hover:bg-blue-50"
-                  onClick={() => {
-                    setIsEditing(true);
-                    setEditedField("ticket");
-                  }}
-                >
-                  <Typography className="font-bold">{ticket}</Typography>
-                </div>
+                <>
+                  <div
+                    className="mr-4 my-2 hover:bg-blue-50"
+                    onClick={() => {
+                      setIsEditing(true);
+                      setEditedField("ticket");
+                    }}
+                  >
+                    <Typography className="font-bold">{ticket}</Typography>
+                  </div>
+                  <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />
+                </>
               )}
 
               <div
