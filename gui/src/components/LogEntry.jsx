@@ -9,8 +9,8 @@ import Divider from "@mui/material/Divider";
 
 export default function LogEntry({logEntry}) {
   const [ticket, setTicket] = useState(logEntry.ticket || "");
-  const [startTime, setStartTime] = useState(dayjs(logEntry.startTime, "HH:mm"));
-  const [endTime, setEndTime] = useState(logEntry.endTime ? dayjs(logEntry.endTime, "HH:mm") : null);
+  const [startTime, setStartTime] = useState(dayjs(logEntry.startTime));
+  const [endTime, setEndTime] = useState(logEntry.endTime ? dayjs(logEntry.endTime) : null);
   const [description, setDescription] = useState(logEntry.description || "");
 
   const [isEditing, setIsEditing] = useState(false);
@@ -22,8 +22,8 @@ export default function LogEntry({logEntry}) {
   const resetChanges = () => {
     console.log("reset");
     setTicket(logEntry.ticket || "");
-    setStartTime(dayjs(logEntry.startTime, "HH:mm"));
-    setEndTime(logEntry.endTime ? dayjs(logEntry.endTime, "HH:mm") : null);
+    setStartTime(dayjs(logEntry.startTime));
+    setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
     setDescription(logEntry.description || "");
     setIsEditing(false);
   };
@@ -36,8 +36,8 @@ export default function LogEntry({logEntry}) {
   const isModified = (
     ticket !== logEntry.ticket ||
     description !== logEntry.description ||
-    !startTime.isSame(dayjs(logEntry.startTime, "HH:mm")) ||
-    ((endTime || logEntry.endTime) && !endTime?.isSame(dayjs(logEntry?.endTime, "HH:mm")))
+    !startTime.isSame(dayjs(logEntry.startTime)) ||
+    ((endTime || logEntry.endTime) && !endTime?.isSame(dayjs(logEntry?.endTime)))
   );
 
   const handleClickOutside = (event) => {

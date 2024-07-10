@@ -9,16 +9,16 @@ const logEntries = [
   {
     id: 1,
     ticket: "LRN-34",
-    startTime: "12:34",
-    endTime: "17:12",
+    startTime: "2024-07-08T09:28:33.388463",
+    endTime: "2024-07-08T19:28:33.388463",
     description: "made gui mockup",
     totalTime: "4h 13m"
   },
   {
     id: 2,
     ticket: "",
-    startTime: "18:00",
-    endTime: "20:13",
+    startTime: "2024-07-08T18:00:33.388463",
+    endTime: "2024-07-08T20:28:33.388463",
     description: "made gui mockup and some other big amount of work with some problems",
     totalTime: "2h 13m"
   },
