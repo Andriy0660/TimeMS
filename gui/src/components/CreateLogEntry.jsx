@@ -10,8 +10,11 @@ export default function CreateLogEntry({onCreate}) {
   const [isCreating, setIsCreating] = useState(false);
   const handleCreate = async () => {
     setIsCreating(true);
-    await onCreate({ticket, startTime: startTime.format("YYYY-MM-DDTHH:mm:ss"), description});
-    setIsCreating(false);
+    try {
+      await onCreate({ticket, startTime: startTime.format("YYYY-MM-DDTHH:mm:ss"), description});
+    } finally {
+      setIsCreating(false);
+    }
     setTicket("");
     setDescription("")
   }
