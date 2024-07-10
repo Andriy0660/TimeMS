@@ -1,4 +1,4 @@
-import {Button, IconButton, TextField, Tooltip, Typography} from "@mui/material";
+import {Button, Chip, IconButton, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useRef, useState} from "react";
@@ -119,7 +119,7 @@ export default function LogEntry({logEntry}) {
                     setEditedField("ticket");
                   }}
                 >
-                  <Typography>{ticket}</Typography>
+                  <Typography className="font-bold">{ticket}</Typography>
                 </div>
               )}
 
@@ -130,7 +130,7 @@ export default function LogEntry({logEntry}) {
                   setEditedField("startTime");
                 }}
               >
-                <Typography>{startTime.format("HH:mm")}</Typography>
+                <Typography className="font-bold">{startTime.format("HH:mm")}</Typography>
               </div>
               {endTime && (
                 <>
@@ -142,20 +142,23 @@ export default function LogEntry({logEntry}) {
                       setEditedField("endTime");
                     }}
                   >
-                    <Typography>{endTime?.format("HH:mm")}</Typography>
+                    <Typography className="font-bold">{endTime?.format("HH:mm")}</Typography>
                   </div>
                 </>
               )}
             </>
           )}
-
-          <div className="mx-2 my-2 text-sm whitespace-nowrap">
-            {logEntry.totalTime ?? "In Progress..."}
-          </div>
+          <Chip
+            label={logEntry.totalTime ?? "In Progress..."}
+            color="primary"
+            variant="outlined"
+            size="small"
+            className="shadow-md"
+          />
         </div>
+
         <div className="flex items-center">
           <div className="flex ">
-
             {(isEditing) && (
               <div>
                 <Tooltip onClick={() => resetChanges()} title="Reset">
@@ -217,7 +220,7 @@ export default function LogEntry({logEntry}) {
             }}
           />
         ) : (
-          <>{description}</>
+          <div className="text-justify whitespace-pre-wrap">{description}</div>
         )}
       </div>
     </div>

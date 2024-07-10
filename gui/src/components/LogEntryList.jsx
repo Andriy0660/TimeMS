@@ -31,7 +31,10 @@ const logEntries = [
 ]
 export default function LogEntryList({}) {
   const renderedLogEntries = logEntries.map((logEntry) => {
-    return <LogEntry key={logEntry.id} logEntry={logEntry} />
+    return <div>
+      <Divider key={logEntry.id}/>
+      <LogEntry logEntry={logEntry} />
+    </div>
   })
   return (
     <div className="m-4 flex flex-col items-center">
@@ -68,7 +71,7 @@ export default function LogEntryList({}) {
               <Button variant="outlined">Start</Button>
             </div>
           </div>
-          <Divider className="my-2" />
+
           {renderedLogEntries}
         </div>
       </LocalizationProvider>
