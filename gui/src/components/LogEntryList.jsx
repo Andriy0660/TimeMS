@@ -52,6 +52,24 @@ export default function LogEntryList({}) {
     }
   });
 
+  const {mutateAsync: update} = useMutation({
+    mutationFn: (body) => logEntryApi.update(body),
+    onSuccess: async () => {
+      queryClient.invalidateQueries(logEntries.key);
+      addAlert({
+        text: "Log entry successfully updated",
+        type: "success"
+      });
+    },
+    onError: async (error, body) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      })
+      console.error("Updating log entry failed:", error);
+    }
+  });
+
   useEffect(() => {
     if (listAllError) {
       addAlert({
@@ -72,7 +90,10 @@ export default function LogEntryList({}) {
   const renderedLogEntries = logEntries?.map((logEntry) => {
     return <div key={logEntry.id}>
       <Divider />
-      <LogEntry logEntry={logEntry} />
+      <LogEntry
+        logEntry={logEntry}
+        onUpdate={update}
+      />
     </div>
   })
 

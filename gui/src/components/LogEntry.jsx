@@ -1,4 +1,4 @@
-import {Button, Chip, IconButton, TextField, Tooltip, Typography} from "@mui/material";
+import {Button, Chip, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useRef, useState} from "react";
@@ -6,18 +6,25 @@ import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import Divider from "@mui/material/Divider";
+import useAppContext from "../context/useAppContext.js";
 
-export default function LogEntry({logEntry}) {
+export default function LogEntry({
+  logEntry,
+  onUpdate
+}) {
   const [ticket, setTicket] = useState(logEntry.ticket || "");
   const [startTime, setStartTime] = useState(dayjs(logEntry.startTime));
   const [endTime, setEndTime] = useState(logEntry.endTime ? dayjs(logEntry.endTime) : null);
   const [description, setDescription] = useState(logEntry.description || "");
+
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedField, setEditedField] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
 
   const logEntryRef = useRef(null);
+  const {addAlert} = useAppContext();
 
   useEffect(() => {
     setTicket(logEntry?.ticket)
@@ -35,9 +42,20 @@ export default function LogEntry({logEntry}) {
     setIsEditing(false);
   };
 
-  const handleSaveLogEntry = () => {
-    console.log("saved");
+  const handleUpdateLogEntry = async () => {
+    setIsUpdating(true);
     setIsEditing(false);
+    try {
+      await onUpdate({
+        id: logEntry.id,
+        ticket,
+        startTime: startTime.format("YYYY-MM-DDTHH:mm:ss"),
+        endTime: endTime?.format("YYYY-MM-DDTHH:mm:ss"),
+        description
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const isModified = (
@@ -51,14 +69,25 @@ export default function LogEntry({logEntry}) {
     if (logEntryRef.current && !logEntryRef.current.contains(event.target)) {
       setIsEditing(false);
       if (isModified) {
-        handleSaveLogEntry()
+        if (!endTime.isAfter(startTime)) {
+          addAlert({
+            text: "End time can not be before start time",
+            type: "error"
+          })
+          setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
+          return;
+        }
+        handleUpdateLogEntry();
       }
     }
   };
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
-  }, []);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [handleClickOutside]);
 
   useEffect(() => {
     if (isEditing && editedField) {
@@ -179,7 +208,7 @@ export default function LogEntry({logEntry}) {
                 </Tooltip>
 
                 <Tooltip title="Save">
-                  <IconButton onClick={() => handleSaveLogEntry()} className="mr-0" color="success">
+                  <IconButton onClick={() => handleUpdateLogEntry()} className="mr-0" color="success">
                     <SaveOutlinedIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
@@ -234,6 +263,9 @@ export default function LogEntry({logEntry}) {
           <div className="text-justify whitespace-pre-wrap">{description}</div>
         )}
       </div>
+      {isUpdating &&
+        <LinearProgress />
+      }
     </div>
   );
 }
