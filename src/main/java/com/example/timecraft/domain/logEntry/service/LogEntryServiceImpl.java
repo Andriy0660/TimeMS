@@ -3,6 +3,7 @@ package com.example.timecraft.domain.logEntry.service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -31,7 +32,14 @@ public class LogEntryServiceImpl implements LogEntryService {
   @Override
   public LogEntryListAllResponse listAll() {
     final List<LogEntryEntity> logEntryEntityList = repository.findAll();
-    final List<LogEntryListAllResponse.LogEntryDto> logEntryDtoList = logEntryEntityList.stream().map(mapper::toListItem).toList();
+    final List<LogEntryListAllResponse.LogEntryDto> logEntryDtoList = logEntryEntityList.stream()
+        .map(mapper::toListItem)
+        .sorted(
+            Comparator.comparing(
+                LogEntryListAllResponse.LogEntryDto::getEndTime,
+                Comparator.nullsFirst(Comparator.reverseOrder())
+            ))
+        .toList();
     return new LogEntryListAllResponse(logEntryDtoList);
   }
 
