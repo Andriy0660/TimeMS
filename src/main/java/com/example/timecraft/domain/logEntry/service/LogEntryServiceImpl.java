@@ -48,6 +48,12 @@ public class LogEntryServiceImpl implements LogEntryService {
     validateStartTime(request.getStartTime());
     LogEntryEntity logEntryEntity = mapper.fromCreateRequest(request);
     logEntryEntity.setDate(LocalDate.now());
+    repository.findAllByEndTimeIsNull().forEach((logEntry) -> {
+      logEntry.setEndTime(LocalDateTime.now());
+      logEntry.setTimeSpentSeconds((int) Duration.between(logEntry.getStartTime(), logEntry.getEndTime()).toSeconds());
+      repository.save(logEntry);
+    });
+
     logEntryEntity = repository.save(logEntryEntity);
     return mapper.toCreateResponse(logEntryEntity);
   }
