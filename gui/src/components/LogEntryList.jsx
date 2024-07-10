@@ -1,9 +1,8 @@
 import LogEntry from "./LogEntry.jsx";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
-import {Button, TextField} from "@mui/material";
-import {LocalizationProvider, TimeField} from "@mui/x-date-pickers";
-import dayjs from "dayjs";
+import {LocalizationProvider} from "@mui/x-date-pickers";
 import Divider from "@mui/material/Divider";
+import CreateLogEntry from "./CreateLogEntry.jsx";
 
 const logEntries = [
   {
@@ -30,9 +29,10 @@ const logEntries = [
   },
 ]
 export default function LogEntryList({}) {
+
   const renderedLogEntries = logEntries.map((logEntry) => {
     return <div key={logEntry.id}>
-      <Divider/>
+      <Divider />
       <LogEntry logEntry={logEntry} />
     </div>
   })
@@ -40,38 +40,7 @@ export default function LogEntryList({}) {
     <div className="m-4 flex flex-col items-center">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <div className="w-3/5 overflow-x-auto shadow-md bg-gray-50">
-          <div className="flex items-center">
-            <div className="px-2 py-2 font-medium">
-              <TextField
-                className="w-24"
-                label="Ticket"
-                size="small"
-                autoComplete="off"
-              />
-            </div>
-            <div className="px-2 py-2">
-              <TimeField
-                className="w-20"
-                label="Start"
-                size="small"
-                defaultValue={dayjs()}
-                format="HH:mm"
-              />
-            </div>
-
-            <div className="min-w-40 w-full px-2 py-2">
-              <TextField
-                className="w-full"
-                label="Description"
-                size="small"
-                autoComplete="off"
-              />
-            </div>
-            <div className="px-2 py-2">
-              <Button variant="outlined">Start</Button>
-            </div>
-          </div>
-
+          <CreateLogEntry />
           {renderedLogEntries}
         </div>
       </LocalizationProvider>
