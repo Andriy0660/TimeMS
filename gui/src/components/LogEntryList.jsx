@@ -31,8 +31,8 @@ const logEntries = [
 ]
 export default function LogEntryList({}) {
   const renderedLogEntries = logEntries.map((logEntry) => {
-    return <div>
-      <Divider key={logEntry.id}/>
+    return <div key={logEntry.id}>
+      <Divider/>
       <LogEntry logEntry={logEntry} />
     </div>
   })
