@@ -19,6 +19,13 @@ export default function LogEntry({logEntry}) {
 
   const logEntryRef = useRef(null);
 
+  useEffect(() => {
+    setTicket(logEntry?.ticket)
+    setStartTime(dayjs(logEntry.startTime))
+    setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null)
+    setDescription(logEntry?.description)
+  }, [logEntry])
+
   const resetChanges = () => {
     console.log("reset");
     setTicket(logEntry.ticket || "");
