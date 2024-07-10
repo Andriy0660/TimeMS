@@ -3,39 +3,50 @@ import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import Divider from "@mui/material/Divider";
 import CreateLogEntry from "./CreateLogEntry.jsx";
+import {useQuery} from "@tanstack/react-query";
+import logEntryApi from "../api/logEntryApi.js";
+import {CircularProgress} from "@mui/material";
+import useAppContext from "../context/useAppContext.js";
+import {useEffect} from "react";
 
-const logEntries = [
-  {
-    id: 1,
-    ticket: "LRN-34",
-    startTime: "2024-07-08T09:28:33.388463",
-    endTime: "2024-07-08T19:28:33.388463",
-    description: "made gui mockup",
-    totalTime: "4h 13m"
-  },
-  {
-    id: 2,
-    ticket: "",
-    startTime: "2024-07-08T18:00:33.388463",
-    endTime: "2024-07-08T20:28:33.388463",
-    description: "made gui mockup and some other big amount of work with some problems",
-    totalTime: "2h 13m"
-  },
-  {
-    id: 3,
-    ticket: "LRN-34",
-    startTime: "2024-07-08T09:28:33.388463",
-    description: ""
-  },
-]
 export default function LogEntryList({}) {
+  const {
+    data: logEntries,
+    isPending: isListing,
+    error: listAllError
+  } = useQuery({
+    queryKey: [logEntryApi.key],
+    queryFn: () => {
+      return logEntryApi.listAll();
+    },
+    retryDelay: 300,
+  });
 
-  const renderedLogEntries = logEntries.map((logEntry) => {
+  const {addAlert} = useAppContext();
+  useEffect(() => {
+    if (listAllError) {
+      addAlert({
+        text: `${listAllError.displayMessage} Try agail later`,
+        type: "error"
+      });
+    }
+  }, [listAllError]);
+
+  if (isListing) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <CircularProgress  />
+      </div>
+    );
+  }
+
+  const renderedLogEntries = logEntries?.map((logEntry) => {
     return <div key={logEntry.id}>
       <Divider />
       <LogEntry logEntry={logEntry} />
     </div>
   })
+
   return (
     <div className="m-4 flex flex-col items-center">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
