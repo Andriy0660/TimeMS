@@ -19,7 +19,8 @@ export default function LogEntry({
   const [startTime, setStartTime] = useState(dayjs(logEntry.startTime));
   const [endTime, setEndTime] = useState(logEntry.endTime ? dayjs(logEntry.endTime) : null);
   const [description, setDescription] = useState(logEntry.description || "");
-  const [totalTime, setTotalTime] = useState(logEntry.totalTime || "In Progress");
+  const [totalTime, setTotalTime] = useState(logEntry.totalTime);
+  const [status, setStatus] = useState(logEntry.totalTime ? logEntry.totalTime : (startTime ? "In Progress" : "Pending"));
 
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -37,7 +38,8 @@ export default function LogEntry({
     setStartTime(dayjs(logEntry.startTime))
     setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null)
     setDescription(logEntry?.description)
-    setTotalTime(logEntry.totalTime || "In Progress")
+    setTotalTime(logEntry.totalTime)
+    setStatus(logEntry.totalTime ? logEntry.totalTime : (startTime ? "In Progress" : "Pending"))
   }, [logEntry])
 
   const resetChanges = () => {
@@ -106,7 +108,7 @@ export default function LogEntry({
 
   return (
     <div
-      className={`p-4 ${totalTime==="In Progress"?"bg-blue-50":""}`}
+      className={`p-4 ${status === "In Progress" ? "bg-blue-50" : ""}`}
       ref={logEntryRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -204,22 +206,24 @@ export default function LogEntry({
 
             </>
           )}
-          <Chip
-            label={totalTime}
-            color="primary"
-            variant="outlined"
-            size="small"
-            className="shadow-md"
-          />
-          {(totalTime==="In Progress" && dayjs().isAfter(startTime)) ? (
+          {totalTime &&
             <Chip
-              label={`${dayjs().diff(startTime, "hour")}h ${dayjs().diff(startTime, "minute")}m`}
+              label={totalTime}
+              color="primary"
+              variant="outlined"
+              size="small"
+              className="shadow-md"
+            />
+          }
+          {(status === "In Progress" && dayjs().isAfter(startTime)) && (
+            <Chip
+              label={`${dayjs().diff(startTime, "hour")}h ${dayjs().diff(startTime, "minute") % 60}m`}
               color="primary"
               variant="outlined"
               size="small"
               className="shadow-md mx-2"
             />
-          ):null}
+          )}
         </div>
 
         <div className="flex items-center">
