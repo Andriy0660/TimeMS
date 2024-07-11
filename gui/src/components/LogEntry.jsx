@@ -246,7 +246,7 @@ export default function LogEntry({
                 </IconButton>
               </Tooltip>
             )}
-            {totalTime ?
+            {logEntry.endTime ?
               <Button variant="outlined">Continue</Button> :
               <Button color="warning" variant="outlined">Stop</Button>
             }
