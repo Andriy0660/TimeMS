@@ -5,6 +5,7 @@ import {useEffect, useRef, useState} from "react";
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import KeyboardTabOutlinedIcon from '@mui/icons-material/KeyboardTabOutlined';
 import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined';
 import StartOutlinedIcon from '@mui/icons-material/StartOutlined';
 import Divider from "@mui/material/Divider";
@@ -16,11 +17,20 @@ export default function LogEntry({
   onUpdate
 }) {
   const [ticket, setTicket] = useState(logEntry.ticket || "");
-  const [startTime, setStartTime] = useState(dayjs(logEntry.startTime));
+  const [startTime, setStartTime] = useState(logEntry.startTime ? dayjs(logEntry.startTime) : null);
   const [endTime, setEndTime] = useState(logEntry.endTime ? dayjs(logEntry.endTime) : null);
   const [description, setDescription] = useState(logEntry.description || "");
   const [totalTime, setTotalTime] = useState(logEntry.totalTime);
-  const [status, setStatus] = useState(logEntry.totalTime ? logEntry.totalTime : (startTime ? "In Progress" : "Pending"));
+  const defineStatus = () => {
+    if (logEntry.totalTime) {
+      return "Done";
+    }
+    if (startTime) {
+      return "In Progress";
+    }
+    return "Pending";
+  }
+  const status = defineStatus();
 
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -35,17 +45,16 @@ export default function LogEntry({
 
   useEffect(() => {
     setTicket(logEntry?.ticket)
-    setStartTime(dayjs(logEntry.startTime))
+    setStartTime(logEntry.startTime ? dayjs(logEntry.startTime) : null)
     setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null)
     setDescription(logEntry?.description)
     setTotalTime(logEntry.totalTime)
-    setStatus(logEntry.totalTime ? logEntry.totalTime : (startTime ? "In Progress" : "Pending"))
   }, [logEntry])
 
   const resetChanges = () => {
     console.log("reset");
     setTicket(logEntry.ticket || "");
-    setStartTime(dayjs(logEntry.startTime));
+    setStartTime(logEntry.startTime ? dayjs(logEntry.startTime) : null);
     setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
     setDescription(logEntry.description || "");
     setIsEditing(false);
@@ -66,7 +75,7 @@ export default function LogEntry({
   const isModified = (
     ticket !== logEntry.ticket ||
     description !== logEntry.description ||
-    !startTime.isSame(dayjs(logEntry.startTime)) ||
+    ((startTime || logEntry.startTime) && !startTime?.isSame(dayjs(logEntry.startTime))) ||
     ((endTime || logEntry.endTime) && !endTime?.isSame(dayjs(logEntry?.endTime)))
   );
 
@@ -74,7 +83,7 @@ export default function LogEntry({
     if (logEntryRef.current && !logEntryRef.current.contains(event.target)) {
       setIsEditing(false);
       if (isModified) {
-        if (startTime.isAfter(endTime)) {
+        if (startTime?.isAfter(endTime)) {
           addAlert({
             text: "End time must be great than start time",
             type: "error"
@@ -85,7 +94,7 @@ export default function LogEntry({
         handleUpdateLogEntry({
           id: logEntry.id,
           ticket,
-          startTime: startTime.format("YYYY-MM-DDTHH:mm"),
+          startTime: startTime?.format("YYYY-MM-DDTHH:mm"),
           endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
           description
         });
@@ -137,7 +146,9 @@ export default function LogEntry({
                   size="small"
                   value={startTime}
                   onChange={(date) => {
-                    if (dayjs(date).isValid() && date !== null) {
+                    if (date === null) {
+                      setStartTime(null);
+                    } else if (dayjs(date).isValid()) {
                       setStartTime(dayjs(date))
                     }
                   }}
@@ -165,15 +176,17 @@ export default function LogEntry({
             </>
           ) : (
             <>
-              <div
-                className="mr-4 my-2 hover:bg-blue-100"
-                onClick={() => {
-                  setIsEditing(true);
-                  setEditedField("startTime");
-                }}
-              >
-                <Typography className="font-bold">{startTime.format("HH:mm")}</Typography>
-              </div>
+              {startTime &&
+                <div
+                  className="mr-4 my-2 hover:bg-blue-100"
+                  onClick={() => {
+                    setIsEditing(true);
+                    setEditedField("startTime");
+                  }}
+                >
+                  <Typography className="font-bold">{startTime?.format("HH:mm")}</Typography>
+                </div>
+              }
               {endTime && (
                 <>
                   -
@@ -212,7 +225,7 @@ export default function LogEntry({
               color="primary"
               variant="outlined"
               size="small"
-              className="shadow-md"
+              className="shadow-md mx-2"
             />
           }
           {(status === "In Progress" && dayjs().isAfter(startTime)) && (
@@ -224,6 +237,17 @@ export default function LogEntry({
               className="shadow-md mx-2"
             />
           )}
+
+          {(status === "Pending") && (
+            <Chip
+              label={status}
+              color="primary"
+              variant="outlined"
+              size="small"
+              className="shadow-md"
+            />
+          )}
+
         </div>
 
         <div className="flex items-center">
@@ -242,13 +266,13 @@ export default function LogEntry({
                       onClick={() => handleUpdateLogEntry({
                         id: logEntry.id,
                         ticket,
-                        startTime: startTime.format("YYYY-MM-DDTHH:mm"),
+                        startTime: startTime?.format("YYYY-MM-DDTHH:mm"),
                         endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
                         description
                       })}
                       className="mr-0"
                       color="success"
-                      disabled={startTime.isAfter(endTime)}
+                      disabled={startTime?.isAfter(endTime)}
                     >
                       <SaveOutlinedIcon fontSize="small" />
                     </IconButton>
@@ -257,57 +281,76 @@ export default function LogEntry({
               </div>
             )}
             {(isHovered && !isEditing) && (
-              <Tooltip title="Edit">
+                <Tooltip title="Edit">
+                  <IconButton
+                    className="mr-2"
+                    color="success"
+                    onMouseDown={() => {
+                      setTimeout(() => {
+                        setIsEditing(true);
+                      }, 0)
+                    }}
+                  >
+                    <EditOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+            )}
+
+            {status === "Done" && isHovered && (
+              <Tooltip title="continue">
                 <IconButton
-                  className="mr-2"
-                  color="success"
-                  onMouseDown={() => {
-                    setTimeout(() => {
-                      setIsEditing(true);
-                    }, 0)
+                  onClick={async () => {
+                    setIsCreating(true);
+                    try {
+                      await onCreate({ticket, startTime: dayjs().format("YYYY-MM-DDTHH:mm"), description});
+                    } finally {
+                      setIsCreating(false);
+                    }
                   }}
-                >
-                  <EditOutlinedIcon fontSize="small" />
+                  variant="outlined"
+                  color="primary">
+                  <KeyboardTabOutlinedIcon />
                 </IconButton>
               </Tooltip>
             )}
-            {(!isEditing && isHovered) && (logEntry.endTime ?
-                <Tooltip title="continue">
-                  <IconButton
-                    onClick={async () => {
-                      setIsCreating(true);
-                      try {
-                        await onCreate({ticket, startTime: dayjs().format("YYYY-MM-DDTHH:mm"), description});
-                      } finally {
-                        setIsCreating(false);
-                      }
-                    }}
-                    variant="outlined"
-                    color="primary">
-                    <StartOutlinedIcon />
-                  </IconButton>
-                </Tooltip>
-                :
-                <Tooltip title="stop">
-                  <IconButton
-                    onClick={() => {
-                      setIsStopping(true);
-                      setEndTime(dayjs());
-                      handleUpdateLogEntry({
-                        id: logEntry.id,
-                        ticket,
-                        startTime: startTime.format("YYYY-MM-DDTHH:mm"),
-                        endTime: dayjs().format("YYYY-MM-DDTHH:mm"),
-                        description
-                      });
-                      setIsStopping(false);
-                    }}
-                    variant="outlined"
-                    color="warning">
-                    <StopCircleOutlinedIcon />
-                  </IconButton>
-                </Tooltip>
+            {status === "In Progress" && isHovered && (
+              <Tooltip title="stop">
+                <IconButton
+                  onClick={() => {
+                    setIsStopping(true);
+                    handleUpdateLogEntry({
+                      id: logEntry.id,
+                      ticket,
+                      startTime: startTime.format("YYYY-MM-DDTHH:mm"),
+                      endTime: dayjs().format("YYYY-MM-DDTHH:mm"),
+                      description
+                    });
+                    setIsStopping(false);
+                  }}
+                  variant="outlined"
+                  color="warning">
+                  <StopCircleOutlinedIcon />
+                </IconButton>
+              </Tooltip>
             )}
+            {status === "Pending" && isHovered && (
+              <Tooltip title="start">
+                <IconButton
+                  onClick={() => {
+                    handleUpdateLogEntry({
+                      id: logEntry.id,
+                      ticket,
+                      startTime: dayjs().format("YYYY-MM-DDTHH:mm"),
+                      description
+                    });
+                  }}
+                  variant="outlined"
+                  color="primary">
+                  <StartOutlinedIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            
           </div>
         </div>
       </div>

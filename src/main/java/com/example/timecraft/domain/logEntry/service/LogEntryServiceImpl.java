@@ -47,7 +47,7 @@ public class LogEntryServiceImpl implements LogEntryService {
     LogEntryEntity logEntryEntity = mapper.fromCreateRequest(request);
     logEntryEntity.setDate(LocalDate.now());
 
-    stopOtherLogEntries();
+    stopOtherLogEntries(null);
 
     logEntryEntity = repository.save(logEntryEntity);
     LogEntryCreateResponse response = mapper.toCreateResponse(logEntryEntity);
@@ -80,8 +80,11 @@ public class LogEntryServiceImpl implements LogEntryService {
     return target.isAfter(border1) && target.isBefore(border2);
   }
 
-  private void stopOtherLogEntries() {
+  private void stopOtherLogEntries(Long excludedId) {
     repository.findAllByEndTimeIsNull().forEach((logEntry) -> {
+      if(logEntry.getId().equals(excludedId) || logEntry.getStartTime() == null) {
+        return;
+      }
       logEntry.setEndTime(LocalDateTime.now().withSecond(0).withNano(0));
       processSpentTime(logEntry);
       repository.save(logEntry);
@@ -89,7 +92,7 @@ public class LogEntryServiceImpl implements LogEntryService {
   }
 
   private void processSpentTime(final LogEntryEntity entity) {
-    if (entity.getEndTime() != null) {
+    if (entity.getEndTime() != null && entity.getStartTime() != null) {
       entity.setTimeSpentSeconds((int) Duration.between(entity.getStartTime(), entity.getEndTime()).toSeconds());
     } else {
       entity.setTimeSpentSeconds(null);
@@ -110,7 +113,7 @@ public class LogEntryServiceImpl implements LogEntryService {
   @Override
   public LogEntryUpdateResponse update(final long logEntryId, final LogEntryUpdateRequest request) {
     if(request.getEndTime() == null) {
-      stopOtherLogEntries();
+      stopOtherLogEntries(logEntryId);
     }
 
     LogEntryEntity entity = getRaw(logEntryId);

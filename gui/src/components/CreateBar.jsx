@@ -12,7 +12,7 @@ export default function CreateBar({onCreate}) {
   const handleCreate = async () => {
     setIsCreating(true);
     try {
-      await onCreate({ticket, startTime: startTime.format("YYYY-MM-DDTHH:mm"), description});
+      await onCreate({ticket, startTime: startTime?.format("YYYY-MM-DDTHH:mm"), description});
     } finally {
       setIsCreating(false);
     }
