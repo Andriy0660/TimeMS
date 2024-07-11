@@ -1,10 +1,12 @@
-import {Button, Chip, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
+import {Chip, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useRef, useState} from "react";
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined';
+import StartOutlinedIcon from '@mui/icons-material/StartOutlined';
 import Divider from "@mui/material/Divider";
 import useAppContext from "../context/useAppContext.js";
 
@@ -256,28 +258,41 @@ export default function LogEntry({
               </Tooltip>
             )}
             {(!isEditing && isHovered) && (logEntry.endTime ?
-              <Button
-                onClick={async ()=>{
-                  setIsCreating(true);
-                  try {
-                    await onCreate({ticket, startTime: dayjs().format("YYYY-MM-DDTHH:mm"), description});
-                  } finally {
-                    setIsCreating(false);
-                  }
-                }}
-                variant="outlined">Continue</Button> :
-              <Button
-                onClick={() => {
-                  setEndTime(dayjs());
-                  handleUpdateLogEntry({
-                    id: logEntry.id,
-                    ticket,
-                    startTime: startTime.format("YYYY-MM-DDTHH:mm"),
-                    endTime: dayjs().format("YYYY-MM-DDTHH:mm"),
-                    description
-                  });
-                }}
-                color="warning" variant="outlined">Stop</Button>
+                <Tooltip title="continue">
+                  <IconButton
+                    onClick={async () => {
+                      setIsCreating(true);
+                      try {
+                        await onCreate({ticket, startTime: dayjs().format("YYYY-MM-DDTHH:mm"), description});
+                      } finally {
+                        setIsCreating(false);
+                      }
+                    }}
+                    variant="outlined"
+                    color="primary">
+                    <StartOutlinedIcon />
+                  </IconButton>
+                </Tooltip>
+                :
+                <Tooltip title="stop">
+                  <IconButton
+                    onClick={() => {
+                      setIsStopping(true);
+                      setEndTime(dayjs());
+                      handleUpdateLogEntry({
+                        id: logEntry.id,
+                        ticket,
+                        startTime: startTime.format("YYYY-MM-DDTHH:mm"),
+                        endTime: dayjs().format("YYYY-MM-DDTHH:mm"),
+                        description
+                      });
+                      setIsStopping(false);
+                    }}
+                    variant="outlined"
+                    color="warning">
+                    <StopCircleOutlinedIcon />
+                  </IconButton>
+                </Tooltip>
             )}
           </div>
         </div>
