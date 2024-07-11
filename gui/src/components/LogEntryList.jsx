@@ -36,12 +36,19 @@ export default function LogEntryList({}) {
 
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => logEntryApi.create(body),
-    onSuccess: async () => {
+    onSuccess: async (body) => {
       queryClient.invalidateQueries(logEntries.key);
-      addAlert({
-        text: "Log entry successfully created",
-        type: "success"
-      });
+      if (body.conflicted) {
+        addAlert({
+          text: "Log entry is created with time conflicts with other entries",
+          type: "warning"
+        });
+      } else {
+        addAlert({
+          text: "Log entry is successfully created",
+          type: "success"
+        });
+      }
     },
     onError: async (error, body) => {
       addAlert({
@@ -54,12 +61,19 @@ export default function LogEntryList({}) {
 
   const {mutateAsync: update} = useMutation({
     mutationFn: (body) => logEntryApi.update(body),
-    onSuccess: async () => {
+    onSuccess: async (body) => {
       queryClient.invalidateQueries(logEntries.key);
-      addAlert({
-        text: "Log entry successfully updated",
-        type: "success"
-      });
+      if(body.conflicted) {
+        addAlert({
+          text: "Log entry is updated with time conflicts with other entries",
+          type: "warning"
+        });
+      } else {
+        addAlert({
+          text: "Log entry is successfully updated",
+          type: "success"
+        });
+      }
     },
     onError: async (error, body) => {
       queryClient.invalidateQueries(logEntries.key);

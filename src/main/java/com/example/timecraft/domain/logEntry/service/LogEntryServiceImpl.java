@@ -45,7 +45,7 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryCreateResponse create(final LogEntryCreateRequest request) {
-    validate(null, request.getStartTime(), null);
+    validate(request.getStartTime());
 
     LogEntryEntity logEntryEntity = mapper.fromCreateRequest(request);
     logEntryEntity.setDate(LocalDate.now());
@@ -53,29 +53,43 @@ public class LogEntryServiceImpl implements LogEntryService {
     stopOtherLogEntries();
 
     logEntryEntity = repository.save(logEntryEntity);
-    return mapper.toCreateResponse(logEntryEntity);
+    LogEntryCreateResponse response = mapper.toCreateResponse(logEntryEntity);
+    if (isConflictedWithOthersLogEntries(null, request.getStartTime(), null)) {
+      response.setConflicted(true);
+    }
+    return response;
   }
 
-  private void validate(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
+  private void validate(final LocalDateTime startTime) {
     if (startTime == null) {
       throw new BadRequestException("Start time must be provided");
-    }
-    if (isConflictedWithOthersLogEntries(logEntryId, startTime, endTime)) {
-      throw new BadRequestException("Log entry conflicts with others");
     }
   }
 
   private boolean isConflictedWithOthersLogEntries(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
     final List<LogEntryEntity> logEntryEntities = repository.findAll();
-    return logEntryEntities.stream().anyMatch(logEntry -> {
-          try {
-            return !logEntry.getId().equals(logEntryId) &&
-                (logEntry.getStartTime().isBefore(endTime) && logEntry.getEndTime().isAfter(startTime));
-          } catch (NullPointerException ignored) {
-            return false;
-          }
-        }
+    return logEntryEntities.stream().anyMatch(logEntry ->
+        !logEntry.getId().equals(logEntryId) &&
+            areIntervalsOverlapping(startTime, endTime, logEntry.getStartTime(), logEntry.getEndTime())
     );
+  }
+
+  private boolean areIntervalsOverlapping(final LocalDateTime startTime1, final LocalDateTime endTime1,
+                                          final LocalDateTime startTime2, final LocalDateTime endTime2) {
+    return
+        isInInterval(startTime1, endTime1, startTime2) ||
+        isInInterval(startTime1, endTime1, endTime2) ||
+        isInInterval(startTime2, endTime2, startTime1) ||
+        isInInterval(startTime2, endTime2, endTime1);
+  }
+  private boolean isInInterval(final LocalDateTime border1, final LocalDateTime border2, final LocalDateTime target) {
+    System.out.println("border1 "+border1);
+    System.out.println("border2 "+border2);
+    System.out.println("target "+target);
+    if (target == null || border1 == null || border2 == null) {
+      return false;
+    }
+    return target.isAfter(border1) && target.isBefore(border2);
   }
 
   private void stopOtherLogEntries() {
@@ -107,13 +121,17 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryUpdateResponse update(final long logEntryId, final LogEntryUpdateRequest request) {
-    validate(logEntryId, request.getStartTime(), request.getEndTime());
+    validate(request.getStartTime());
 
     LogEntryEntity entity = getRaw(logEntryId);
     mapper.fromUpdateRequest(request, entity);
     processSpentTime(entity);
     entity = repository.save(entity);
-    return mapper.toUpdateResponse(entity);
+    LogEntryUpdateResponse response = mapper.toUpdateResponse(entity);
+    if (isConflictedWithOthersLogEntries(logEntryId, entity.getStartTime(), entity.getEndTime())) {
+      response.setConflicted(true);
+    }
+    return response;
   }
 
   @Override

@@ -19,4 +19,5 @@ public class LogEntryUpdateResponse {
   private LocalDateTime endTime;
   private String description;
   private String totalTime;
+  private boolean isConflicted;
 }
