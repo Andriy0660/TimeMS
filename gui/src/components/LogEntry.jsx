@@ -8,13 +8,16 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import KeyboardTabOutlinedIcon from '@mui/icons-material/KeyboardTabOutlined';
 import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined';
 import StartOutlinedIcon from '@mui/icons-material/StartOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+
 import Divider from "@mui/material/Divider";
 import useAppContext from "../context/useAppContext.js";
 
 export default function LogEntry({
   logEntry,
   onCreate,
-  onUpdate
+  onUpdate,
+  onDelete
 }) {
   const [ticket, setTicket] = useState(logEntry.ticket || "");
   const [startTime, setStartTime] = useState(logEntry.startTime ? dayjs(logEntry.startTime) : null);
@@ -32,9 +35,7 @@ export default function LogEntry({
   }
   const status = defineStatus();
 
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isStopping, setIsStopping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedField, setEditedField] = useState(null);
@@ -61,14 +62,14 @@ export default function LogEntry({
   };
 
   const handleUpdateLogEntry = async (body) => {
-    setIsUpdating(true);
+    setIsLoading(true);
     setIsEditing(false);
     try {
       await onUpdate(body);
     } catch (error) {
       resetChanges();
     } finally {
-      setIsUpdating(false);
+      setIsLoading(false);
     }
   };
 
@@ -300,11 +301,11 @@ export default function LogEntry({
               <Tooltip title="continue">
                 <IconButton
                   onClick={async () => {
-                    setIsCreating(true);
+                    setIsLoading(true);
                     try {
                       await onCreate({ticket, startTime: dayjs().format("YYYY-MM-DDTHH:mm"), description});
                     } finally {
-                      setIsCreating(false);
+                      setIsLoading(false);
                     }
                   }}
                   variant="outlined"
@@ -317,7 +318,7 @@ export default function LogEntry({
               <Tooltip title="stop">
                 <IconButton
                   onClick={() => {
-                    setIsStopping(true);
+                    setIsLoading(true);
                     handleUpdateLogEntry({
                       id: logEntry.id,
                       ticket,
@@ -325,7 +326,7 @@ export default function LogEntry({
                       endTime: dayjs().format("YYYY-MM-DDTHH:mm"),
                       description
                     });
-                    setIsStopping(false);
+                    setIsLoading(false);
                   }}
                   variant="outlined"
                   color="warning">
@@ -337,12 +338,14 @@ export default function LogEntry({
               <Tooltip title="start">
                 <IconButton
                   onClick={() => {
+                    setIsLoading(true);
                     handleUpdateLogEntry({
                       id: logEntry.id,
                       ticket,
                       startTime: dayjs().format("YYYY-MM-DDTHH:mm"),
                       description
                     });
+                    setIsLoading(false);
                   }}
                   variant="outlined"
                   color="primary">
@@ -350,7 +353,21 @@ export default function LogEntry({
                 </IconButton>
               </Tooltip>
             )}
-            
+            {(isHovered && !isEditing) && (
+              <Tooltip title="Delete">
+                <IconButton
+                  className="mr-2"
+                  color="error"
+                  onClick={() => {
+                    setIsLoading(true);
+                    onDelete(logEntry.id);
+                    setIsLoading(false);
+                  }}
+                >
+                  <DeleteOutlineOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
           </div>
         </div>
       </div>
@@ -381,9 +398,7 @@ export default function LogEntry({
           <div className="text-justify whitespace-pre-wrap">{description}</div>
         )}
       </div>
-      {(isCreating || isUpdating || isStopping) &&
-        <LinearProgress />
-      }
+      {isLoading && <LinearProgress /> }
     </div>
   );
 }

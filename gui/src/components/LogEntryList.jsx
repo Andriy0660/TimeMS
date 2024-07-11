@@ -85,6 +85,24 @@ export default function LogEntryList({}) {
     }
   });
 
+  const {mutateAsync: deleteLogEntry} = useMutation({
+    mutationFn: (id) => logEntryApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(logEntries.key);
+      addAlert({
+        text: "You have successfully deleted log entry",
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("Deleting log entry failed:", error);
+    }
+  });
+
   useEffect(() => {
     if (listAllError) {
       addAlert({
@@ -109,6 +127,7 @@ export default function LogEntryList({}) {
         logEntry={logEntry}
         onCreate={create}
         onUpdate={update}
+        onDelete={deleteLogEntry}
       />
     </div>
   })
