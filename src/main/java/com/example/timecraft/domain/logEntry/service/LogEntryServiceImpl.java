@@ -9,7 +9,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.logEntry.dto.LogEntryCreateRequest;
 import com.example.timecraft.domain.logEntry.dto.LogEntryCreateResponse;
@@ -45,8 +44,6 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryCreateResponse create(final LogEntryCreateRequest request) {
-    validate(request.getStartTime());
-
     LogEntryEntity logEntryEntity = mapper.fromCreateRequest(request);
     logEntryEntity.setDate(LocalDate.now());
 
@@ -58,12 +55,6 @@ public class LogEntryServiceImpl implements LogEntryService {
       response.setConflicted(true);
     }
     return response;
-  }
-
-  private void validate(final LocalDateTime startTime) {
-    if (startTime == null) {
-      throw new BadRequestException("Start time must be provided");
-    }
   }
 
   private boolean isConflictedWithOthersLogEntries(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
@@ -118,7 +109,6 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryUpdateResponse update(final long logEntryId, final LogEntryUpdateRequest request) {
-    validate(request.getStartTime());
     if(request.getEndTime() == null) {
       stopOtherLogEntries();
     }
