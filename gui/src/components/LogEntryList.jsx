@@ -107,6 +107,7 @@ export default function LogEntryList({}) {
       <Divider />
       <LogEntry
         logEntry={logEntry}
+        onCreate={create}
         onUpdate={update}
       />
     </div>

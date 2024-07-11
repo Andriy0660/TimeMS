@@ -10,6 +10,7 @@ import useAppContext from "../context/useAppContext.js";
 
 export default function LogEntry({
   logEntry,
+  onCreate,
   onUpdate
 }) {
   const [ticket, setTicket] = useState(logEntry.ticket || "");
@@ -18,7 +19,9 @@ export default function LogEntry({
   const [description, setDescription] = useState(logEntry.description || "");
   const [totalTime, setTotalTime] = useState(logEntry.totalTime || "In Progress");
 
+  const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedField, setEditedField] = useState(null);
@@ -44,17 +47,11 @@ export default function LogEntry({
     setIsEditing(false);
   };
 
-  const handleUpdateLogEntry = async () => {
+  const handleUpdateLogEntry = async (body) => {
     setIsUpdating(true);
     setIsEditing(false);
     try {
-      await onUpdate({
-        id: logEntry.id,
-        ticket,
-        startTime: startTime.format("YYYY-MM-DDTHH:mm"),
-        endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
-        description
-      });
+      await onUpdate(body);
     } catch (error) {
       resetChanges();
     } finally {
@@ -81,7 +78,13 @@ export default function LogEntry({
           setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
           return;
         }
-        handleUpdateLogEntry();
+        handleUpdateLogEntry({
+          id: logEntry.id,
+          ticket,
+          startTime: startTime.format("YYYY-MM-DDTHH:mm"),
+          endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
+          description
+        });
       }
     }
   };
@@ -220,7 +223,13 @@ export default function LogEntry({
                 <Tooltip title="Save">
                   <span>
                     <IconButton
-                      onClick={() => handleUpdateLogEntry()}
+                      onClick={() => handleUpdateLogEntry({
+                        id: logEntry.id,
+                        ticket,
+                        startTime: startTime.format("YYYY-MM-DDTHH:mm"),
+                        endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
+                        description
+                      })}
                       className="mr-0"
                       color="success"
                       disabled={startTime.isAfter(endTime)}
@@ -247,8 +256,28 @@ export default function LogEntry({
               </Tooltip>
             )}
             {logEntry.endTime ?
-              <Button variant="outlined">Continue</Button> :
-              <Button color="warning" variant="outlined">Stop</Button>
+              <Button
+                onClick={async ()=>{
+                  setIsCreating(true);
+                  try {
+                    await onCreate({ticket, startTime: dayjs().format("YYYY-MM-DDTHH:mm"), description});
+                  } finally {
+                    setIsCreating(false);
+                  }
+                }}
+                variant="outlined">Continue</Button> :
+              <Button
+                onClick={() => {
+                  setEndTime(dayjs());
+                  handleUpdateLogEntry({
+                    id: logEntry.id,
+                    ticket,
+                    startTime: startTime.format("YYYY-MM-DDTHH:mm"),
+                    endTime: dayjs().format("YYYY-MM-DDTHH:mm"),
+                    description
+                  });
+                }}
+                color="warning" variant="outlined">Stop</Button>
             }
           </div>
         </div>
@@ -280,7 +309,7 @@ export default function LogEntry({
           <div className="text-justify whitespace-pre-wrap">{description}</div>
         )}
       </div>
-      {isUpdating &&
+      {(isCreating || isUpdating || isStopping) &&
         <LinearProgress />
       }
     </div>
