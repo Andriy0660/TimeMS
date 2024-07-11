@@ -51,10 +51,12 @@ export default function LogEntry({
       await onUpdate({
         id: logEntry.id,
         ticket,
-        startTime: startTime.format("YYYY-MM-DDTHH:mm:ss"),
-        endTime: endTime?.format("YYYY-MM-DDTHH:mm:ss"),
+        startTime: startTime.format("YYYY-MM-DDTHH:mm"),
+        endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
         description
       });
+    } catch (error) {
+      resetChanges();
     } finally {
       setIsUpdating(false);
     }

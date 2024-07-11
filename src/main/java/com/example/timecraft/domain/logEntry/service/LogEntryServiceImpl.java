@@ -80,7 +80,7 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   private void stopOtherLogEntries() {
     repository.findAllByEndTimeIsNull().forEach((logEntry) -> {
-      logEntry.setEndTime(LocalDateTime.now());
+      logEntry.setEndTime(LocalDateTime.now().withSecond(0).withNano(0));
       processSpentTime(logEntry);
       repository.save(logEntry);
     });

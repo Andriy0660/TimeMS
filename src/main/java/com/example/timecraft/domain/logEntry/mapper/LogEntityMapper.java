@@ -23,11 +23,7 @@ public interface LogEntityMapper {
   @Named("mapTotalTime")
   default String mapTotalTime(int timeSpentSeconds) {
     Duration duration = Duration.ofSeconds(timeSpentSeconds);
-    long hours = duration.toHours();
-    long minutes = duration.toMinutesPart();
-    minutes += duration.toSecondsPart() > 30 ? 1 : 0;
-
-    return String.format("%dh %dm", hours, minutes);
+    return String.format("%dh %dm", duration.toHours(), duration.toMinutesPart());
   }
 
   LogEntryEntity fromCreateRequest(final LogEntryCreateRequest request);

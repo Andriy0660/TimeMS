@@ -62,6 +62,7 @@ export default function LogEntryList({}) {
       });
     },
     onError: async (error, body) => {
+      queryClient.invalidateQueries(logEntries.key);
       addAlert({
         text: error.displayMessage,
         type: "error"
