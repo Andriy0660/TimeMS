@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import {useState} from "react";
 import RestoreIcon from '@mui/icons-material/Restore';
 
-export default function CreateLogEntry({onCreate}) {
+export default function CreateBar({onCreate}) {
   const [ticket, setTicket] = useState("");
   const [startTime, setStartTime] = useState(dayjs());
   const [description, setDescription] = useState("");
@@ -33,13 +33,16 @@ export default function CreateLogEntry({onCreate}) {
       </div>
       <div className="ml-2 my-2">
         <TimeField
-          error={!startTime}
           className="w-20"
           label="Start"
           size="small"
           value={startTime}
           onChange={(date) => {
-            setStartTime(!dayjs(date).isValid() ? null : dayjs(date))
+            if (date === null) {
+              setStartTime(null);
+            } else if (dayjs(date).isValid()) {
+              setStartTime(dayjs(date))
+            }
           }}
           format="HH:mm"
         />
@@ -66,7 +69,6 @@ export default function CreateLogEntry({onCreate}) {
       <div className="mx-2 my-2">
         <Button
           variant="outlined"
-          disabled={!startTime}
           onClick={handleCreate}
         >
           {isCreating ? <CircularProgress size={25} /> : "Start"}

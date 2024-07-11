@@ -2,7 +2,7 @@ import LogEntry from "./LogEntry.jsx";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import Divider from "@mui/material/Divider";
-import CreateLogEntry from "./CreateLogEntry.jsx";
+import CreateBar from "./CreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import logEntryApi from "../api/logEntryApi.js";
 import {CircularProgress} from "@mui/material";
@@ -117,7 +117,7 @@ export default function LogEntryList({}) {
     <div className="m-4 flex flex-col items-center">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <div className="w-3/5 overflow-x-auto shadow-md bg-gray-50">
-          <CreateLogEntry
+          <CreateBar
             onCreate={create}
           />
           {renderedLogEntries}
