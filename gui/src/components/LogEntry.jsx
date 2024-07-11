@@ -16,6 +16,7 @@ export default function LogEntry({
   const [startTime, setStartTime] = useState(dayjs(logEntry.startTime));
   const [endTime, setEndTime] = useState(logEntry.endTime ? dayjs(logEntry.endTime) : null);
   const [description, setDescription] = useState(logEntry.description || "");
+  const [totalTime, setTotalTime] = useState(logEntry.totalTime || "In Progress");
 
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -31,6 +32,7 @@ export default function LogEntry({
     setStartTime(dayjs(logEntry.startTime))
     setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null)
     setDescription(logEntry?.description)
+    setTotalTime(logEntry.totalTime || "In Progress")
   }, [logEntry])
 
   const resetChanges = () => {
@@ -69,9 +71,9 @@ export default function LogEntry({
     if (logEntryRef.current && !logEntryRef.current.contains(event.target)) {
       setIsEditing(false);
       if (isModified) {
-        if (!endTime.isAfter(startTime)) {
+        if (startTime.isAfter(endTime)) {
           addAlert({
-            text: "End time can not be before start time",
+            text: "End time must be great than start time",
             type: "error"
           })
           setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
@@ -189,7 +191,7 @@ export default function LogEntry({
             </>
           )}
           <Chip
-            label={logEntry.totalTime ?? "In Progress..."}
+            label={totalTime}
             color="primary"
             variant="outlined"
             size="small"
@@ -229,7 +231,7 @@ export default function LogEntry({
                 </IconButton>
               </Tooltip>
             )}
-            {logEntry.totalTime ?
+            {totalTime ?
               <Button variant="outlined">Continue</Button> :
               <Button color="warning" variant="outlined">Stop</Button>
             }

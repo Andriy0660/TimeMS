@@ -82,6 +82,8 @@ public class LogEntryServiceImpl implements LogEntryService {
     mapper.fromUpdateRequest(request, entity);
     if (request.getEndTime() != null) {
       entity.setTimeSpentSeconds((int) Duration.between(entity.getStartTime(), entity.getEndTime()).toSeconds());
+    } else {
+      entity.setTimeSpentSeconds(null);
     }
     entity = repository.save(entity);
     return mapper.toUpdateResponse(entity);
