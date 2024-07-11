@@ -1,7 +1,8 @@
-import {Button, CircularProgress, TextField} from "@mui/material";
+import {Button, CircularProgress, IconButton, TextField} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useState} from "react";
+import RestoreIcon from '@mui/icons-material/Restore';
 
 export default function CreateLogEntry({onCreate}) {
   const [ticket, setTicket] = useState("");
@@ -20,7 +21,7 @@ export default function CreateLogEntry({onCreate}) {
   }
   return (
     <div className="flex items-center">
-      <div className="px-2 py-2 font-medium">
+      <div className="mx-2 my-2">
         <TextField
           className="w-24"
           label="Ticket"
@@ -30,7 +31,7 @@ export default function CreateLogEntry({onCreate}) {
           autoComplete="off"
         />
       </div>
-      <div className="px-2 py-2">
+      <div className="ml-2 my-2">
         <TimeField
           error={!startTime}
           className="w-20"
@@ -43,8 +44,9 @@ export default function CreateLogEntry({onCreate}) {
           format="HH:mm"
         />
       </div>
+      <IconButton size="small" onClick={() => setStartTime(dayjs())}><RestoreIcon fontSize="small" /></IconButton>
 
-      <div className="min-w-40 w-full px-2 py-2">
+      <div className="min-w-40 w-full mx-2 my-2">
         <TextField
           className="w-full"
           label="Description"
@@ -61,7 +63,7 @@ export default function CreateLogEntry({onCreate}) {
           }}
         />
       </div>
-      <div className="px-2 py-2">
+      <div className="mx-2 my-2">
         <Button
           variant="outlined"
           disabled={!startTime}
