@@ -144,7 +144,13 @@ export default function LogEntry({
                   className="w-20"
                   label="End"
                   value={endTime}
-                  onChange={(date) => setEndTime(date ? dayjs(date) : null)}
+                  onChange={(date) => {
+                    if (date === null) {
+                      setEndTime(null);
+                    } else if (dayjs(date).isValid()) {
+                      setEndTime(dayjs(date))
+                    }
+                  }}
                   size="small"
                   format="HH:mm"
                 />
@@ -212,9 +218,16 @@ export default function LogEntry({
                 </Tooltip>
 
                 <Tooltip title="Save">
-                  <IconButton onClick={() => handleUpdateLogEntry()} className="mr-0" color="success">
-                    <SaveOutlinedIcon fontSize="small" />
-                  </IconButton>
+                  <span>
+                    <IconButton
+                      onClick={() => handleUpdateLogEntry()}
+                      className="mr-0"
+                      color="success"
+                      disabled={startTime.isAfter(endTime)}
+                    >
+                      <SaveOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </span>
                 </Tooltip>
               </div>
             )}
