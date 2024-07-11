@@ -36,9 +36,9 @@ public class LogEntryServiceImpl implements LogEntryService {
         .map(mapper::toListItem)
         .sorted(
             Comparator.comparing(
-                LogEntryListAllResponse.LogEntryDto::getEndTime,
-                Comparator.nullsFirst(Comparator.reverseOrder())
-            ))
+                LogEntryListAllResponse.LogEntryDto::getStartTime,
+                Comparator.nullsLast(Comparator.naturalOrder())
+            ).thenComparing(LogEntryListAllResponse.LogEntryDto::getId))
         .toList();
     return new LogEntryListAllResponse(logEntryDtoList);
   }
