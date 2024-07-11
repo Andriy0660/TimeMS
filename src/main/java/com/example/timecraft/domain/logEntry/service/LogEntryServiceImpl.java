@@ -83,10 +83,7 @@ public class LogEntryServiceImpl implements LogEntryService {
         isInInterval(startTime2, endTime2, endTime1);
   }
   private boolean isInInterval(final LocalDateTime border1, final LocalDateTime border2, final LocalDateTime target) {
-    System.out.println("border1 "+border1);
-    System.out.println("border2 "+border2);
-    System.out.println("target "+target);
-    if (target == null || border1 == null || border2 == null) {
+     if (target == null || border1 == null || border2 == null) {
       return false;
     }
     return target.isAfter(border1) && target.isBefore(border2);
@@ -122,11 +119,15 @@ public class LogEntryServiceImpl implements LogEntryService {
   @Override
   public LogEntryUpdateResponse update(final long logEntryId, final LogEntryUpdateRequest request) {
     validate(request.getStartTime());
+    if(request.getEndTime() == null) {
+      stopOtherLogEntries();
+    }
 
     LogEntryEntity entity = getRaw(logEntryId);
     mapper.fromUpdateRequest(request, entity);
     processSpentTime(entity);
     entity = repository.save(entity);
+
     LogEntryUpdateResponse response = mapper.toUpdateResponse(entity);
     if (isConflictedWithOthersLogEntries(logEntryId, entity.getStartTime(), entity.getEndTime())) {
       response.setConflicted(true);
