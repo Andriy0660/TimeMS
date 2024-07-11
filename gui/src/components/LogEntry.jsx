@@ -106,7 +106,7 @@ export default function LogEntry({
 
   return (
     <div
-      className="p-4"
+      className={`p-4 ${totalTime==="In Progress"?"bg-blue-50":""}`}
       ref={logEntryRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -164,7 +164,7 @@ export default function LogEntry({
           ) : (
             <>
               <div
-                className="mr-4 my-2 hover:bg-blue-50"
+                className="mr-4 my-2 hover:bg-blue-100"
                 onClick={() => {
                   setIsEditing(true);
                   setEditedField("startTime");
@@ -176,7 +176,7 @@ export default function LogEntry({
                 <>
                   -
                   <div
-                    className="mx-4 my-2 hover:bg-blue-50"
+                    className="mx-4 my-2 hover:bg-blue-100"
                     onClick={() => {
                       setIsEditing(true);
                       setEditedField("endTime");
@@ -191,7 +191,7 @@ export default function LogEntry({
                 <>
                   <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />
                   <div
-                    className="mr-4 my-2 hover:bg-blue-50"
+                    className="mr-4 my-2 hover:bg-blue-100"
                     onClick={() => {
                       setIsEditing(true);
                       setEditedField("ticket");
@@ -211,6 +211,15 @@ export default function LogEntry({
             size="small"
             className="shadow-md"
           />
+          {(totalTime==="In Progress" && dayjs().isAfter(startTime)) ? (
+            <Chip
+              label={`${dayjs().diff(startTime, "hour")}h ${dayjs().diff(startTime, "minute")}m`}
+              color="primary"
+              variant="outlined"
+              size="small"
+              className="shadow-md mx-2"
+            />
+          ):null}
         </div>
 
         <div className="flex items-center">
@@ -300,7 +309,7 @@ export default function LogEntry({
       </div>
 
       <div
-        className={`mt-1 ${isEditing ? "" : "hover:bg-blue-50"}`}
+        className={`mt-1 ${isEditing ? "" : "hover:bg-blue-100"}`}
         onClick={() => {
           setIsEditing(true);
           setEditedField("description");
