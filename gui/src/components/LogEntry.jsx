@@ -163,21 +163,6 @@ export default function LogEntry({
             </>
           ) : (
             <>
-              {ticket && (
-                <>
-                  <div
-                    className="mr-4 my-2 hover:bg-blue-50"
-                    onClick={() => {
-                      setIsEditing(true);
-                      setEditedField("ticket");
-                    }}
-                  >
-                    <Typography className="font-bold">{ticket}</Typography>
-                  </div>
-                  <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />
-                </>
-              )}
-
               <div
                 className="mr-4 my-2 hover:bg-blue-50"
                 onClick={() => {
@@ -201,6 +186,22 @@ export default function LogEntry({
                   </div>
                 </>
               )}
+
+              {ticket && (
+                <>
+                  <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />
+                  <div
+                    className="mr-4 my-2 hover:bg-blue-50"
+                    onClick={() => {
+                      setIsEditing(true);
+                      setEditedField("ticket");
+                    }}
+                  >
+                    <Typography className="font-bold">{ticket}</Typography>
+                  </div>
+                </>
+              )}
+
             </>
           )}
           <Chip
