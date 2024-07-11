@@ -255,7 +255,7 @@ export default function LogEntry({
                 </IconButton>
               </Tooltip>
             )}
-            {logEntry.endTime ?
+            {(!isEditing && isHovered) && (logEntry.endTime ?
               <Button
                 onClick={async ()=>{
                   setIsCreating(true);
@@ -278,7 +278,7 @@ export default function LogEntry({
                   });
                 }}
                 color="warning" variant="outlined">Stop</Button>
-            }
+            )}
           </div>
         </div>
       </div>
