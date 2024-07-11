@@ -45,22 +45,52 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryCreateResponse create(final LogEntryCreateRequest request) {
-    validateStartTime(request.getStartTime());
+    validate(null, request.getStartTime(), null);
+
     LogEntryEntity logEntryEntity = mapper.fromCreateRequest(request);
     logEntryEntity.setDate(LocalDate.now());
-    repository.findAllByEndTimeIsNull().forEach((logEntry) -> {
-      logEntry.setEndTime(LocalDateTime.now());
-      logEntry.setTimeSpentSeconds((int) Duration.between(logEntry.getStartTime(), logEntry.getEndTime()).toSeconds());
-      repository.save(logEntry);
-    });
+
+    stopOtherLogEntries();
 
     logEntryEntity = repository.save(logEntryEntity);
     return mapper.toCreateResponse(logEntryEntity);
   }
 
-  private void validateStartTime(final LocalDateTime startTime) {
+  private void validate(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
     if (startTime == null) {
       throw new BadRequestException("Start time must be provided");
+    }
+    if (isConflictedWithOthersLogEntries(logEntryId, startTime, endTime)) {
+      throw new BadRequestException("Log entry conflicts with others");
+    }
+  }
+
+  private boolean isConflictedWithOthersLogEntries(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
+    final List<LogEntryEntity> logEntryEntities = repository.findAll();
+    return logEntryEntities.stream().anyMatch(logEntry -> {
+          try {
+            return !logEntry.getId().equals(logEntryId) &&
+                (logEntry.getStartTime().isBefore(endTime) && logEntry.getEndTime().isAfter(startTime));
+          } catch (NullPointerException ignored) {
+            return false;
+          }
+        }
+    );
+  }
+
+  private void stopOtherLogEntries() {
+    repository.findAllByEndTimeIsNull().forEach((logEntry) -> {
+      logEntry.setEndTime(LocalDateTime.now());
+      processSpentTime(logEntry);
+      repository.save(logEntry);
+    });
+  }
+
+  private void processSpentTime(final LogEntryEntity entity) {
+    if (entity.getEndTime() != null) {
+      entity.setTimeSpentSeconds((int) Duration.between(entity.getStartTime(), entity.getEndTime()).toSeconds());
+    } else {
+      entity.setTimeSpentSeconds(null);
     }
   }
 
@@ -77,14 +107,11 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryUpdateResponse update(final long logEntryId, final LogEntryUpdateRequest request) {
-    validateStartTime(request.getStartTime());
+    validate(logEntryId, request.getStartTime(), request.getEndTime());
+
     LogEntryEntity entity = getRaw(logEntryId);
     mapper.fromUpdateRequest(request, entity);
-    if (request.getEndTime() != null) {
-      entity.setTimeSpentSeconds((int) Duration.between(entity.getStartTime(), entity.getEndTime()).toSeconds());
-    } else {
-      entity.setTimeSpentSeconds(null);
-    }
+    processSpentTime(entity);
     entity = repository.save(entity);
     return mapper.toUpdateResponse(entity);
   }
