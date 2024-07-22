@@ -27,10 +27,12 @@ public interface LogEntityMapper {
   }
 
   LogEntryEntity fromCreateRequest(final LogEntryCreateRequest request);
+
   LogEntryCreateResponse toCreateResponse(final LogEntryEntity entity);
 
   @Mapping(target = "totalTime", source = "timeSpentSeconds", qualifiedByName = "mapTotalTime")
   LogEntryGetResponse toGetResponse(final LogEntryEntity entity);
+
   void fromUpdateRequest(LogEntryUpdateRequest request, @MappingTarget LogEntryEntity entity);
 
   @Mapping(target = "totalTime", source = "timeSpentSeconds", qualifiedByName = "mapTotalTime")

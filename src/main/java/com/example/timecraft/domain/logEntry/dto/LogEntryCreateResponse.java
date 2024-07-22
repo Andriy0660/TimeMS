@@ -17,4 +17,5 @@ public class LogEntryCreateResponse {
   private String ticket;
   private LocalDateTime startTime;
   private String description;
+  private boolean isConflicted;
 }

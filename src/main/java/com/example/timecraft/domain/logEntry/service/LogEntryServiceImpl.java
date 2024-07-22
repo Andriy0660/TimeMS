@@ -3,12 +3,12 @@ package com.example.timecraft.domain.logEntry.service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.logEntry.dto.LogEntryCreateRequest;
 import com.example.timecraft.domain.logEntry.dto.LogEntryCreateResponse;
@@ -31,22 +31,71 @@ public class LogEntryServiceImpl implements LogEntryService {
   @Override
   public LogEntryListAllResponse listAll() {
     final List<LogEntryEntity> logEntryEntityList = repository.findAll();
-    final List<LogEntryListAllResponse.LogEntryDto> logEntryDtoList = logEntryEntityList.stream().map(mapper::toListItem).toList();
+    final List<LogEntryListAllResponse.LogEntryDto> logEntryDtoList = logEntryEntityList.stream()
+        .map(mapper::toListItem)
+        .sorted(
+            Comparator.comparing(
+                LogEntryListAllResponse.LogEntryDto::getStartTime,
+                Comparator.nullsLast(Comparator.naturalOrder())
+            ).thenComparing(LogEntryListAllResponse.LogEntryDto::getId))
+        .toList();
     return new LogEntryListAllResponse(logEntryDtoList);
   }
 
   @Override
   public LogEntryCreateResponse create(final LogEntryCreateRequest request) {
-    validateStartTime(request.getStartTime());
     LogEntryEntity logEntryEntity = mapper.fromCreateRequest(request);
     logEntryEntity.setDate(LocalDate.now());
+
+    stopOtherLogEntries(null);
+
     logEntryEntity = repository.save(logEntryEntity);
-    return mapper.toCreateResponse(logEntryEntity);
+    LogEntryCreateResponse response = mapper.toCreateResponse(logEntryEntity);
+    if (isConflictedWithOthersLogEntries(null, request.getStartTime(), null)) {
+      response.setConflicted(true);
+    }
+    return response;
   }
 
-  private void validateStartTime(final LocalDateTime startTime) {
-    if (startTime == null) {
-      throw new BadRequestException("Start time must be provided");
+  private boolean isConflictedWithOthersLogEntries(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
+    final List<LogEntryEntity> logEntryEntities = repository.findAll();
+    return logEntryEntities.stream().anyMatch(logEntry ->
+        !logEntry.getId().equals(logEntryId) &&
+            areIntervalsOverlapping(startTime, endTime, logEntry.getStartTime(), logEntry.getEndTime())
+    );
+  }
+
+  private boolean areIntervalsOverlapping(final LocalDateTime startTime1, final LocalDateTime endTime1,
+                                          final LocalDateTime startTime2, final LocalDateTime endTime2) {
+    return
+        isInInterval(startTime1, endTime1, startTime2) ||
+        isInInterval(startTime1, endTime1, endTime2) ||
+        isInInterval(startTime2, endTime2, startTime1) ||
+        isInInterval(startTime2, endTime2, endTime1);
+  }
+  private boolean isInInterval(final LocalDateTime border1, final LocalDateTime border2, final LocalDateTime target) {
+     if (target == null || border1 == null || border2 == null) {
+      return false;
+    }
+    return target.isAfter(border1) && target.isBefore(border2);
+  }
+
+  private void stopOtherLogEntries(Long excludedId) {
+    repository.findAllByEndTimeIsNull().forEach((logEntry) -> {
+      if(logEntry.getId().equals(excludedId) || logEntry.getStartTime() == null) {
+        return;
+      }
+      logEntry.setEndTime(LocalDateTime.now().withSecond(0).withNano(0));
+      processSpentTime(logEntry);
+      repository.save(logEntry);
+    });
+  }
+
+  private void processSpentTime(final LogEntryEntity entity) {
+    if (entity.getEndTime() != null && entity.getStartTime() != null) {
+      entity.setTimeSpentSeconds((int) Duration.between(entity.getStartTime(), entity.getEndTime()).toSeconds());
+    } else {
+      entity.setTimeSpentSeconds(null);
     }
   }
 
@@ -63,14 +112,20 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public LogEntryUpdateResponse update(final long logEntryId, final LogEntryUpdateRequest request) {
-    validateStartTime(request.getStartTime());
+    if(request.getEndTime() == null) {
+      stopOtherLogEntries(logEntryId);
+    }
+
     LogEntryEntity entity = getRaw(logEntryId);
     mapper.fromUpdateRequest(request, entity);
-    if (request.getEndTime() != null) {
-      entity.setTimeSpentSeconds((int) Duration.between(entity.getStartTime(), entity.getEndTime()).toSeconds());
-    }
+    processSpentTime(entity);
     entity = repository.save(entity);
-    return mapper.toUpdateResponse(entity);
+
+    LogEntryUpdateResponse response = mapper.toUpdateResponse(entity);
+    if (isConflictedWithOthersLogEntries(logEntryId, entity.getStartTime(), entity.getEndTime())) {
+      response.setConflicted(true);
+    }
+    return response;
   }
 
   @Override

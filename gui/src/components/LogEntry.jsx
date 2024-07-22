@@ -1,42 +1,82 @@
-import {Button, Chip, IconButton, TextField, Tooltip, Typography} from "@mui/material";
+import {Chip, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useRef, useState} from "react";
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import Divider from "@mui/material/Divider";
+import KeyboardTabOutlinedIcon from '@mui/icons-material/KeyboardTabOutlined';
+import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined';
+import StartOutlinedIcon from '@mui/icons-material/StartOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 
-export default function LogEntry({logEntry}) {
+import Divider from "@mui/material/Divider";
+import useAppContext from "../context/useAppContext.js";
+
+export default function LogEntry({
+  logEntry,
+  onCreate,
+  onUpdate,
+  onDelete
+}) {
   const [ticket, setTicket] = useState(logEntry.ticket || "");
-  const [startTime, setStartTime] = useState(dayjs(logEntry.startTime));
+  const [startTime, setStartTime] = useState(logEntry.startTime ? dayjs(logEntry.startTime) : null);
   const [endTime, setEndTime] = useState(logEntry.endTime ? dayjs(logEntry.endTime) : null);
   const [description, setDescription] = useState(logEntry.description || "");
+  const [totalTime, setTotalTime] = useState(logEntry.totalTime);
+  const defineStatus = () => {
+    if (logEntry.totalTime) {
+      return "Done";
+    }
+    if (startTime) {
+      return "In Progress";
+    }
+    return "Pending";
+  }
+  const status = defineStatus();
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedField, setEditedField] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
 
   const logEntryRef = useRef(null);
+  const {addAlert} = useAppContext();
+
+  useEffect(() => {
+    setTicket(logEntry?.ticket)
+    setStartTime(logEntry.startTime ? dayjs(logEntry.startTime) : null)
+    setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null)
+    setDescription(logEntry?.description)
+    setTotalTime(logEntry.totalTime)
+  }, [logEntry])
 
   const resetChanges = () => {
     console.log("reset");
     setTicket(logEntry.ticket || "");
-    setStartTime(dayjs(logEntry.startTime));
+    setStartTime(logEntry.startTime ? dayjs(logEntry.startTime) : null);
     setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
     setDescription(logEntry.description || "");
     setIsEditing(false);
   };
 
-  const handleSaveLogEntry = () => {
-    console.log("saved");
+  const handleUpdateLogEntry = async (body) => {
+    setIsLoading(true);
     setIsEditing(false);
+    try {
+      await onUpdate(body);
+    } catch (error) {
+      resetChanges();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const isModified = (
     ticket !== logEntry.ticket ||
     description !== logEntry.description ||
-    !startTime.isSame(dayjs(logEntry.startTime)) ||
+    ((startTime || logEntry.startTime) && !startTime?.isSame(dayjs(logEntry.startTime))) ||
     ((endTime || logEntry.endTime) && !endTime?.isSame(dayjs(logEntry?.endTime)))
   );
 
@@ -44,14 +84,31 @@ export default function LogEntry({logEntry}) {
     if (logEntryRef.current && !logEntryRef.current.contains(event.target)) {
       setIsEditing(false);
       if (isModified) {
-        handleSaveLogEntry()
+        if (startTime?.isAfter(endTime)) {
+          addAlert({
+            text: "End time must be great than start time",
+            type: "error"
+          })
+          setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
+          return;
+        }
+        handleUpdateLogEntry({
+          id: logEntry.id,
+          ticket,
+          startTime: startTime?.format("YYYY-MM-DDTHH:mm"),
+          endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
+          description
+        });
       }
     }
   };
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
-  }, []);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [handleClickOutside]);
 
   useEffect(() => {
     if (isEditing && editedField) {
@@ -61,7 +118,7 @@ export default function LogEntry({logEntry}) {
 
   return (
     <div
-      className="p-4"
+      className={`p-4 ${status === "In Progress" ? "bg-blue-50" : ""}`}
       ref={logEntryRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -90,7 +147,9 @@ export default function LogEntry({logEntry}) {
                   size="small"
                   value={startTime}
                   onChange={(date) => {
-                    if (dayjs(date).isValid() && date !== null) {
+                    if (date === null) {
+                      setStartTime(null);
+                    } else if (dayjs(date).isValid()) {
                       setStartTime(dayjs(date))
                     }
                   }}
@@ -104,7 +163,13 @@ export default function LogEntry({logEntry}) {
                   className="w-20"
                   label="End"
                   value={endTime}
-                  onChange={(date) => setEndTime(date ? dayjs(date) : null)}
+                  onChange={(date) => {
+                    if (date === null) {
+                      setEndTime(null);
+                    } else if (dayjs(date).isValid()) {
+                      setEndTime(dayjs(date))
+                    }
+                  }}
                   size="small"
                   format="HH:mm"
                 />
@@ -112,35 +177,22 @@ export default function LogEntry({logEntry}) {
             </>
           ) : (
             <>
-              {ticket && (
-                <>
-                  <div
-                    className="mr-4 my-2 hover:bg-blue-50"
-                    onClick={() => {
-                      setIsEditing(true);
-                      setEditedField("ticket");
-                    }}
-                  >
-                    <Typography className="font-bold">{ticket}</Typography>
-                  </div>
-                  <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />
-                </>
-              )}
-
-              <div
-                className="mr-4 my-2 hover:bg-blue-50"
-                onClick={() => {
-                  setIsEditing(true);
-                  setEditedField("startTime");
-                }}
-              >
-                <Typography className="font-bold">{startTime.format("HH:mm")}</Typography>
-              </div>
+              {startTime &&
+                <div
+                  className="mr-4 my-2 hover:bg-blue-100"
+                  onClick={() => {
+                    setIsEditing(true);
+                    setEditedField("startTime");
+                  }}
+                >
+                  <Typography className="font-bold">{startTime?.format("HH:mm")}</Typography>
+                </div>
+              }
               {endTime && (
                 <>
                   -
                   <div
-                    className="mx-4 my-2 hover:bg-blue-50"
+                    className="mx-4 my-2 hover:bg-blue-100"
                     onClick={() => {
                       setIsEditing(true);
                       setEditedField("endTime");
@@ -150,15 +202,53 @@ export default function LogEntry({logEntry}) {
                   </div>
                 </>
               )}
+
+              {ticket && (
+                <>
+                  <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />
+                  <div
+                    className="mr-4 my-2 hover:bg-blue-100"
+                    onClick={() => {
+                      setIsEditing(true);
+                      setEditedField("ticket");
+                    }}
+                  >
+                    <Typography className="font-bold">{ticket}</Typography>
+                  </div>
+                </>
+              )}
+
             </>
           )}
-          <Chip
-            label={logEntry.totalTime ?? "In Progress..."}
-            color="primary"
-            variant="outlined"
-            size="small"
-            className="shadow-md"
-          />
+          {totalTime &&
+            <Chip
+              label={totalTime}
+              color="primary"
+              variant="outlined"
+              size="small"
+              className="shadow-md mx-2"
+            />
+          }
+          {(status === "In Progress" && dayjs().isAfter(startTime)) && (
+            <Chip
+              label={`${dayjs().diff(startTime, "hour")}h ${dayjs().diff(startTime, "minute") % 60}m`}
+              color="primary"
+              variant="outlined"
+              size="small"
+              className="shadow-md mx-2"
+            />
+          )}
+
+          {(status === "Pending") && (
+            <Chip
+              label={status}
+              color="primary"
+              variant="outlined"
+              size="small"
+              className="shadow-md"
+            />
+          )}
+
         </div>
 
         <div className="flex items-center">
@@ -172,37 +262,118 @@ export default function LogEntry({logEntry}) {
                 </Tooltip>
 
                 <Tooltip title="Save">
-                  <IconButton onClick={() => handleSaveLogEntry()} className="mr-0" color="success">
-                    <SaveOutlinedIcon fontSize="small" />
-                  </IconButton>
+                  <span>
+                    <IconButton
+                      onClick={() => handleUpdateLogEntry({
+                        id: logEntry.id,
+                        ticket,
+                        startTime: startTime?.format("YYYY-MM-DDTHH:mm"),
+                        endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
+                        description
+                      })}
+                      className="mr-0"
+                      color="success"
+                      disabled={startTime?.isAfter(endTime)}
+                    >
+                      <SaveOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </span>
                 </Tooltip>
               </div>
             )}
             {(isHovered && !isEditing) && (
-              <Tooltip title="Edit">
+                <Tooltip title="Edit">
+                  <IconButton
+                    className="mr-2"
+                    color="success"
+                    onMouseDown={() => {
+                      setTimeout(() => {
+                        setIsEditing(true);
+                      }, 0)
+                    }}
+                  >
+                    <EditOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+            )}
+
+            {status === "Done" && isHovered && (
+              <Tooltip title="continue">
                 <IconButton
-                  className="mr-2"
-                  color="success"
-                  onMouseDown={() => {
-                    setTimeout(() => {
-                      setIsEditing(true);
-                    }, 0)
+                  onClick={async () => {
+                    setIsLoading(true);
+                    try {
+                      await onCreate({ticket, startTime: dayjs().format("YYYY-MM-DDTHH:mm"), description});
+                    } finally {
+                      setIsLoading(false);
+                    }
                   }}
-                >
-                  <EditOutlinedIcon fontSize="small" />
+                  variant="outlined"
+                  color="primary">
+                  <KeyboardTabOutlinedIcon />
                 </IconButton>
               </Tooltip>
             )}
-            {logEntry.totalTime ?
-              <Button variant="outlined">Continue</Button> :
-              <Button color="warning" variant="outlined">Stop</Button>
-            }
+            {status === "In Progress" && isHovered && (
+              <Tooltip title="stop">
+                <IconButton
+                  onClick={() => {
+                    setIsLoading(true);
+                    handleUpdateLogEntry({
+                      id: logEntry.id,
+                      ticket,
+                      startTime: startTime.format("YYYY-MM-DDTHH:mm"),
+                      endTime: dayjs().format("YYYY-MM-DDTHH:mm"),
+                      description
+                    });
+                    setIsLoading(false);
+                  }}
+                  variant="outlined"
+                  color="warning">
+                  <StopCircleOutlinedIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {status === "Pending" && isHovered && (
+              <Tooltip title="start">
+                <IconButton
+                  onClick={() => {
+                    setIsLoading(true);
+                    handleUpdateLogEntry({
+                      id: logEntry.id,
+                      ticket,
+                      startTime: dayjs().format("YYYY-MM-DDTHH:mm"),
+                      description
+                    });
+                    setIsLoading(false);
+                  }}
+                  variant="outlined"
+                  color="primary">
+                  <StartOutlinedIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {(isHovered && !isEditing) && (
+              <Tooltip title="Delete">
+                <IconButton
+                  className="mr-2"
+                  color="error"
+                  onClick={() => {
+                    setIsLoading(true);
+                    onDelete(logEntry.id);
+                    setIsLoading(false);
+                  }}
+                >
+                  <DeleteOutlineOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
           </div>
         </div>
       </div>
 
       <div
-        className={`mt-1 ${isEditing ? "" : "hover:bg-blue-50"}`}
+        className={`mt-1 ${isEditing ? "" : "hover:bg-blue-100"}`}
         onClick={() => {
           setIsEditing(true);
           setEditedField("description");
@@ -227,6 +398,7 @@ export default function LogEntry({logEntry}) {
           <div className="text-justify whitespace-pre-wrap">{description}</div>
         )}
       </div>
+      {isLoading && <LinearProgress /> }
     </div>
   );
 }
