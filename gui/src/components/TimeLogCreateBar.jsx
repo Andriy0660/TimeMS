@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import {useState} from "react";
 import RestoreIcon from '@mui/icons-material/Restore';
 
-export default function CreateBar({onCreate}) {
+export default function TimeLogCreateBar({onCreate}) {
   const [ticket, setTicket] = useState("");
   const [startTime, setStartTime] = useState(dayjs());
   const [description, setDescription] = useState("");

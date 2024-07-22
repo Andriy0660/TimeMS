@@ -13,19 +13,19 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import Divider from "@mui/material/Divider";
 import useAppContext from "../context/useAppContext.js";
 
-export default function LogEntry({
-  logEntry,
+export default function TimeLog({
+  timeLog,
   onCreate,
   onUpdate,
   onDelete
 }) {
-  const [ticket, setTicket] = useState(logEntry.ticket || "");
-  const [startTime, setStartTime] = useState(logEntry.startTime ? dayjs(logEntry.startTime) : null);
-  const [endTime, setEndTime] = useState(logEntry.endTime ? dayjs(logEntry.endTime) : null);
-  const [description, setDescription] = useState(logEntry.description || "");
-  const [totalTime, setTotalTime] = useState(logEntry.totalTime);
+  const [ticket, setTicket] = useState(timeLog.ticket || "");
+  const [startTime, setStartTime] = useState(timeLog.startTime ? dayjs(timeLog.startTime) : null);
+  const [endTime, setEndTime] = useState(timeLog.endTime ? dayjs(timeLog.endTime) : null);
+  const [description, setDescription] = useState(timeLog.description || "");
+  const [totalTime, setTotalTime] = useState(timeLog.totalTime);
   const defineStatus = () => {
-    if (logEntry.totalTime) {
+    if (timeLog.totalTime) {
       return "Done";
     }
     if (startTime) {
@@ -41,27 +41,27 @@ export default function LogEntry({
   const [editedField, setEditedField] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  const logEntryRef = useRef(null);
+  const timeLogRef = useRef(null);
   const {addAlert} = useAppContext();
 
   useEffect(() => {
-    setTicket(logEntry?.ticket)
-    setStartTime(logEntry.startTime ? dayjs(logEntry.startTime) : null)
-    setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null)
-    setDescription(logEntry?.description)
-    setTotalTime(logEntry.totalTime)
-  }, [logEntry])
+    setTicket(timeLog?.ticket)
+    setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null)
+    setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null)
+    setDescription(timeLog?.description)
+    setTotalTime(timeLog.totalTime)
+  }, [timeLog])
 
   const resetChanges = () => {
     console.log("reset");
-    setTicket(logEntry.ticket || "");
-    setStartTime(logEntry.startTime ? dayjs(logEntry.startTime) : null);
-    setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
-    setDescription(logEntry.description || "");
+    setTicket(timeLog.ticket || "");
+    setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
+    setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
+    setDescription(timeLog.description || "");
     setIsEditing(false);
   };
 
-  const handleUpdateLogEntry = async (body) => {
+  const handleUpdateTimeLog = async (body) => {
     setIsLoading(true);
     setIsEditing(false);
     try {
@@ -74,14 +74,14 @@ export default function LogEntry({
   };
 
   const isModified = (
-    ticket !== logEntry.ticket ||
-    description !== logEntry.description ||
-    ((startTime || logEntry.startTime) && !startTime?.isSame(dayjs(logEntry.startTime))) ||
-    ((endTime || logEntry.endTime) && !endTime?.isSame(dayjs(logEntry?.endTime)))
+    ticket !== timeLog.ticket ||
+    description !== timeLog.description ||
+    ((startTime || timeLog.startTime) && !startTime?.isSame(dayjs(timeLog.startTime))) ||
+    ((endTime || timeLog.endTime) && !endTime?.isSame(dayjs(timeLog?.endTime)))
   );
 
   const handleClickOutside = (event) => {
-    if (logEntryRef.current && !logEntryRef.current.contains(event.target)) {
+    if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
       setIsEditing(false);
       if (isModified) {
         if (startTime?.isAfter(endTime)) {
@@ -89,11 +89,11 @@ export default function LogEntry({
             text: "End time must be great than start time",
             type: "error"
           })
-          setEndTime(logEntry.endTime ? dayjs(logEntry.endTime) : null);
+          setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
           return;
         }
-        handleUpdateLogEntry({
-          id: logEntry.id,
+        handleUpdateTimeLog({
+          id: timeLog.id,
           ticket,
           startTime: startTime?.format("YYYY-MM-DDTHH:mm"),
           endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
@@ -112,14 +112,14 @@ export default function LogEntry({
 
   useEffect(() => {
     if (isEditing && editedField) {
-      logEntryRef.current.querySelector(`[name="${editedField}"]`).focus();
+      timeLogRef.current.querySelector(`[name="${editedField}"]`).focus();
     }
   }, [isEditing, editedField]);
 
   return (
     <div
       className={`p-4 ${status === "In Progress" ? "bg-blue-50" : ""}`}
-      ref={logEntryRef}
+      ref={timeLogRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -264,8 +264,8 @@ export default function LogEntry({
                 <Tooltip title="Save">
                   <span>
                     <IconButton
-                      onClick={() => handleUpdateLogEntry({
-                        id: logEntry.id,
+                      onClick={() => handleUpdateTimeLog({
+                        id: timeLog.id,
                         ticket,
                         startTime: startTime?.format("YYYY-MM-DDTHH:mm"),
                         endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
@@ -319,8 +319,8 @@ export default function LogEntry({
                 <IconButton
                   onClick={() => {
                     setIsLoading(true);
-                    handleUpdateLogEntry({
-                      id: logEntry.id,
+                    handleUpdateTimeLog({
+                      id: timeLog.id,
                       ticket,
                       startTime: startTime.format("YYYY-MM-DDTHH:mm"),
                       endTime: dayjs().format("YYYY-MM-DDTHH:mm"),
@@ -339,8 +339,8 @@ export default function LogEntry({
                 <IconButton
                   onClick={() => {
                     setIsLoading(true);
-                    handleUpdateLogEntry({
-                      id: logEntry.id,
+                    handleUpdateTimeLog({
+                      id: timeLog.id,
                       ticket,
                       startTime: dayjs().format("YYYY-MM-DDTHH:mm"),
                       description
@@ -360,7 +360,7 @@ export default function LogEntry({
                   color="error"
                   onClick={() => {
                     setIsLoading(true);
-                    onDelete(logEntry.id);
+                    onDelete(timeLog.id);
                     setIsLoading(false);
                   }}
                 >

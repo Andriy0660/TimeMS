@@ -1,17 +1,17 @@
-import LogEntry from "./LogEntry.jsx";
+import TimeLog from "./TimeLog.jsx";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import Divider from "@mui/material/Divider";
-import CreateBar from "./CreateBar.jsx";
+import TimeLogCreateBar from "./TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import logEntryApi from "../api/logEntryApi.js";
+import timeLogApi from "../api/timeLogApi.js";
 import {CircularProgress} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useState} from "react";
 
-export default function LogEntryList({}) {
+export default function TimeLogList({}) {
 
-  const [logEntries, setLogEntries] = useState([]);
+  const [timeLogs, setTimeLogs] = useState([]);
 
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
@@ -21,31 +21,31 @@ export default function LogEntryList({}) {
     isPending: isListing,
     error: listAllError,
   } = useQuery({
-    queryKey: [logEntryApi.key],
+    queryKey: [timeLogApi.key],
     queryFn: () => {
-      return logEntryApi.listAll();
+      return timeLogApi.listAll();
     },
     retryDelay: 300,
   });
 
   useEffect(() => {
     if (data) {
-      setLogEntries(data);
+      setTimeLogs(data);
     }
   }, [data]);
 
   const {mutateAsync: create} = useMutation({
-    mutationFn: (body) => logEntryApi.create(body),
+    mutationFn: (body) => timeLogApi.create(body),
     onSuccess: async (body) => {
-      queryClient.invalidateQueries(logEntries.key);
+      queryClient.invalidateQueries(timeLogs.key);
       if (body.conflicted) {
         addAlert({
-          text: "Log entry is created with time conflicts with other entries",
+          text: "Time log is created with time conflicts with other entries",
           type: "warning"
         });
       } else {
         addAlert({
-          text: "Log entry is successfully created",
+          text: "Time log is successfully created",
           type: "success"
         });
       }
@@ -55,42 +55,42 @@ export default function LogEntryList({}) {
         text: error.displayMessage,
         type: "error"
       })
-      console.error("Creating log entry failed:", error);
+      console.error("Creating time log failed:", error);
     }
   });
 
   const {mutateAsync: update} = useMutation({
-    mutationFn: (body) => logEntryApi.update(body),
+    mutationFn: (body) => timeLogApi.update(body),
     onSuccess: async (body) => {
-      queryClient.invalidateQueries(logEntries.key);
+      queryClient.invalidateQueries(timeLogs.key);
       if(body.conflicted) {
         addAlert({
-          text: "Log entry is updated with time conflicts with other entries",
+          text: "Time log is updated with time conflicts with other entries",
           type: "warning"
         });
       } else {
         addAlert({
-          text: "Log entry is successfully updated",
+          text: "Time log is successfully updated",
           type: "success"
         });
       }
     },
     onError: async (error, body) => {
-      queryClient.invalidateQueries(logEntries.key);
+      queryClient.invalidateQueries(timeLogs.key);
       addAlert({
         text: error.displayMessage,
         type: "error"
       })
-      console.error("Updating log entry failed:", error);
+      console.error("Updating time log failed:", error);
     }
   });
 
-  const {mutateAsync: deleteLogEntry} = useMutation({
-    mutationFn: (id) => logEntryApi.delete(id),
+  const {mutateAsync: deleteTimeLog} = useMutation({
+    mutationFn: (id) => timeLogApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(logEntries.key);
+      queryClient.invalidateQueries(timeLogs.key);
       addAlert({
-        text: "You have successfully deleted log entry",
+        text: "You have successfully deleted time log",
         type: "success"
       });
     },
@@ -99,7 +99,7 @@ export default function LogEntryList({}) {
         text: error.displayMessage,
         type: "error"
       });
-      console.error("Deleting log entry failed:", error);
+      console.error("Deleting time log failed:", error);
     }
   });
 
@@ -120,14 +120,14 @@ export default function LogEntryList({}) {
     );
   }
 
-  const renderedLogEntries = logEntries?.map((logEntry) => {
-    return <div key={logEntry.id}>
+  const renderedTimeLogs = timeLogs?.map((timeLog) => {
+    return <div key={timeLog.id}>
       <Divider />
-      <LogEntry
-        logEntry={logEntry}
+      <TimeLog
+        timeLog={timeLog}
         onCreate={create}
         onUpdate={update}
-        onDelete={deleteLogEntry}
+        onDelete={deleteTimeLog}
       />
     </div>
   })
@@ -136,10 +136,10 @@ export default function LogEntryList({}) {
     <div className="m-4 flex flex-col items-center">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <div className="w-3/5 overflow-x-auto shadow-md bg-gray-50">
-          <CreateBar
+          <TimeLogCreateBar
             onCreate={create}
           />
-          {renderedLogEntries}
+          {renderedTimeLogs}
         </div>
       </LocalizationProvider>
     </div>

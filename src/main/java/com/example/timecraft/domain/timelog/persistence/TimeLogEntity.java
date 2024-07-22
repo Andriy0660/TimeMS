@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.logEntry.persistence;
+package com.example.timecraft.domain.timelog.persistence;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,7 +24,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 @ToString(onlyExplicitlyIncluded = true)
-public class LogEntryEntity {
+public class TimeLogEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id")

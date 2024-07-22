@@ -1,8 +1,8 @@
-import LogEntry from "../components/LogEntry.jsx";
-import LogEntryList from "../components/LogEntryList.jsx";
+import TimeLog from "../components/TimeLog.jsx";
+import TimeLogList from "../components/TimeLogList.jsx";
 
 export default function TimeLogPage(){
   return <div>
-    <LogEntryList/>
+    <TimeLogList/>
   </div>
 }
