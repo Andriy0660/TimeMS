@@ -47,17 +47,17 @@ public class TimeLogServiceImpl implements TimeLogService {
     TimeLogEntity timeLogEntity = mapper.fromCreateRequest(request);
     timeLogEntity.setDate(LocalDate.now());
 
-    stopOtherLogEntries(null);
+    stopOtherTimeLogs(null);
 
     timeLogEntity = repository.save(timeLogEntity);
     TimeLogCreateResponse response = mapper.toCreateResponse(timeLogEntity);
-    if (isConflictedWithOthersLogEntries(null, request.getStartTime(), null)) {
+    if (isConflictedWithOthersTimeLogs(null, request.getStartTime(), null)) {
       response.setConflicted(true);
     }
     return response;
   }
 
-  private boolean isConflictedWithOthersLogEntries(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
+  private boolean isConflictedWithOthersTimeLogs(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
     final List<TimeLogEntity> logEntryEntities = repository.findAll();
     return logEntryEntities.stream().anyMatch(logEntry ->
         !logEntry.getId().equals(logEntryId) &&
@@ -80,7 +80,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     return target.isAfter(border1) && target.isBefore(border2);
   }
 
-  private void stopOtherLogEntries(Long excludedId) {
+  private void stopOtherTimeLogs(Long excludedId) {
     repository.findAllByEndTimeIsNull().forEach((logEntry) -> {
       if(logEntry.getId().equals(excludedId) || logEntry.getStartTime() == null) {
         return;
@@ -113,7 +113,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogUpdateResponse update(final long logEntryId, final TimeLogUpdateRequest request) {
     if(request.getEndTime() == null) {
-      stopOtherLogEntries(logEntryId);
+      stopOtherTimeLogs(logEntryId);
     }
 
     TimeLogEntity entity = getRaw(logEntryId);
@@ -122,7 +122,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     entity = repository.save(entity);
 
     TimeLogUpdateResponse response = mapper.toUpdateResponse(entity);
-    if (isConflictedWithOthersLogEntries(logEntryId, entity.getStartTime(), entity.getEndTime())) {
+    if (isConflictedWithOthersTimeLogs(logEntryId, entity.getStartTime(), entity.getEndTime())) {
       response.setConflicted(true);
     }
     return response;

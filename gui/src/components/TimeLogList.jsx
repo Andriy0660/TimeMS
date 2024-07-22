@@ -40,7 +40,7 @@ export default function TimeLogList({}) {
       queryClient.invalidateQueries(timeLogs.key);
       if (body.conflicted) {
         addAlert({
-          text: "Time log is created with time conflicts with other entries",
+          text: "Time log is created with time conflicts with other time logs",
           type: "warning"
         });
       } else {
@@ -65,7 +65,7 @@ export default function TimeLogList({}) {
       queryClient.invalidateQueries(timeLogs.key);
       if(body.conflicted) {
         addAlert({
-          text: "Time log is updated with time conflicts with other entries",
+          text: "Time log is updated with time conflicts with other time logs",
           type: "warning"
         });
       } else {
