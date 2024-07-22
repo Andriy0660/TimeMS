@@ -79,7 +79,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     if (target == null || border1 == null || border2 == null) {
       return false;
     }
-    return target.isAfter(border1) && target.isBefore(border2);
+    return !target.isBefore(border1) && !target.isAfter(border2);
   }
 
   private void stopOtherTimeLogs(Long excludedId) {
