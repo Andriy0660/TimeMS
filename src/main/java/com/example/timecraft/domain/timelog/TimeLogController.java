@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/logEntries")
+@RequestMapping("/time-logs")
 public class TimeLogController {
   private final TimeLogService timeLogService;
 

@@ -1,20 +1,20 @@
 import axios from "./config/axiosConfig.js";
 
+const key = "time-logs"
 const timeLogApi = {
-  key: "logEntries",
-
+  key,
   listAll: async () => {
-    const {data} = await axios.get("/logEntries", {baseMsg: "Error while fetching time logs"});
+    const {data} = await axios.get(`/${key}`, {baseMsg: "Error while fetching time logs"});
     return data.items;
   },
 
   create: async ({ticket, startTime, description}) => {
-    const {data} = await axios.post("/logEntries", {ticket, startTime, description}, {baseMsg: "Error while creating time log"});
+    const {data} = await axios.post(`/${key}`, {ticket, startTime, description}, {baseMsg: "Error while creating time log"});
     return data;
   },
 
   update: async ({id, ticket, startTime, endTime, description}) => {
-    const {data} = await axios.put(`/logEntries/${id}`, {
+    const {data} = await axios.put(`/${key}/${id}`, {
       ticket,
       startTime,
       endTime,
@@ -24,7 +24,7 @@ const timeLogApi = {
   },
 
   delete: async (id) => {
-    await axios.delete(`/logEntries/${id}`, {baseMsg: "Error while deleting time log"});
+    await axios.delete(`/${key}/${id}`, {baseMsg: "Error while deleting time log"});
   }
 };
 
