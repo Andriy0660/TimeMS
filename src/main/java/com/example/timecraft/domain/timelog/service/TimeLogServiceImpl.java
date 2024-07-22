@@ -1,6 +1,5 @@
 package com.example.timecraft.domain.timelog.service;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -69,12 +68,13 @@ public class TimeLogServiceImpl implements TimeLogService {
                                           final LocalDateTime startTime2, final LocalDateTime endTime2) {
     return
         isInInterval(startTime1, endTime1, startTime2) ||
-        isInInterval(startTime1, endTime1, endTime2) ||
-        isInInterval(startTime2, endTime2, startTime1) ||
-        isInInterval(startTime2, endTime2, endTime1);
+            isInInterval(startTime1, endTime1, endTime2) ||
+            isInInterval(startTime2, endTime2, startTime1) ||
+            isInInterval(startTime2, endTime2, endTime1);
   }
+
   private boolean isInInterval(final LocalDateTime border1, final LocalDateTime border2, final LocalDateTime target) {
-     if (target == null || border1 == null || border2 == null) {
+    if (target == null || border1 == null || border2 == null) {
       return false;
     }
     return target.isAfter(border1) && target.isBefore(border2);
@@ -82,22 +82,14 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   private void stopOtherTimeLogs(Long excludedId) {
     repository.findAllByEndTimeIsNull().forEach((logEntry) -> {
-      if(logEntry.getId().equals(excludedId) || logEntry.getStartTime() == null) {
+      if (logEntry.getId().equals(excludedId) || logEntry.getStartTime() == null) {
         return;
       }
       logEntry.setEndTime(LocalDateTime.now().withSecond(0).withNano(0));
-      processSpentTime(logEntry);
       repository.save(logEntry);
     });
   }
 
-  private void processSpentTime(final TimeLogEntity entity) {
-    if (entity.getEndTime() != null && entity.getStartTime() != null) {
-      entity.setTimeSpentSeconds((int) Duration.between(entity.getStartTime(), entity.getEndTime()).toSeconds());
-    } else {
-      entity.setTimeSpentSeconds(null);
-    }
-  }
 
   @Override
   public TimeLogGetResponse get(final long logEntryId) {
@@ -112,13 +104,12 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogUpdateResponse update(final long logEntryId, final TimeLogUpdateRequest request) {
-    if(request.getEndTime() == null) {
+    if (request.getEndTime() == null) {
       stopOtherTimeLogs(logEntryId);
     }
 
     TimeLogEntity entity = getRaw(logEntryId);
     mapper.fromUpdateRequest(request, entity);
-    processSpentTime(entity);
     entity = repository.save(entity);
 
     TimeLogUpdateResponse response = mapper.toUpdateResponse(entity);
