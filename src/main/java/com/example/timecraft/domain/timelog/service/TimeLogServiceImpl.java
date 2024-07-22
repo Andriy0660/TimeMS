@@ -1,5 +1,6 @@
 package com.example.timecraft.domain.timelog.service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -26,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class TimeLogServiceImpl implements TimeLogService {
   private final TimeLogRepository repository;
   private final TimeLogMapper mapper;
+  private final Clock clock;
 
   @Override
   public TimeLogListResponse list() {
@@ -44,7 +46,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogCreateResponse create(final TimeLogCreateRequest request) {
     TimeLogEntity timeLogEntity = mapper.fromCreateRequest(request);
-    timeLogEntity.setDate(LocalDate.now());
+    timeLogEntity.setDate(LocalDate.now(clock));
 
     stopOtherTimeLogs(null);
 
@@ -85,7 +87,7 @@ public class TimeLogServiceImpl implements TimeLogService {
       if (logEntry.getId().equals(excludedId) || logEntry.getStartTime() == null) {
         return;
       }
-      logEntry.setEndTime(LocalDateTime.now().withSecond(0).withNano(0));
+      logEntry.setEndTime(LocalDateTime.now(clock).withSecond(0).withNano(0));
       repository.save(logEntry);
     });
   }
