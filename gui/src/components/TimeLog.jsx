@@ -27,16 +27,16 @@ export default function TimeLog({
   const [endTime, setEndTime] = useState(timeLog.endTime ? dayjs(timeLog.endTime) : null);
   const [description, setDescription] = useState(timeLog.description || "");
   const [totalTime, setTotalTime] = useState(timeLog.totalTime);
-  const defineStatus = () => {
-    if (timeLog.totalTime) {
+
+  const status = useMemo(() => {
+    if (timeLog?.totalTime) {
       return "Done";
     }
-    if (startTime) {
-      return "In Progress";
+    else if (startTime) {
+      return "InProgress";
     }
-    return "Pending";
-  }
-  const status = defineStatus();
+    else return "Pending";
+  }, [timeLog?.totalTime, startTime]);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -126,9 +126,21 @@ export default function TimeLog({
     }
   }, [isEditing, editedField]);
 
+  const statusConfig = {
+    Done: {
+      label: totalTime,
+    },
+    InProgress: {
+      label: `${dayjs().diff(startTime, "hour")}h ${dayjs().diff(startTime, "minute") % 60}m`,
+    },
+    Pending: {
+      label: 'Pending',
+    },
+  };
+
   return (
     <div
-      className={`p-4 ${status === "In Progress" ? "bg-blue-50" : ""}`}
+      className={`p-4 ${status === "InProgress" ? "bg-blue-50" : ""}`}
       ref={timeLogRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -230,34 +242,13 @@ export default function TimeLog({
 
             </>
           )}
-          {totalTime &&
-            <Chip
-              label={totalTime}
-              color="primary"
-              variant="outlined"
-              size="small"
-              className="shadow-md mx-2"
-            />
-          }
-          {(status === "In Progress" && dayjs().isAfter(startTime)) && (
-            <Chip
-              label={`${dayjs().diff(startTime, "hour")}h ${dayjs().diff(startTime, "minute") % 60}m`}
-              color="primary"
-              variant="outlined"
-              size="small"
-              className="shadow-md mx-2"
-            />
-          )}
-
-          {(status === "Pending") && (
-            <Chip
-              label={status}
-              color="primary"
-              variant="outlined"
-              size="small"
-              className="shadow-md"
-            />
-          )}
+          {statusConfig[status] ? <Chip
+            label={statusConfig[status].label}
+            color="primary"
+            variant="outlined"
+            size="small"
+            className="shadow-md mr-2"
+          /> : null}
 
         </div>
 
@@ -324,7 +315,7 @@ export default function TimeLog({
                 </IconButton>
               </Tooltip>
             )}
-            {status === "In Progress" && isHovered && (
+            {status === "InProgress" && isHovered && (
               <Tooltip title="stop">
                 <IconButton
                   onClick={() => {
