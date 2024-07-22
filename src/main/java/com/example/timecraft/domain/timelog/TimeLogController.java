@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogListAllResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.service.TimeLogService;
@@ -25,8 +25,8 @@ public class TimeLogController {
   private final TimeLogService timeLogService;
 
   @GetMapping
-  public TimeLogListAllResponse listAll() {
-    return timeLogService.listAll();
+  public TimeLogListResponse list() {
+    return timeLogService.list();
   }
 
   @PostMapping

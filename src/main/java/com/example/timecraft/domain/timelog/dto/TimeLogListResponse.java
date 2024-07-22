@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class TimeLogListAllResponse {
+public class TimeLogListResponse {
   private List<LogEntryDto> items;
 
   @Data

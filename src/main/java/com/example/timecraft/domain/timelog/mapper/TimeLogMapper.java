@@ -10,7 +10,7 @@ import org.mapstruct.Named;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogListAllResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
@@ -18,7 +18,7 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 @Mapper(componentModel = "spring")
 public interface TimeLogMapper {
   @Mapping(target = "totalTime", source = "timeSpentSeconds", qualifiedByName = "mapTotalTime")
-  TimeLogListAllResponse.LogEntryDto toListItem(final TimeLogEntity entity);
+  TimeLogListResponse.LogEntryDto toListItem(final TimeLogEntity entity);
 
   @Named("mapTotalTime")
   default String mapTotalTime(int timeSpentSeconds) {

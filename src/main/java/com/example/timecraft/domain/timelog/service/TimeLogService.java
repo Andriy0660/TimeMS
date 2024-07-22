@@ -3,12 +3,12 @@ package com.example.timecraft.domain.timelog.service;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogListAllResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 
 public interface TimeLogService {
-  TimeLogListAllResponse listAll();
+  TimeLogListResponse list();
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 

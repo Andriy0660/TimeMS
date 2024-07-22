@@ -13,7 +13,7 @@ import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogListAllResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
@@ -29,17 +29,17 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final TimeLogMapper mapper;
 
   @Override
-  public TimeLogListAllResponse listAll() {
+  public TimeLogListResponse list() {
     final List<TimeLogEntity> timeLogEntityList = repository.findAll();
-    final List<TimeLogListAllResponse.LogEntryDto> logEntryDtoList = timeLogEntityList.stream()
+    final List<TimeLogListResponse.LogEntryDto> logEntryDtoList = timeLogEntityList.stream()
         .map(mapper::toListItem)
         .sorted(
             Comparator.comparing(
-                TimeLogListAllResponse.LogEntryDto::getStartTime,
+                TimeLogListResponse.LogEntryDto::getStartTime,
                 Comparator.nullsLast(Comparator.naturalOrder())
-            ).thenComparing(TimeLogListAllResponse.LogEntryDto::getId))
+            ).thenComparing(TimeLogListResponse.LogEntryDto::getId))
         .toList();
-    return new TimeLogListAllResponse(logEntryDtoList);
+    return new TimeLogListResponse(logEntryDtoList);
   }
 
   @Override
