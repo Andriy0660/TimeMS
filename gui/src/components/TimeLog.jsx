@@ -47,19 +47,20 @@ export default function TimeLog({
   const timeLogRef = useRef(null);
   const {addAlert} = useAppContext();
 
+  const initializeState = () => {
+    setTicket(timeLog?.ticket || "");
+    setStartTime(timeLog?.startTime ? dayjs(timeLog.startTime) : null);
+    setEndTime(timeLog?.endTime ? dayjs(timeLog.endTime) : null);
+    setDescription(timeLog?.description || "");
+    setTotalTime(timeLog?.totalTime || "");
+  };
+
   useEffect(() => {
-    setTicket(timeLog?.ticket)
-    setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null)
-    setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null)
-    setDescription(timeLog?.description)
-    setTotalTime(timeLog.totalTime)
-  }, [timeLog])
+    initializeState();
+  }, [timeLog]);
 
   const resetChanges = () => {
-    setTicket(timeLog.ticket || "");
-    setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
-    setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
-    setDescription(timeLog.description || "");
+    initializeState();
     setIsEditing(false);
   };
 
