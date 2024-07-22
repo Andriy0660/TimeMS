@@ -11,13 +11,13 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 public class TimeLogListResponse {
-  private List<LogEntryDto> items;
+  private List<TimeLogDto> items;
 
   @Data
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
-  public static class LogEntryDto {
+  public static class TimeLogDto {
     private Long id;
     private String ticket;
     private LocalDateTime startTime;
@@ -26,3 +26,4 @@ public class TimeLogListResponse {
     private String totalTime;
   }
 }
+

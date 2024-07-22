@@ -31,15 +31,15 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogListResponse list() {
     final List<TimeLogEntity> timeLogEntityList = repository.findAll();
-    final List<TimeLogListResponse.LogEntryDto> logEntryDtoList = timeLogEntityList.stream()
+    final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(mapper::toListItem)
         .sorted(
             Comparator.comparing(
-                TimeLogListResponse.LogEntryDto::getStartTime,
+                TimeLogListResponse.TimeLogDto::getStartTime,
                 Comparator.nullsLast(Comparator.naturalOrder())
-            ).thenComparing(TimeLogListResponse.LogEntryDto::getId))
+            ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
         .toList();
-    return new TimeLogListResponse(logEntryDtoList);
+    return new TimeLogListResponse(timeLogDtoList);
   }
 
   @Override

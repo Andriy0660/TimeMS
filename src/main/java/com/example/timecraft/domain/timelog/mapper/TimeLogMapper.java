@@ -18,7 +18,7 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 @Mapper(componentModel = "spring")
 public interface TimeLogMapper {
   @Mapping(target = "totalTime", source = "timeSpentSeconds", qualifiedByName = "mapTotalTime")
-  TimeLogListResponse.LogEntryDto toListItem(final TimeLogEntity entity);
+  TimeLogListResponse.TimeLogDto toListItem(final TimeLogEntity entity);
 
   @Named("mapTotalTime")
   default String mapTotalTime(int timeSpentSeconds) {
