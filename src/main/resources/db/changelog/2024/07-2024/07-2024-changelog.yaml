@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/2024/07-2024/TMC-4-app-skeleton.yaml
   - include:
       file: db/changelog/2024/07-2024/TMC-7-make-start-time-nullable.yaml
+  - include:
+      file: db/changelog/2024/07-2024/TMC-4-rename-log-entry-to-time-log.yaml

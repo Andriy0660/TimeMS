@@ -17,7 +17,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "log_entries")
+@Table(name = "timelogs")
 @Getter
 @Setter
 @NoArgsConstructor
