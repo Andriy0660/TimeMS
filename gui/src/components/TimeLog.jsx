@@ -138,6 +138,104 @@ export default function TimeLog({
     },
   };
 
+  function getEditableFields() {
+    return <>
+      <div className="mr-4 my-2">
+        <TextField
+          name="ticket"
+          className="w-24"
+          label="Ticket"
+          size="small"
+          value={ticket}
+          onChange={(event) => setTicket(event.target.value)}
+          autoComplete="off"
+        />
+      </div>
+
+      <div className="mr-4 my-2">
+        <TimeField
+          name="startTime"
+          className="w-20"
+          label="Start"
+          size="small"
+          value={startTime}
+          onChange={(date) => {
+            if (date === null) {
+              setStartTime(null);
+            } else if (dayjs(date).isValid()) {
+              setStartTime(dayjs(date))
+            }
+          }}
+          format="HH:mm"
+        />
+      </div>
+
+      <div className="mr-4 my-2">
+        <TimeField
+          name="endTime"
+          className="w-20"
+          label="End"
+          value={endTime}
+          onChange={(date) => {
+            if (date === null) {
+              setEndTime(null);
+            } else if (dayjs(date).isValid()) {
+              setEndTime(dayjs(date))
+            }
+          }}
+          size="small"
+          format="HH:mm"
+        />
+      </div>
+    </>;
+  }
+
+  function getNonEditableFields() {
+    return <>
+      {startTime &&
+        <div
+          className="mr-4 my-2 hover:bg-blue-100"
+          onClick={() => {
+            setIsEditing(true);
+            setEditedField("startTime");
+          }}
+        >
+          <Typography className="font-bold">{getFormattedTime(startTime)}</Typography>
+        </div>
+      }
+      {endTime && (
+        <>
+          -
+          <div
+            className="mx-4 my-2 hover:bg-blue-100"
+            onClick={() => {
+              setIsEditing(true);
+              setEditedField("endTime");
+            }}
+          >
+            <Typography className="font-bold">{getFormattedTime(endTime)}</Typography>
+          </div>
+        </>
+      )}
+
+      {ticket && (
+        <>
+          <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />
+          <div
+            className="mr-4 my-2 hover:bg-blue-100"
+            onClick={() => {
+              setIsEditing(true);
+              setEditedField("ticket");
+            }}
+          >
+            <Typography className="font-bold">{ticket}</Typography>
+          </div>
+        </>
+      )}
+
+    </>;
+  }
+
   return (
     <div
       className={`p-4 ${status === "InProgress" ? "bg-blue-50" : ""}`}
@@ -147,101 +245,7 @@ export default function TimeLog({
     >
       <div className="flex justify-between">
         <div className="flex items-center">
-          {isEditing ? (
-            <>
-              <div className="mr-4 my-2">
-                <TextField
-                  name="ticket"
-                  className="w-24"
-                  label="Ticket"
-                  size="small"
-                  value={ticket}
-                  onChange={(event) => setTicket(event.target.value)}
-                  autoComplete="off"
-                />
-              </div>
-
-              <div className="mr-4 my-2">
-                <TimeField
-                  name="startTime"
-                  className="w-20"
-                  label="Start"
-                  size="small"
-                  value={startTime}
-                  onChange={(date) => {
-                    if (date === null) {
-                      setStartTime(null);
-                    } else if (dayjs(date).isValid()) {
-                      setStartTime(dayjs(date))
-                    }
-                  }}
-                  format="HH:mm"
-                />
-              </div>
-
-              <div className="mr-4 my-2">
-                <TimeField
-                  name="endTime"
-                  className="w-20"
-                  label="End"
-                  value={endTime}
-                  onChange={(date) => {
-                    if (date === null) {
-                      setEndTime(null);
-                    } else if (dayjs(date).isValid()) {
-                      setEndTime(dayjs(date))
-                    }
-                  }}
-                  size="small"
-                  format="HH:mm"
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              {startTime &&
-                <div
-                  className="mr-4 my-2 hover:bg-blue-100"
-                  onClick={() => {
-                    setIsEditing(true);
-                    setEditedField("startTime");
-                  }}
-                >
-                  <Typography className="font-bold">{getFormattedTime(startTime)}</Typography>
-                </div>
-              }
-              {endTime && (
-                <>
-                  -
-                  <div
-                    className="mx-4 my-2 hover:bg-blue-100"
-                    onClick={() => {
-                      setIsEditing(true);
-                      setEditedField("endTime");
-                    }}
-                  >
-                    <Typography className="font-bold">{getFormattedTime(endTime)}</Typography>
-                  </div>
-                </>
-              )}
-
-              {ticket && (
-                <>
-                  <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />
-                  <div
-                    className="mr-4 my-2 hover:bg-blue-100"
-                    onClick={() => {
-                      setIsEditing(true);
-                      setEditedField("ticket");
-                    }}
-                  >
-                    <Typography className="font-bold">{ticket}</Typography>
-                  </div>
-                </>
-              )}
-
-            </>
-          )}
+          {isEditing ? getEditableFields() : getNonEditableFields()}
           {statusConfig[status] ? <Chip
             label={statusConfig[status].label}
             color="primary"
