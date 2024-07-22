@@ -14,6 +14,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
+import com.example.timecraft.domain.timelog.service.DurationService;
 
 @Mapper(componentModel = "spring")
 public interface TimeLogMapper {
@@ -25,7 +26,7 @@ public interface TimeLogMapper {
       return null;
     }
     Duration duration = Duration.between(startTime, endTime);
-    return String.format("%dh %dm", duration.toHours(), duration.toMinutesPart());
+    return DurationService.formatDuration(duration);
   }
 
   TimeLogEntity fromCreateRequest(final TimeLogCreateRequest request);
