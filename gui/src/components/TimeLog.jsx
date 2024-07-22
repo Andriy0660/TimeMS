@@ -1,7 +1,7 @@
 import {Chip, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -75,13 +75,20 @@ export default function TimeLog({
       setIsLoading(false);
     }
   };
+  const isSameDate = (date1, date2) => {
+    if (!date1 && !date2) return true;
+    if (!date1 || !date2) return false;
+    return date1.isSame(dayjs(date2));
+  };
 
-  const isModified = (
-    ticket !== timeLog.ticket ||
-    description !== timeLog.description ||
-    ((startTime || timeLog.startTime) && !startTime?.isSame(dayjs(timeLog.startTime))) ||
-    ((endTime || timeLog.endTime) && !endTime?.isSame(dayjs(timeLog?.endTime)))
-  );
+  const isModified = useMemo(() => {
+    return (
+      ticket !== timeLog.ticket ||
+      description !== timeLog.description ||
+      !isSameDate(startTime, timeLog.startTime) ||
+      !isSameDate(endTime, timeLog.endTime)
+    );
+  }, [ticket, description, startTime, endTime, timeLog]);
 
   const handleClickOutside = (event) => {
     if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
