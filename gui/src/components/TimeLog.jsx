@@ -31,11 +31,9 @@ export default function TimeLog({
   const status = useMemo(() => {
     if (timeLog?.totalTime) {
       return "Done";
-    }
-    else if (startTime) {
+    } else if (startTime) {
       return "InProgress";
-    }
-    else return "Pending";
+    } else return "Pending";
   }, [timeLog?.totalTime, startTime]);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -129,12 +127,74 @@ export default function TimeLog({
   const statusConfig = {
     Done: {
       label: totalTime,
+      action: isHovered && (
+        <Tooltip title="continue">
+          <IconButton
+            onClick={async () => {
+              setIsLoading(true);
+              try {
+                await onCreate({ticket, startTime: getFormattedDateTime(dayjs()), description});
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            variant="outlined"
+            color="primary"
+            className="mr-2"
+          >
+            <KeyboardTabOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+      ),
     },
     InProgress: {
       label: `${dayjs().diff(startTime, "hour")}h ${dayjs().diff(startTime, "minute") % 60}m`,
+      action: isHovered && (
+        <Tooltip title="stop">
+          <IconButton
+            onClick={() => {
+              setIsLoading(true);
+              handleUpdateTimeLog({
+                id: timeLog.id,
+                ticket,
+                startTime: getFormattedDateTime(startTime),
+                endTime: getFormattedDateTime(dayjs()),
+                description,
+              });
+              setIsLoading(false);
+            }}
+            variant="outlined"
+            color="warning"
+            className="mr-2"
+          >
+            <StopCircleOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+      ),
     },
     Pending: {
       label: 'Pending',
+      action: isHovered && (
+        <Tooltip title="start">
+          <IconButton
+            onClick={() => {
+              setIsLoading(true);
+              handleUpdateTimeLog({
+                id: timeLog.id,
+                ticket,
+                startTime: getFormattedDateTime(dayjs()),
+                description,
+              });
+              setIsLoading(false);
+            }}
+            variant="outlined"
+            color="primary"
+            className="mr-2"
+          >
+            <StartOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+      ),
     },
   };
 
@@ -286,7 +346,11 @@ export default function TimeLog({
                 </Tooltip>
               </div>
             )}
+
+            {statusConfig[status] ? statusConfig[status].action : null}
+
             {(isHovered && !isEditing) && (
+              <>
                 <Tooltip title="Edit">
                   <IconButton
                     className="mr-2"
@@ -300,78 +364,19 @@ export default function TimeLog({
                     <EditOutlinedIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
-            )}
-
-            {status === "Done" && isHovered && (
-              <Tooltip title="continue">
-                <IconButton
-                  onClick={async () => {
-                    setIsLoading(true);
-                    try {
-                      await onCreate({ticket, startTime: getFormattedDateTime(dayjs()), description});
-                    } finally {
+                <Tooltip title="Delete">
+                  <IconButton
+                    color="error"
+                    onClick={() => {
+                      setIsLoading(true);
+                      onDelete(timeLog.id);
                       setIsLoading(false);
-                    }
-                  }}
-                  variant="outlined"
-                  color="primary">
-                  <KeyboardTabOutlinedIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-            {status === "InProgress" && isHovered && (
-              <Tooltip title="stop">
-                <IconButton
-                  onClick={() => {
-                    setIsLoading(true);
-                    handleUpdateTimeLog({
-                      id: timeLog.id,
-                      ticket,
-                      startTime:getFormattedDateTime(startTime),
-                      endTime: getFormattedDateTime(dayjs()),
-                      description
-                    });
-                    setIsLoading(false);
-                  }}
-                  variant="outlined"
-                  color="warning">
-                  <StopCircleOutlinedIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-            {status === "Pending" && isHovered && (
-              <Tooltip title="start">
-                <IconButton
-                  onClick={() => {
-                    setIsLoading(true);
-                    handleUpdateTimeLog({
-                      id: timeLog.id,
-                      ticket,
-                      startTime: getFormattedDateTime(dayjs()),
-                      description
-                    });
-                    setIsLoading(false);
-                  }}
-                  variant="outlined"
-                  color="primary">
-                  <StartOutlinedIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-            {(isHovered && !isEditing) && (
-              <Tooltip title="Delete">
-                <IconButton
-                  className="mr-2"
-                  color="error"
-                  onClick={() => {
-                    setIsLoading(true);
-                    onDelete(timeLog.id);
-                    setIsLoading(false);
-                  }}
-                >
-                  <DeleteOutlineOutlinedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
+                    }}
+                  >
+                    <DeleteOutlineOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </>
             )}
           </div>
         </div>
