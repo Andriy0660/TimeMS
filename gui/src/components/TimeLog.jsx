@@ -12,6 +12,7 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import Divider from "@mui/material/Divider";
 import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../utils/dateTimeService.js";
+import ConfirmationModal from "./ConfirmationModal.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -39,6 +40,7 @@ export default function TimeLog({
   const [isEditing, setIsEditing] = useState(false);
   const [editedField, setEditedField] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const timeLogRef = useRef(null);
   const {addAlert} = useAppContext();
@@ -389,15 +391,24 @@ export default function TimeLog({
                 <Tooltip title="Delete">
                   <IconButton
                     color="error"
-                    onClick={() => {
-                      setIsLoading(true);
-                      onDelete(timeLog.id);
-                      setIsLoading(false);
-                    }}
+                    onClick={() => setShowDeleteModal(true)}
                   >
                     <DeleteOutlineOutlinedIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
+                <ConfirmationModal
+                  open={showDeleteModal}
+                  type="error"
+                  actionText="Delete"
+                  onConfirm={() => {
+                    setIsLoading(true);
+                    onDelete(timeLog.id);
+                    setIsLoading(false);
+                  }}
+                  onClose={() => setShowDeleteModal(false)}
+                >
+                  Are you sure you want to delete this time log?
+                </ConfirmationModal>
               </>
             )}
           </div>
