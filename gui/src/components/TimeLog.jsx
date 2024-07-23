@@ -164,7 +164,9 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: `${currentTime.diff(startTime, "hour")}h ${currentTime.diff(startTime, "minute") % 60}m`,
+      label: currentTime.diff(startTime) >= 0
+        ? `${currentTime.diff(startTime, "hour")}h ${currentTime.diff(startTime, "minute") % 60}m`
+        : null,
       action: isHovered && (
         <Tooltip title="stop">
           <IconButton
@@ -325,7 +327,7 @@ export default function TimeLog({
       <div className="flex justify-between">
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
-          {statusConfig[status] ? <Chip
+          {statusConfig[status].label ? <Chip
             label={statusConfig[status].label}
             color="primary"
             variant="outlined"
