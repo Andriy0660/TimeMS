@@ -77,7 +77,7 @@ export default function TimeLog({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [timeLogRef.current, startTime, endTime, ticket, description]);
+  }, [timeLogRef.current, startTime, endTime, ticket, description, timeLog]);
 
   function handleClickOutside (event)  {
     if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
@@ -96,8 +96,8 @@ export default function TimeLog({
 
   const isModified = useMemo(() => {
     return (
-      ticket !== timeLog.ticket ||
-      description !== timeLog.description ||
+      (ticket || "") !== (timeLog.ticket || "") ||
+      (description || "") !== (timeLog.description || "") ||
       !isSameDate(startTime, timeLog.startTime) ||
       !isSameDate(endTime, timeLog.endTime)
     );
