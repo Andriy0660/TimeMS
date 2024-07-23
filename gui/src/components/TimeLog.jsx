@@ -49,11 +49,11 @@ export default function TimeLog({
     initializeState();
   }, [timeLog]);
   function initializeState() {
-    setTicket(timeLog?.ticket || "");
-    setStartTime(timeLog?.startTime ? dayjs(timeLog.startTime) : null);
-    setEndTime(timeLog?.endTime ? dayjs(timeLog.endTime) : null);
-    setDescription(timeLog?.description || "");
-    setTotalTime(timeLog?.totalTime || "");
+    setTicket(timeLog.ticket || "");
+    setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
+    setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
+    setDescription(timeLog.description || "");
+    setTotalTime(timeLog.totalTime || "");
   }
   const handleUpdateTimeLog = async (body) => {
     setIsLoading(true);
@@ -268,8 +268,8 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: currentTime.diff(timeLog?.startTime) >= 0
-        ? `${currentTime.diff(timeLog?.startTime, "hour")}h ${currentTime.diff(timeLog?.startTime, "minute") % 60}m`
+      label: currentTime.diff(timeLog.startTime) >= 0
+        ? `${currentTime.diff(timeLog.startTime, "hour")}h ${currentTime.diff(timeLog.startTime, "minute") % 60}m`
         : null,
       action: isHovered && (
         <Tooltip title="stop">
