@@ -6,32 +6,28 @@ import RestoreIcon from '@mui/icons-material/Restore';
 import dateTimeService from "../utils/dateTimeService.js";
 
 export default function TimeLogCreateBar({onCreate}) {
-  const [ticket, setTicket] = useState("");
   const [startTime, setStartTime] = useState(dayjs());
-  const [description, setDescription] = useState("");
+  const [ticketAndDescription, setTicketAndDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const handleCreate = async () => {
     setIsCreating(true);
+    const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
+    const match = ticketAndDescription.match(jiraIssuePattern);
+    let ticket = "";
+    let description = ticketAndDescription;
+    if (match) {
+      ticket = match[0];
+      description = description.slice(ticket.length).trim();
+    }
     try {
       await onCreate({ticket, startTime: dateTimeService.getFormattedDateTime(startTime), description});
     } finally {
       setIsCreating(false);
     }
-    setTicket("");
-    setDescription("")
+    setTicketAndDescription("");
   }
   return (
     <div className="flex items-center">
-      <div className="mx-2 my-2">
-        <TextField
-          className="w-24"
-          label="Ticket"
-          value={ticket}
-          onChange={(event) => setTicket(event.target.value)}
-          size="small"
-          autoComplete="off"
-        />
-      </div>
       <div className="ml-2 my-2">
         <TimeField
           className="w-20"
@@ -54,8 +50,8 @@ export default function TimeLogCreateBar({onCreate}) {
         <TextField
           className="w-full"
           label="Description"
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
+          value={ticketAndDescription}
+          onChange={(event) => setTicketAndDescription(event.target.value)}
           size="small"
           autoComplete="off"
           onKeyDown={async (e) => {
