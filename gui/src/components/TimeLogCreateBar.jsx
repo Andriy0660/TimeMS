@@ -12,8 +12,8 @@ export default function TimeLogCreateBar({onCreate}) {
     setIsCreating(true);
     const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
     const match = ticketAndDescription.match(jiraIssuePattern);
-    let ticket = "";
-    let description = ticketAndDescription;
+    let ticket = null;
+    let description = ticketAndDescription || null;
     if (match) {
       ticket = match[0];
       description = description.slice(ticket.length).trim();
