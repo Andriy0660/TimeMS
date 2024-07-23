@@ -116,7 +116,7 @@ export default function TimeLog({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [handleClickOutside]);
+  }, [timeLogRef.current, startTime, endTime, ticket, description]);
 
   useEffect(() => {
     if (isEditing && editedField) {
