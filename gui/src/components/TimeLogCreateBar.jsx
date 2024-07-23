@@ -44,8 +44,8 @@ export default function TimeLogCreateBar({onCreate}) {
     setTicketAndDescription("");
   }
   return (
-    <div className="flex items-center">
-      <div className="w-full mx-2 my-2">
+    <div className="m-4 flex justify-center">
+      <div className="p-2 flex items-center w-3/5 overflow-x-auto shadow-md bg-gray-50">
         <TextField
           className="w-full"
           label="Description"
@@ -61,22 +61,22 @@ export default function TimeLogCreateBar({onCreate}) {
             }
           }}
         />
-      </div>
-      <div className="mx-2 my-2">
-        <Button
-          variant="outlined"
-          onClick={handleCreate}
-        >
-          {isCreating ? <CircularProgress size={25} /> : "Create"}
-        </Button>
-      </div>
-      <div className="mx-2 my-2">
-        <Button
-          variant="outlined"
-          onClick={handleStart}
-        >
-          {isStarting ? <CircularProgress size={25} /> : "Start"}
-        </Button>
+        <div className="mx-2">
+          <Button
+            variant="outlined"
+            onClick={handleCreate}
+          >
+            {isCreating ? <CircularProgress size={25} /> : "Create"}
+          </Button>
+        </div>
+        <div>
+          <Button
+            variant="outlined"
+            onClick={handleStart}
+          >
+            {isStarting ? <CircularProgress size={25} /> : "Start"}
+          </Button>
+        </div>
       </div>
     </div>
   )
