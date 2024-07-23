@@ -113,22 +113,23 @@ export default function TimeLog({
   }, [isEditing, editedField]);
 
   const validateUpdateRequest = () => {
-    if (!isTimeFieldsValid) {
-      addAlert({
-        text: "End time must be great than start time",
-        type: "error"
-      })
-      setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
-      setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
-      return false;
-    }
+    const alerts = [];
 
+    if (!isTimeFieldsValid) {
+      alerts.push({
+        text: "End time must be greater than start time",
+        type: "error"
+      });
+    }
     if (!isTicketFieldValid) {
-      addAlert({
+      alerts.push({
         text: "Invalid ticket number",
         type: "error"
-      })
-      setTicket(timeLog?.ticket || "");
+      });
+    }
+    if (alerts.length > 0) {
+      alerts.forEach(alert => addAlert(alert));
+      resetChanges();
       return false;
     }
     return true;
