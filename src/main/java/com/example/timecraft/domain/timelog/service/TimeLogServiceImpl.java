@@ -48,7 +48,9 @@ public class TimeLogServiceImpl implements TimeLogService {
     TimeLogEntity timeLogEntity = mapper.fromCreateRequest(request);
     timeLogEntity.setDate(LocalDate.now(clock));
 
-    stopOtherTimeLogs(null);
+    if(timeLogEntity.getStartTime() != null) {
+      stopOtherTimeLogs(null);
+    }
 
     timeLogEntity = repository.save(timeLogEntity);
     TimeLogCreateResponse response = mapper.toCreateResponse(timeLogEntity);
