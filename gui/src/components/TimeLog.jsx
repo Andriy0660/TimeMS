@@ -22,6 +22,7 @@ export default function TimeLog({
   onUpdate,
   onDelete
 }) {
+  const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
   const [startTime, setStartTime] = useState(timeLog.startTime ? dayjs(timeLog.startTime) : null);
   const [endTime, setEndTime] = useState(timeLog.endTime ? dayjs(timeLog.endTime) : null);
@@ -134,7 +135,7 @@ export default function TimeLog({
             onClick={async () => {
               setIsLoading(true);
               try {
-                await onCreate({ticket, startTime: getFormattedDateTime(dayjs()), description});
+                await onCreate({ticket, startTime: getFormattedDateTime(currentTime), description});
               } finally {
                 setIsLoading(false);
               }
@@ -149,7 +150,7 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: `${dayjs().diff(startTime, "hour")}h ${dayjs().diff(startTime, "minute") % 60}m`,
+      label: `${currentTime.diff(startTime, "hour")}h ${currentTime.diff(startTime, "minute") % 60}m`,
       action: isHovered && (
         <Tooltip title="stop">
           <IconButton
@@ -159,7 +160,7 @@ export default function TimeLog({
                 id: timeLog.id,
                 ticket,
                 startTime: getFormattedDateTime(startTime),
-                endTime: getFormattedDateTime(dayjs()),
+                endTime: getFormattedDateTime(currentTime),
                 description,
               });
               setIsLoading(false);
@@ -183,7 +184,7 @@ export default function TimeLog({
               handleUpdateTimeLog({
                 id: timeLog.id,
                 ticket,
-                startTime: getFormattedDateTime(dayjs()),
+                startTime: getFormattedDateTime(currentTime),
                 description,
               });
               setIsLoading(false);
