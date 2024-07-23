@@ -98,6 +98,7 @@ export default function TimeLog({
             type: "error"
           })
           setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
+          setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
           return;
         }
         handleUpdateTimeLog({
