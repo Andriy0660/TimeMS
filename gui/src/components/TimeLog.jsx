@@ -333,7 +333,7 @@ export default function TimeLog({
             color="primary"
             variant="outlined"
             size="small"
-            className="shadow-md mr-2"
+            className="shadow-md mr-2 my-2"
           /> : null}
 
         </div>
