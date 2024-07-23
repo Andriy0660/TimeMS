@@ -30,8 +30,8 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final Clock clock;
 
   @Override
-  public TimeLogListResponse list() {
-    final List<TimeLogEntity> timeLogEntityList = repository.findAll();
+  public TimeLogListResponse list(LocalDate day) {
+    final List<TimeLogEntity> timeLogEntityList = repository.findAllByDateIs(day);
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(mapper::toListItem)
         .sorted(
