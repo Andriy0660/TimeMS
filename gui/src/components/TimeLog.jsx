@@ -86,28 +86,45 @@ export default function TimeLog({
     );
   }, [ticket, description, startTime, endTime, timeLog]);
 
-  const handleClickOutside = (event) => {
-    if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
-      setIsEditing(false);
-      if (isModified) {
-        if (startTime?.isAfter(endTime)) {
-          addAlert({
-            text: "End time must be great than start time",
-            type: "error"
-          })
-          setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
-          setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
-          return;
-        }
-        handleUpdateTimeLog({
-          id: timeLog.id,
-          ticket,
-          startTime: dateTimeService.getFormattedDateTime(startTime),
-          endTime: dateTimeService.getFormattedDateTime(endTime),
-          description
-        });
-      }
+  const isTimeFieldsValid = (startTime && endTime) ? startTime?.isBefore(endTime) : true;
+
+  const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
+  const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
+  const validateUpdateRequest = () => {
+    if (!isTimeFieldsValid) {
+      addAlert({
+        text: "End time must be great than start time",
+        type: "error"
+      })
+      setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
+      setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
+      return false;
     }
+
+    if (!isTicketFieldValid) {
+      addAlert({
+        text: "Invalid ticket number",
+        type: "error"
+      })
+      setTicket(timeLog?.ticket || "");
+      return false;
+    }
+    return true;
+  }
+  const handleClickOutside = (event) => {
+      if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
+        setIsEditing(false);
+        if (isModified && validateUpdateRequest()) {
+          handleUpdateTimeLog({
+            id: timeLog.id,
+            ticket,
+            startTime: dateTimeService.getFormattedDateTime(startTime),
+            endTime: dateTimeService.getFormattedDateTime(endTime),
+            description
+          });
+
+        }
+      }
   };
 
   useEffect(() => {
@@ -201,6 +218,7 @@ export default function TimeLog({
     return <>
       <div className="mr-4 my-2">
         <TextField
+          error={!isTicketFieldValid}
           name="ticket"
           className="w-24"
           label="Ticket"
@@ -214,6 +232,7 @@ export default function TimeLog({
       <div className="mr-4 my-2">
         <TimeField
           name="startTime"
+          error={!isTimeFieldsValid}
           className="w-20"
           label="Start"
           size="small"
@@ -232,6 +251,7 @@ export default function TimeLog({
       <div className="mr-4 my-2">
         <TimeField
           name="endTime"
+          error={!isTimeFieldsValid}
           className="w-20"
           label="End"
           value={endTime}
@@ -337,7 +357,7 @@ export default function TimeLog({
                       })}
                       className="mr-0"
                       color="success"
-                      disabled={startTime?.isAfter(endTime)}
+                      disabled={!isTimeFieldsValid || !isTicketFieldValid}
                     >
                       <SaveOutlinedIcon fontSize="small" />
                     </IconButton>
