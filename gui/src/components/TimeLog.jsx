@@ -9,12 +9,9 @@ import KeyboardTabOutlinedIcon from '@mui/icons-material/KeyboardTabOutlined';
 import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined';
 import StartOutlinedIcon from '@mui/icons-material/StartOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-
 import Divider from "@mui/material/Divider";
 import useAppContext from "../context/useAppContext.js";
-
-const getFormattedTime = (time) => time?.format("HH:mm");
-const getFormattedDateTime = (time) => time?.format("YYYY-MM-DDTHH:mm");
+import dateTimeService from "../utils/dateTimeService.js";
 
 export default function TimeLog({
   timeLog,
@@ -105,8 +102,8 @@ export default function TimeLog({
         handleUpdateTimeLog({
           id: timeLog.id,
           ticket,
-          startTime: getFormattedDateTime(startTime),
-          endTime: getFormattedDateTime(endTime),
+          startTime: dateTimeService.getFormattedDateTime(startTime),
+          endTime: dateTimeService.getFormattedDateTime(endTime),
           description
         });
       }
@@ -135,7 +132,7 @@ export default function TimeLog({
             onClick={async () => {
               setIsLoading(true);
               try {
-                await onCreate({ticket, startTime: getFormattedDateTime(currentTime), description});
+                await onCreate({ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description});
               } finally {
                 setIsLoading(false);
               }
@@ -159,8 +156,8 @@ export default function TimeLog({
               handleUpdateTimeLog({
                 id: timeLog.id,
                 ticket,
-                startTime: getFormattedDateTime(startTime),
-                endTime: getFormattedDateTime(currentTime),
+                startTime: dateTimeService.getFormattedDateTime(startTime),
+                endTime: dateTimeService.getFormattedDateTime(currentTime),
                 description,
               });
               setIsLoading(false);
@@ -184,7 +181,7 @@ export default function TimeLog({
               handleUpdateTimeLog({
                 id: timeLog.id,
                 ticket,
-                startTime: getFormattedDateTime(currentTime),
+                startTime: dateTimeService.getFormattedDateTime(currentTime),
                 description,
               });
               setIsLoading(false);
@@ -262,7 +259,7 @@ export default function TimeLog({
             setEditedField("startTime");
           }}
         >
-          <Typography className="font-bold">{getFormattedTime(startTime)}</Typography>
+          <Typography className="font-bold">{dateTimeService.getFormattedTime(startTime)}</Typography>
         </div>
       }
       {endTime && (
@@ -275,7 +272,7 @@ export default function TimeLog({
               setEditedField("endTime");
             }}
           >
-            <Typography className="font-bold">{getFormattedTime(endTime)}</Typography>
+            <Typography className="font-bold">{dateTimeService.getFormattedTime(endTime)}</Typography>
           </div>
         </>
       )}
@@ -334,8 +331,8 @@ export default function TimeLog({
                       onClick={() => handleUpdateTimeLog({
                         id: timeLog.id,
                         ticket,
-                        startTime: getFormattedDateTime(startTime),
-                        endTime: getFormattedDateTime(endTime),
+                        startTime: dateTimeService.getFormattedDateTime(startTime),
+                        endTime: dateTimeService.getFormattedDateTime(endTime),
                         description
                       })}
                       className="mr-0"

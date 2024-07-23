@@ -3,6 +3,7 @@ import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useState} from "react";
 import RestoreIcon from '@mui/icons-material/Restore';
+import dateTimeService from "../utils/dateTimeService.js";
 
 export default function TimeLogCreateBar({onCreate}) {
   const [ticket, setTicket] = useState("");
@@ -12,7 +13,7 @@ export default function TimeLogCreateBar({onCreate}) {
   const handleCreate = async () => {
     setIsCreating(true);
     try {
-      await onCreate({ticket, startTime: startTime?.format("YYYY-MM-DDTHH:mm"), description});
+      await onCreate({ticket, startTime: dateTimeService.getFormattedDateTime(startTime), description});
     } finally {
       setIsCreating(false);
     }
