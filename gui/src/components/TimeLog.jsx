@@ -27,12 +27,12 @@ export default function TimeLog({
   const [totalTime, setTotalTime] = useState(timeLog.totalTime);
 
   const status = useMemo(() => {
-    if (timeLog?.totalTime) {
+    if (totalTime) {
       return "Done";
     } else if (startTime) {
       return "InProgress";
     } else return "Pending";
-  }, [timeLog?.totalTime, startTime]);
+  }, [totalTime, startTime]);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -164,8 +164,8 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: currentTime.diff(startTime) >= 0
-        ? `${currentTime.diff(startTime, "hour")}h ${currentTime.diff(startTime, "minute") % 60}m`
+      label: currentTime.diff(timeLog?.startTime) >= 0
+        ? `${currentTime.diff(timeLog?.startTime, "hour")}h ${currentTime.diff(timeLog?.startTime, "minute") % 60}m`
         : null,
       action: isHovered && (
         <Tooltip title="stop">
