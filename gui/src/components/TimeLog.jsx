@@ -134,7 +134,7 @@ export default function TimeLog({
     }
     return true;
   }
-  const isTimeFieldsValid = (startTime && endTime) ? startTime?.isBefore(endTime) : true;
+  const isTimeFieldsValid = (startTime && endTime) ? !startTime?.isAfter(endTime) : true;
 
   const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
   const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
