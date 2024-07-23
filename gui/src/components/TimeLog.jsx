@@ -43,23 +43,16 @@ export default function TimeLog({
   const timeLogRef = useRef(null);
   const {addAlert} = useAppContext();
 
-  const initializeState = () => {
+  useEffect(() => {
+    initializeState();
+  }, [timeLog]);
+  function initializeState() {
     setTicket(timeLog?.ticket || "");
     setStartTime(timeLog?.startTime ? dayjs(timeLog.startTime) : null);
     setEndTime(timeLog?.endTime ? dayjs(timeLog.endTime) : null);
     setDescription(timeLog?.description || "");
     setTotalTime(timeLog?.totalTime || "");
-  };
-
-  useEffect(() => {
-    initializeState();
-  }, [timeLog]);
-
-  const resetChanges = () => {
-    initializeState();
-    setIsEditing(false);
-  };
-
+  }
   const handleUpdateTimeLog = async (body) => {
     setIsLoading(true);
     setIsEditing(false);
@@ -71,11 +64,33 @@ export default function TimeLog({
       setIsLoading(false);
     }
   };
-  const isSameDate = (date1, date2) => {
-    if (!date1 && !date2) return true;
-    if (!date1 || !date2) return false;
-    return date1.isSame(dayjs(date2));
-  };
+
+  function resetChanges() {
+    initializeState();
+    setIsEditing(false);
+  }
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [timeLogRef.current, startTime, endTime, ticket, description]);
+
+  function handleClickOutside (event)  {
+    if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
+      setIsEditing(false);
+      if (isModified && validateUpdateRequest()) {
+        handleUpdateTimeLog({
+          id: timeLog.id,
+          ticket,
+          startTime: dateTimeService.getFormattedDateTime(startTime),
+          endTime: dateTimeService.getFormattedDateTime(endTime),
+          description
+        });
+      }
+    }
+  }
 
   const isModified = useMemo(() => {
     return (
@@ -85,11 +100,18 @@ export default function TimeLog({
       !isSameDate(endTime, timeLog.endTime)
     );
   }, [ticket, description, startTime, endTime, timeLog]);
+  function isSameDate (date1, date2)  {
+    if (!date1 && !date2) return true;
+    if (!date1 || !date2) return false;
+    return date1.isSame(dayjs(date2));
+  }
 
-  const isTimeFieldsValid = (startTime && endTime) ? startTime?.isBefore(endTime) : true;
+  useEffect(() => {
+    if (isEditing && editedField) {
+      timeLogRef.current.querySelector(`[name="${editedField}"]`).focus();
+    }
+  }, [isEditing, editedField]);
 
-  const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
-  const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
   const validateUpdateRequest = () => {
     if (!isTimeFieldsValid) {
       addAlert({
@@ -111,110 +133,10 @@ export default function TimeLog({
     }
     return true;
   }
-  const handleClickOutside = (event) => {
-      if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
-        setIsEditing(false);
-        if (isModified && validateUpdateRequest()) {
-          handleUpdateTimeLog({
-            id: timeLog.id,
-            ticket,
-            startTime: dateTimeService.getFormattedDateTime(startTime),
-            endTime: dateTimeService.getFormattedDateTime(endTime),
-            description
-          });
+  const isTimeFieldsValid = (startTime && endTime) ? startTime?.isBefore(endTime) : true;
 
-        }
-      }
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [timeLogRef.current, startTime, endTime, ticket, description]);
-
-  useEffect(() => {
-    if (isEditing && editedField) {
-      timeLogRef.current.querySelector(`[name="${editedField}"]`).focus();
-    }
-  }, [isEditing, editedField]);
-
-  const statusConfig = {
-    Done: {
-      label: totalTime,
-      action: isHovered && (
-        <Tooltip title="continue">
-          <IconButton
-            onClick={async () => {
-              setIsLoading(true);
-              try {
-                await onCreate({ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description});
-              } finally {
-                setIsLoading(false);
-              }
-            }}
-            variant="outlined"
-            color="primary"
-            className="mr-2"
-          >
-            <KeyboardTabOutlinedIcon />
-          </IconButton>
-        </Tooltip>
-      ),
-    },
-    InProgress: {
-      label: currentTime.diff(timeLog?.startTime) >= 0
-        ? `${currentTime.diff(timeLog?.startTime, "hour")}h ${currentTime.diff(timeLog?.startTime, "minute") % 60}m`
-        : null,
-      action: isHovered && (
-        <Tooltip title="stop">
-          <IconButton
-            onClick={() => {
-              setIsLoading(true);
-              handleUpdateTimeLog({
-                id: timeLog.id,
-                ticket,
-                startTime: dateTimeService.getFormattedDateTime(startTime),
-                endTime: dateTimeService.getFormattedDateTime(currentTime),
-                description,
-              });
-              setIsLoading(false);
-            }}
-            variant="outlined"
-            color="warning"
-            className="mr-2"
-          >
-            <StopCircleOutlinedIcon />
-          </IconButton>
-        </Tooltip>
-      ),
-    },
-    Pending: {
-      label: 'Pending',
-      action: isHovered && (
-        <Tooltip title="start">
-          <IconButton
-            onClick={() => {
-              setIsLoading(true);
-              handleUpdateTimeLog({
-                id: timeLog.id,
-                ticket,
-                startTime: dateTimeService.getFormattedDateTime(currentTime),
-                description,
-              });
-              setIsLoading(false);
-            }}
-            variant="outlined"
-            color="primary"
-            className="mr-2"
-          >
-            <StartOutlinedIcon />
-          </IconButton>
-        </Tooltip>
-      ),
-    },
-  };
+  const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
+  const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
 
   function getEditableFields() {
     return <>
@@ -316,6 +238,82 @@ export default function TimeLog({
 
     </>;
   }
+
+  const statusConfig = {
+    Done: {
+      label: totalTime,
+      action: isHovered && (
+        <Tooltip title="continue">
+          <IconButton
+            onClick={async () => {
+              setIsLoading(true);
+              try {
+                await onCreate({ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description});
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            variant="outlined"
+            color="primary"
+            className="mr-2"
+          >
+            <KeyboardTabOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+      ),
+    },
+    InProgress: {
+      label: currentTime.diff(timeLog?.startTime) >= 0
+        ? `${currentTime.diff(timeLog?.startTime, "hour")}h ${currentTime.diff(timeLog?.startTime, "minute") % 60}m`
+        : null,
+      action: isHovered && (
+        <Tooltip title="stop">
+          <IconButton
+            onClick={() => {
+              setIsLoading(true);
+              handleUpdateTimeLog({
+                id: timeLog.id,
+                ticket,
+                startTime: dateTimeService.getFormattedDateTime(startTime),
+                endTime: dateTimeService.getFormattedDateTime(currentTime),
+                description,
+              });
+              setIsLoading(false);
+            }}
+            variant="outlined"
+            color="warning"
+            className="mr-2"
+          >
+            <StopCircleOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+      ),
+    },
+    Pending: {
+      label: 'Pending',
+      action: isHovered && (
+        <Tooltip title="start">
+          <IconButton
+            onClick={() => {
+              setIsLoading(true);
+              handleUpdateTimeLog({
+                id: timeLog.id,
+                ticket,
+                startTime: dateTimeService.getFormattedDateTime(currentTime),
+                description,
+              });
+              setIsLoading(false);
+            }}
+            variant="outlined"
+            color="primary"
+            className="mr-2"
+          >
+            <StartOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+      ),
+    },
+  };
 
   return (
     <div
