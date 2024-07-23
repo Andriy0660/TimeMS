@@ -9,6 +9,7 @@ import {CircularProgress} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useState} from "react";
 import dayjs from "dayjs";
+import dateTimeService from "../utils/dateTimeService.js";
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
   const [date, setDate] = useState(dayjs());
@@ -21,9 +22,9 @@ export default function TimeLogPage() {
     isPending: isListing,
     error: listAllError,
   } = useQuery({
-    queryKey: [timeLogApi.key],
+    queryKey: [timeLogApi.key, date],
     queryFn: () => {
-      return timeLogApi.listAll();
+      return timeLogApi.list({day: dateTimeService.getFormattedDate(date)});
     },
     retryDelay: 300,
   });

@@ -22,7 +22,10 @@ export default function TimeLogList({
   return (
     <div className="m-4 flex flex-col items-center">
       <div className="w-3/5 overflow-x-auto shadow-md bg-gray-50">
-        {renderedTimeLogs}
+        {timeLogs.length !== 0 ? renderedTimeLogs :
+          <div className="p-1 text-center italic">
+            No logs for this day...
+          </div>}
       </div>
     </div>
   );
