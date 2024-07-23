@@ -142,19 +142,6 @@ export default function TimeLog({
   function getEditableFields() {
     return <>
       <div className="mr-4 my-2">
-        <TextField
-          error={!isTicketFieldValid}
-          name="ticket"
-          className="w-24"
-          label="Ticket"
-          size="small"
-          value={ticket}
-          onChange={(event) => setTicket(event.target.value)}
-          autoComplete="off"
-        />
-      </div>
-
-      <div className="mr-4 my-2">
         <TimeField
           name="startTime"
           error={!isTimeFieldsValid}
@@ -191,12 +178,24 @@ export default function TimeLog({
           format="HH:mm"
         />
       </div>
+      <div className="mr-4 my-2">
+        <TextField
+          error={!isTicketFieldValid}
+          name="ticket"
+          className="w-24"
+          label="Ticket"
+          size="small"
+          value={ticket}
+          onChange={(event) => setTicket(event.target.value)}
+          autoComplete="off"
+        />
+      </div>
     </>;
   }
 
   function getNonEditableFields() {
     return <>
-      {startTime &&
+    {(startTime || endTime) &&
         <div
           className="mr-4 my-2 hover:bg-blue-100"
           onClick={() => {
@@ -204,9 +203,11 @@ export default function TimeLog({
             setEditedField("startTime");
           }}
         >
-          <Typography className="font-bold">{dateTimeService.getFormattedTime(startTime)}</Typography>
+          <Typography className={`${startTime?"font-bold":"text-xs leading-6"}`}>
+            {startTime ? dateTimeService.getFormattedTime(startTime) : "____"}
+          </Typography>
         </div>
-      }
+    }
       {endTime && (
         <>
           -
@@ -224,7 +225,8 @@ export default function TimeLog({
 
       {ticket && (
         <>
-          <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />
+        {(startTime || endTime) &&
+          <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />}
           <div
             className="mr-4 my-2 hover:bg-blue-100"
             onClick={() => {
