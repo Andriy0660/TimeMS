@@ -10,7 +10,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 
 public interface TimeLogService {
-  TimeLogListResponse list(LocalDate day);
+  TimeLogListResponse list(String mode, LocalDate date);
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 

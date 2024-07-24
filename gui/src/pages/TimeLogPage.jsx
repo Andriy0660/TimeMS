@@ -26,9 +26,9 @@ export default function TimeLogPage() {
     isPending: isListing,
     error: listAllError,
   } = useQuery({
-    queryKey: [timeLogApi.key, date],
+    queryKey: [timeLogApi.key, mode, date],
     queryFn: () => {
-      return timeLogApi.list({day: dateTimeService.getFormattedDate(date)});
+      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
     },
     placeholderData: (prev) => prev,
     retryDelay: 300,

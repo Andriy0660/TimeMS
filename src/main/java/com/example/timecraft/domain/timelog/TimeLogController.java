@@ -28,8 +28,8 @@ public class TimeLogController {
   private final TimeLogService timeLogService;
 
   @GetMapping
-  public TimeLogListResponse list(@RequestParam LocalDate day) {
-    return timeLogService.list(day);
+  public TimeLogListResponse list(@RequestParam String mode, @RequestParam LocalDate date) {
+    return timeLogService.list(mode, date);
   }
 
   @PostMapping

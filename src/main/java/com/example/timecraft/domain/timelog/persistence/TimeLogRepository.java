@@ -9,5 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TimeLogRepository extends JpaRepository<TimeLogEntity, Long> {
   List<TimeLogEntity> findAllByDateIs(LocalDate day);
+  List<TimeLogEntity> findAllByDateBetween(LocalDate start, LocalDate end);
   List<TimeLogEntity> findAllByEndTimeIsNull();
 }
