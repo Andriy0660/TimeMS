@@ -12,7 +12,6 @@ export default function DayPicker({date, setDate}) {
         <ArrowBackIosIcon />
       </Button>
       <MobileDatePicker
-        size="small"
         slotProps={{textField: {size: "small"}}}
         className="w-32"
         value={date}
