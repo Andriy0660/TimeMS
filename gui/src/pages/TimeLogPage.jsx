@@ -4,7 +4,7 @@ import {LocalizationProvider} from "@mui/x-date-pickers";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress, MenuItem, Select} from "@mui/material";
+import {CircularProgress, IconButton, MenuItem, Select, Tooltip} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useState} from "react";
 import dayjs from "dayjs";
@@ -12,6 +12,7 @@ import dateTimeService from "../utils/dateTimeService.js";
 import DayPicker from "../components/DayPicker.jsx";
 import MonthPicker from "../components/MonthPicker..jsx";
 import WeekPicker from "../components/WeekPicker.jsx";
+import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -157,7 +158,19 @@ export default function TimeLogPage() {
               <MenuItem value="Month">Month</MenuItem>
               <MenuItem value="All">All</MenuItem>
             </Select>
-            {modeDatePickerConfig[mode]}
+              {modeDatePickerConfig[mode]}
+              {mode !== "All" &&
+                <Tooltip title="reset">
+                  <IconButton
+                    onClick={() => setDate(dayjs())}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    <SettingsBackupRestoreIcon />
+                  </IconButton>
+                </Tooltip>
+
+              }
           </div>
           <TimeLogList
             timeLogs={timeLogs}
