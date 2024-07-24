@@ -26,6 +26,7 @@ export default function TimeLogPage() {
     queryFn: () => {
       return timeLogApi.list({day: dateTimeService.getFormattedDate(date)});
     },
+    initialData:[],
     retryDelay: 300,
   });
 
