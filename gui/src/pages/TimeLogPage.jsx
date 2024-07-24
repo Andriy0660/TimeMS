@@ -15,7 +15,7 @@ import WeekPicker from "../components/WeekPicker.jsx";
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 
 export default function TimeLogPage() {
-  const [timeLogs, setTimeLogs] = useState([]);
+  const [timeLogs, setTimeLogs] = useState({});
   const [date, setDate] = useState(dayjs());
   const [mode, setMode] = useState("Day");
 
@@ -133,14 +133,6 @@ export default function TimeLogPage() {
     Month: <MonthPicker date={date} setDate={setDate}/>,
     All: null,
   };
-  const groupedByDate = timeLogs.reduce((acc, curr) => {
-    const date = curr.date;
-    if (!acc[date]) {
-      acc[date] = [];
-    }
-    acc[date].push(curr);
-    return acc;
-  }, {});
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -180,23 +172,13 @@ export default function TimeLogPage() {
 
               }
           </div>
-          <div>
-            {timeLogs.length === 0 &&
-              <TimeLogList timeLogs={timeLogs}/>
-            }
-            {Object.keys(groupedByDate).map((date) => (
-              <div key={date}>
-                <TimeLogList
-                  timeLogs={groupedByDate[date]}
-                  date={date}
-                  mode={mode}
-                  onCreate={create}
-                  onUpdate={update}
-                  onDelete={deleteTimeLog}
-                />
-              </div>
-            ))}
-          </div>
+          <TimeLogList
+            timeLogs={timeLogs}
+            mode={mode}
+            onCreate={create}
+            onUpdate={update}
+            onDelete={deleteTimeLog}
+          />
         </div>
       </div>
     </LocalizationProvider>

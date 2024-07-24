@@ -7,6 +7,9 @@ import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,15 +38,22 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogListResponse list(String mode, LocalDate date) {
     final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date);
-    final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
-        .map(mapper::toListItem)
-        .sorted(
-            Comparator.comparing(
-                TimeLogListResponse.TimeLogDto::getStartTime,
-                Comparator.nullsLast(Comparator.naturalOrder())
-            ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
-        .toList();
-    return new TimeLogListResponse(timeLogDtoList);
+
+    Map<LocalDate, List<TimeLogEntity>> groupedAndSortedByDate = timeLogEntityList.stream()
+            .collect(Collectors.groupingBy(TimeLogEntity::getDate));
+
+    Map<LocalDate, List<TimeLogListResponse.TimeLogDto>> response = new TreeMap<>(groupedAndSortedByDate.entrySet().stream()
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            entry -> entry.getValue().stream()
+                .map(mapper::toListItem)
+                .sorted(Comparator.comparing(
+                    TimeLogListResponse.TimeLogDto::getStartTime,
+                    Comparator.nullsLast(Comparator.naturalOrder())
+                ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
+                .toList()
+        )));
+    return new TimeLogListResponse(response);
   }
 
   private List<TimeLogEntity> getAllTimeLogEntitiesInMode(String mode, LocalDate date) {
