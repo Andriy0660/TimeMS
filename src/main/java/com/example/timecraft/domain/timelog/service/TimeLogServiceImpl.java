@@ -85,11 +85,11 @@ public class TimeLogServiceImpl implements TimeLogService {
     return response;
   }
 
-  private boolean isConflictedWithOthersTimeLogs(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
-    final List<TimeLogEntity> logEntryEntities = repository.findAll();
-    return logEntryEntities.stream().anyMatch(logEntry ->
-        !logEntry.getId().equals(logEntryId) &&
-            areIntervalsOverlapping(startTime, endTime, logEntry.getStartTime(), logEntry.getEndTime())
+  private boolean isConflictedWithOthersTimeLogs(final Long timeLogId, final LocalDateTime startTime, final LocalDateTime endTime) {
+    final List<TimeLogEntity> timeLogEntities = repository.findAllByDateIs(LocalDate.now(clock));
+    return timeLogEntities.stream().anyMatch(timeLog ->
+        !timeLog.getId().equals(timeLogId) &&
+            areIntervalsOverlapping(startTime, endTime, timeLog.getStartTime(), timeLog.getEndTime())
     );
   }
 
