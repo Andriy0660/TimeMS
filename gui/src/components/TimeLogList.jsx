@@ -24,7 +24,7 @@ export default function TimeLogList({
       <div className="w-3/5 overflow-x-auto shadow-md bg-gray-50">
         {timeLogs.length !== 0 ? renderedTimeLogs :
           <div className="p-1 text-center italic">
-            No logs for this day...
+            No logs...
           </div>}
       </div>
     </div>

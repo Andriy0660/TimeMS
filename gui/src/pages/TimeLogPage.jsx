@@ -1,18 +1,22 @@
 import TimeLogList from "../components/TimeLogList.jsx";
-import DayPicker from "../components/DayPicker.jsx";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress} from "@mui/material";
+import {CircularProgress, MenuItem, Select} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useState} from "react";
 import dayjs from "dayjs";
 import dateTimeService from "../utils/dateTimeService.js";
+import DayPicker from "../components/DayPicker.jsx";
+import MonthPicker from "../components/MonthPicker..jsx";
+import WeekPicker from "../components/WeekPicker.jsx";
+
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
   const [date, setDate] = useState(dayjs());
+  const [mode, setMode] = useState("Day");
 
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
@@ -121,6 +125,14 @@ export default function TimeLogPage() {
       </div>
     );
   }
+
+  const modeDatePickerConfig = {
+    Day: <DayPicker date={date} setDate={setDate}/>,
+    Week: <WeekPicker date={date} setDate={setDate}/>,
+    Month: <MonthPicker date={date} setDate={setDate}/>,
+    All: null,
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <div>
@@ -128,16 +140,31 @@ export default function TimeLogPage() {
           onCreate={create}
         />
         <div className="flex flex-col">
-        <DayPicker
-          date={date}
-          setDate={setDate}
-        />
-        <TimeLogList
-          timeLogs={timeLogs}
-          onCreate={create}
-          onUpdate={update}
-          onDelete={deleteTimeLog}
-        />
+          <div className="flex justify-center">
+            <Select
+              className="mx-2"
+              size="small"
+              inputProps={{"aria-label": "Without label"}}
+              value={mode}
+              onChange={(event) => {
+                setDate(dayjs());
+                setMode(event.target.value);
+              }}
+              autoWidth
+            >
+              <MenuItem value="Day">Day</MenuItem>
+              <MenuItem value="Week">Week</MenuItem>
+              <MenuItem value="Month">Month</MenuItem>
+              <MenuItem value="All">All</MenuItem>
+            </Select>
+            {modeDatePickerConfig[mode]}
+          </div>
+          <TimeLogList
+            timeLogs={timeLogs}
+            onCreate={create}
+            onUpdate={update}
+            onDelete={deleteTimeLog}
+          />
         </div>
       </div>
     </LocalizationProvider>
