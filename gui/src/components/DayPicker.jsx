@@ -16,6 +16,7 @@ export default function DayPicker({date, setDate}) {
         className="w-32"
         value={date}
         onChange={(newValue) => setDate(newValue)}
+        format="DD/MM/YYYY"
       />
       <Button onClick={() => {
         setDate(date.add(1, "day"))
