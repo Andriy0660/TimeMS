@@ -133,6 +133,14 @@ export default function TimeLogPage() {
     Month: <MonthPicker date={date} setDate={setDate}/>,
     All: null,
   };
+  const groupedByDate = timeLogs.reduce((acc, curr) => {
+    const date = curr.date;
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(curr);
+    return acc;
+  }, {});
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -172,12 +180,23 @@ export default function TimeLogPage() {
 
               }
           </div>
-          <TimeLogList
-            timeLogs={timeLogs}
-            onCreate={create}
-            onUpdate={update}
-            onDelete={deleteTimeLog}
-          />
+          <div>
+            {timeLogs.length === 0 &&
+              <TimeLogList timeLogs={timeLogs}/>
+            }
+            {Object.keys(groupedByDate).map((date) => (
+              <div key={date}>
+                <TimeLogList
+                  timeLogs={groupedByDate[date]}
+                  date={date}
+                  mode={mode}
+                  onCreate={create}
+                  onUpdate={update}
+                  onDelete={deleteTimeLog}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </LocalizationProvider>

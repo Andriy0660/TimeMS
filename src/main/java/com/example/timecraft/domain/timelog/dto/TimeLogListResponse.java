@@ -1,5 +1,6 @@
 package com.example.timecraft.domain.timelog.dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class TimeLogListResponse {
   public static class TimeLogDto {
     private Long id;
     private String ticket;
+    private LocalDate date;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String description;
