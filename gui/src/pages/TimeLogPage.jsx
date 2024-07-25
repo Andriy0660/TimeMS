@@ -17,28 +17,24 @@ import {useNavigate} from "react-router-dom";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState({});
-  const [date, setDate] = useState(null);
-  const [mode, setMode] = useState(null);
+
+  const queryParams = new URLSearchParams(location.search);
+  const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs());
+  const [mode, setMode] = useState(queryParams.get("mode") || "Day");
 
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const modeFromUrl = queryParams.get("mode") || "Day";
-    const dateFromUrl = queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs();
-
-    setMode(modeFromUrl);
-    setDate(dateFromUrl);
-  }, []);
 
   const navigate = useNavigate();
   useEffect(() => {
     const params = new URLSearchParams();
-    if (mode) params.set("mode", mode);
-    if (date) params.set("date", dateTimeService.getFormattedDateTime(date));
-    if(params.size > 0) {
-      navigate({search: params.toString()});
+    if (mode && mode !== "Day") {
+      params.set("mode", mode);
     }
+    if (date && !dayjs().isSame(date, "day")) {
+      params.set("date", dateTimeService.getFormattedDateTime(date));
+    }
+    navigate({search: params.toString()});
   }, [mode, date]);
   const {
     data,
