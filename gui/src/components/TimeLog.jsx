@@ -12,6 +12,7 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import Divider from "@mui/material/Divider";
 import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../utils/dateTimeService.js";
+import ConfirmationModal from "./ConfirmationModal.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -27,39 +28,33 @@ export default function TimeLog({
   const [totalTime, setTotalTime] = useState(timeLog.totalTime);
 
   const status = useMemo(() => {
-    if (timeLog?.totalTime) {
+    if (totalTime) {
       return "Done";
     } else if (startTime) {
       return "InProgress";
     } else return "Pending";
-  }, [timeLog?.totalTime, startTime]);
+  }, [totalTime, startTime]);
 
   const [isLoading, setIsLoading] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedField, setEditedField] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const timeLogRef = useRef(null);
   const {addAlert} = useAppContext();
 
-  const initializeState = () => {
-    setTicket(timeLog?.ticket || "");
-    setStartTime(timeLog?.startTime ? dayjs(timeLog.startTime) : null);
-    setEndTime(timeLog?.endTime ? dayjs(timeLog.endTime) : null);
-    setDescription(timeLog?.description || "");
-    setTotalTime(timeLog?.totalTime || "");
-  };
-
   useEffect(() => {
     initializeState();
   }, [timeLog]);
-
-  const resetChanges = () => {
-    initializeState();
-    setIsEditing(false);
-  };
-
+  function initializeState() {
+    setTicket(timeLog.ticket || "");
+    setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
+    setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
+    setDescription(timeLog.description || "");
+    setTotalTime(timeLog.totalTime || "");
+  }
   const handleUpdateTimeLog = async (body) => {
     setIsLoading(true);
     setIsEditing(false);
@@ -71,34 +66,23 @@ export default function TimeLog({
       setIsLoading(false);
     }
   };
-  const isSameDate = (date1, date2) => {
-    if (!date1 && !date2) return true;
-    if (!date1 || !date2) return false;
-    return date1.isSame(dayjs(date2));
-  };
 
-  const isModified = useMemo(() => {
-    return (
-      ticket !== timeLog.ticket ||
-      description !== timeLog.description ||
-      !isSameDate(startTime, timeLog.startTime) ||
-      !isSameDate(endTime, timeLog.endTime)
-    );
-  }, [ticket, description, startTime, endTime, timeLog]);
+  function resetChanges() {
+    initializeState();
+    setIsEditing(false);
+  }
 
-  const handleClickOutside = (event) => {
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [timeLogRef.current, startTime, endTime, ticket, description, timeLog]);
+
+  function handleClickOutside (event)  {
     if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
       setIsEditing(false);
-      if (isModified) {
-        if (startTime?.isAfter(endTime)) {
-          addAlert({
-            text: "End time must be great than start time",
-            type: "error"
-          })
-          setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
-          setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
-          return;
-        }
+      if (isModified && validateUpdateRequest()) {
         handleUpdateTimeLog({
           id: timeLog.id,
           ticket,
@@ -108,20 +92,157 @@ export default function TimeLog({
         });
       }
     }
-  };
+  }
 
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [timeLogRef.current, startTime, endTime, ticket, description]);
+  const isModified = useMemo(() => {
+    return (
+      (ticket || "") !== (timeLog.ticket || "") ||
+      (description || "") !== (timeLog.description || "") ||
+      !isSameDate(startTime, timeLog.startTime) ||
+      !isSameDate(endTime, timeLog.endTime)
+    );
+  }, [ticket, description, startTime, endTime, timeLog]);
+  function isSameDate (date1, date2)  {
+    if (!date1 && !date2) return true;
+    if (!date1 || !date2) return false;
+    return date1.isSame(dayjs(date2));
+  }
 
   useEffect(() => {
     if (isEditing && editedField) {
       timeLogRef.current.querySelector(`[name="${editedField}"]`).focus();
     }
   }, [isEditing, editedField]);
+
+  const validateUpdateRequest = () => {
+    const alerts = [];
+
+    if (!isTimeFieldsValid) {
+      alerts.push({
+        text: "End time must be greater than start time",
+        type: "error"
+      });
+    }
+    if (!isTicketFieldValid) {
+      alerts.push({
+        text: "Invalid ticket number",
+        type: "error"
+      });
+    }
+    if (alerts.length > 0) {
+      alerts.forEach(alert => addAlert(alert));
+      resetChanges();
+      return false;
+    }
+    return true;
+  }
+  const isTimeFieldsValid = (startTime && endTime) ? !startTime?.isAfter(endTime) : true;
+
+  const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
+  const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
+
+  function getEditableFields() {
+    return <>
+      <div className="mr-4 my-2">
+        <TimeField
+          name="startTime"
+          error={!isTimeFieldsValid}
+          className="w-20"
+          label="Start"
+          size="small"
+          value={startTime}
+          onChange={(date) => {
+            if (date === null) {
+              setStartTime(null);
+            } else if (dayjs(date).isValid()) {
+              setStartTime(dayjs(date))
+            }
+          }}
+          format="HH:mm"
+        />
+      </div>
+
+      <div className="mr-4 my-2">
+        <TimeField
+          name="endTime"
+          error={!isTimeFieldsValid}
+          className="w-20"
+          label="End"
+          value={endTime}
+          onChange={(date) => {
+            if (date === null) {
+              setEndTime(null);
+            } else if (dayjs(date).isValid()) {
+              setEndTime(dayjs(date))
+            }
+          }}
+          size="small"
+          format="HH:mm"
+        />
+      </div>
+      <div className="mr-4 my-2">
+        <TextField
+          error={!isTicketFieldValid}
+          name="ticket"
+          className="w-24"
+          label="Ticket"
+          size="small"
+          value={ticket}
+          onChange={(event) => setTicket(event.target.value)}
+          autoComplete="off"
+        />
+      </div>
+    </>;
+  }
+
+  function getNonEditableFields() {
+    return <>
+    {(startTime || endTime) &&
+        <div
+          className="mr-4 my-2 hover:bg-blue-100"
+          onClick={() => {
+            setIsEditing(true);
+            setEditedField("startTime");
+          }}
+        >
+          <Typography className={`${startTime?"font-bold":"text-xs leading-6"}`}>
+            {startTime ? dateTimeService.getFormattedTime(startTime) : "____"}
+          </Typography>
+        </div>
+    }
+      {endTime && (
+        <>
+          -
+          <div
+            className="mx-4 my-2 hover:bg-blue-100"
+            onClick={() => {
+              setIsEditing(true);
+              setEditedField("endTime");
+            }}
+          >
+            <Typography className="font-bold">{dateTimeService.getFormattedTime(endTime)}</Typography>
+          </div>
+        </>
+      )}
+
+      {ticket && (
+        <>
+        {(startTime || endTime) &&
+          <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />}
+          <div
+            className="mr-4 my-2 hover:bg-blue-100"
+            onClick={() => {
+              setIsEditing(true);
+              setEditedField("ticket");
+            }}
+          >
+            <Typography className="font-bold">{ticket}</Typography>
+          </div>
+        </>
+      )}
+
+    </>;
+  }
 
   const statusConfig = {
     Done: {
@@ -147,7 +268,9 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: `${currentTime.diff(startTime, "hour")}h ${currentTime.diff(startTime, "minute") % 60}m`,
+      label: currentTime.diff(timeLog.startTime) >= 0
+        ? `${currentTime.diff(timeLog.startTime, "hour")}h ${currentTime.diff(timeLog.startTime, "minute") % 60}m`
+        : null,
       action: isHovered && (
         <Tooltip title="stop">
           <IconButton
@@ -197,104 +320,6 @@ export default function TimeLog({
     },
   };
 
-  function getEditableFields() {
-    return <>
-      <div className="mr-4 my-2">
-        <TextField
-          name="ticket"
-          className="w-24"
-          label="Ticket"
-          size="small"
-          value={ticket}
-          onChange={(event) => setTicket(event.target.value)}
-          autoComplete="off"
-        />
-      </div>
-
-      <div className="mr-4 my-2">
-        <TimeField
-          name="startTime"
-          className="w-20"
-          label="Start"
-          size="small"
-          value={startTime}
-          onChange={(date) => {
-            if (date === null) {
-              setStartTime(null);
-            } else if (dayjs(date).isValid()) {
-              setStartTime(dayjs(date))
-            }
-          }}
-          format="HH:mm"
-        />
-      </div>
-
-      <div className="mr-4 my-2">
-        <TimeField
-          name="endTime"
-          className="w-20"
-          label="End"
-          value={endTime}
-          onChange={(date) => {
-            if (date === null) {
-              setEndTime(null);
-            } else if (dayjs(date).isValid()) {
-              setEndTime(dayjs(date))
-            }
-          }}
-          size="small"
-          format="HH:mm"
-        />
-      </div>
-    </>;
-  }
-
-  function getNonEditableFields() {
-    return <>
-      {startTime &&
-        <div
-          className="mr-4 my-2 hover:bg-blue-100"
-          onClick={() => {
-            setIsEditing(true);
-            setEditedField("startTime");
-          }}
-        >
-          <Typography className="font-bold">{dateTimeService.getFormattedTime(startTime)}</Typography>
-        </div>
-      }
-      {endTime && (
-        <>
-          -
-          <div
-            className="mx-4 my-2 hover:bg-blue-100"
-            onClick={() => {
-              setIsEditing(true);
-              setEditedField("endTime");
-            }}
-          >
-            <Typography className="font-bold">{dateTimeService.getFormattedTime(endTime)}</Typography>
-          </div>
-        </>
-      )}
-
-      {ticket && (
-        <>
-          <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />
-          <div
-            className="mr-4 my-2 hover:bg-blue-100"
-            onClick={() => {
-              setIsEditing(true);
-              setEditedField("ticket");
-            }}
-          >
-            <Typography className="font-bold">{ticket}</Typography>
-          </div>
-        </>
-      )}
-
-    </>;
-  }
-
   return (
     <div
       className={`p-4 ${status === "InProgress" ? "bg-blue-50" : ""}`}
@@ -305,12 +330,12 @@ export default function TimeLog({
       <div className="flex justify-between">
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
-          {statusConfig[status] ? <Chip
+          {statusConfig[status].label ? <Chip
             label={statusConfig[status].label}
             color="primary"
             variant="outlined"
             size="small"
-            className="shadow-md mr-2"
+            className="shadow-md mr-2 my-2"
           /> : null}
 
         </div>
@@ -337,7 +362,7 @@ export default function TimeLog({
                       })}
                       className="mr-0"
                       color="success"
-                      disabled={startTime?.isAfter(endTime)}
+                      disabled={!isTimeFieldsValid || !isTicketFieldValid}
                     >
                       <SaveOutlinedIcon fontSize="small" />
                     </IconButton>
@@ -366,15 +391,24 @@ export default function TimeLog({
                 <Tooltip title="Delete">
                   <IconButton
                     color="error"
-                    onClick={() => {
-                      setIsLoading(true);
-                      onDelete(timeLog.id);
-                      setIsLoading(false);
-                    }}
+                    onClick={() => setShowDeleteModal(true)}
                   >
                     <DeleteOutlineOutlinedIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
+                <ConfirmationModal
+                  open={showDeleteModal}
+                  type="error"
+                  actionText="Delete"
+                  onConfirm={() => {
+                    setIsLoading(true);
+                    onDelete(timeLog.id);
+                    setIsLoading(false);
+                  }}
+                  onClose={() => setShowDeleteModal(false)}
+                >
+                  Are you sure you want to delete this time log?
+                </ConfirmationModal>
               </>
             )}
           </div>
