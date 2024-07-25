@@ -1,7 +1,6 @@
-package com.example.timecraft.domain.logEntry.dto;
+package com.example.timecraft.domain.timelog.dto;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -11,14 +10,14 @@ import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class LogEntryListAllResponse {
-  private List<LogEntryDto> items;
+public class TimeLogListResponse {
+  private List<TimeLogDto> items;
 
   @Data
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
-  public static class LogEntryDto {
+  public static class TimeLogDto {
     private Long id;
     private String ticket;
     private LocalDateTime startTime;
@@ -27,3 +26,4 @@ public class LogEntryListAllResponse {
     private String totalTime;
   }
 }
+

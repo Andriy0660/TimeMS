@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: TMC-4-rename-log-entry-to-time-log
+      author: Andrii Snovyda
+      changes:
+        - renameTable:
+            oldTableName: log_entries
+            newTableName: timelogs

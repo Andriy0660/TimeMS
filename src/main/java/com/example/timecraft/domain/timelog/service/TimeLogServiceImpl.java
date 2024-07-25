@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.logEntry.service;
+package com.example.timecraft.domain.timelog.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -10,55 +10,55 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.timecraft.core.exception.NotFoundException;
-import com.example.timecraft.domain.logEntry.dto.LogEntryCreateRequest;
-import com.example.timecraft.domain.logEntry.dto.LogEntryCreateResponse;
-import com.example.timecraft.domain.logEntry.dto.LogEntryGetResponse;
-import com.example.timecraft.domain.logEntry.dto.LogEntryListAllResponse;
-import com.example.timecraft.domain.logEntry.dto.LogEntryUpdateRequest;
-import com.example.timecraft.domain.logEntry.dto.LogEntryUpdateResponse;
-import com.example.timecraft.domain.logEntry.mapper.LogEntityMapper;
-import com.example.timecraft.domain.logEntry.persistence.LogEntryEntity;
-import com.example.timecraft.domain.logEntry.persistence.LogEntryRepository;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
+import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
+import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
+import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class LogEntryServiceImpl implements LogEntryService {
-  private final LogEntryRepository repository;
-  private final LogEntityMapper mapper;
+public class TimeLogServiceImpl implements TimeLogService {
+  private final TimeLogRepository repository;
+  private final TimeLogMapper mapper;
 
   @Override
-  public LogEntryListAllResponse listAll() {
-    final List<LogEntryEntity> logEntryEntityList = repository.findAll();
-    final List<LogEntryListAllResponse.LogEntryDto> logEntryDtoList = logEntryEntityList.stream()
+  public TimeLogListResponse list() {
+    final List<TimeLogEntity> timeLogEntityList = repository.findAll();
+    final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(mapper::toListItem)
         .sorted(
             Comparator.comparing(
-                LogEntryListAllResponse.LogEntryDto::getStartTime,
+                TimeLogListResponse.TimeLogDto::getStartTime,
                 Comparator.nullsLast(Comparator.naturalOrder())
-            ).thenComparing(LogEntryListAllResponse.LogEntryDto::getId))
+            ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
         .toList();
-    return new LogEntryListAllResponse(logEntryDtoList);
+    return new TimeLogListResponse(timeLogDtoList);
   }
 
   @Override
-  public LogEntryCreateResponse create(final LogEntryCreateRequest request) {
-    LogEntryEntity logEntryEntity = mapper.fromCreateRequest(request);
-    logEntryEntity.setDate(LocalDate.now());
+  public TimeLogCreateResponse create(final TimeLogCreateRequest request) {
+    TimeLogEntity timeLogEntity = mapper.fromCreateRequest(request);
+    timeLogEntity.setDate(LocalDate.now());
 
-    stopOtherLogEntries(null);
+    stopOtherTimeLogs(null);
 
-    logEntryEntity = repository.save(logEntryEntity);
-    LogEntryCreateResponse response = mapper.toCreateResponse(logEntryEntity);
-    if (isConflictedWithOthersLogEntries(null, request.getStartTime(), null)) {
+    timeLogEntity = repository.save(timeLogEntity);
+    TimeLogCreateResponse response = mapper.toCreateResponse(timeLogEntity);
+    if (isConflictedWithOthersTimeLogs(null, request.getStartTime(), null)) {
       response.setConflicted(true);
     }
     return response;
   }
 
-  private boolean isConflictedWithOthersLogEntries(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
-    final List<LogEntryEntity> logEntryEntities = repository.findAll();
+  private boolean isConflictedWithOthersTimeLogs(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
+    final List<TimeLogEntity> logEntryEntities = repository.findAll();
     return logEntryEntities.stream().anyMatch(logEntry ->
         !logEntry.getId().equals(logEntryId) &&
             areIntervalsOverlapping(startTime, endTime, logEntry.getStartTime(), logEntry.getEndTime())
@@ -80,7 +80,7 @@ public class LogEntryServiceImpl implements LogEntryService {
     return target.isAfter(border1) && target.isBefore(border2);
   }
 
-  private void stopOtherLogEntries(Long excludedId) {
+  private void stopOtherTimeLogs(Long excludedId) {
     repository.findAllByEndTimeIsNull().forEach((logEntry) -> {
       if(logEntry.getId().equals(excludedId) || logEntry.getStartTime() == null) {
         return;
@@ -91,7 +91,7 @@ public class LogEntryServiceImpl implements LogEntryService {
     });
   }
 
-  private void processSpentTime(final LogEntryEntity entity) {
+  private void processSpentTime(final TimeLogEntity entity) {
     if (entity.getEndTime() != null && entity.getStartTime() != null) {
       entity.setTimeSpentSeconds((int) Duration.between(entity.getStartTime(), entity.getEndTime()).toSeconds());
     } else {
@@ -100,29 +100,29 @@ public class LogEntryServiceImpl implements LogEntryService {
   }
 
   @Override
-  public LogEntryGetResponse get(final long logEntryId) {
-    final LogEntryEntity logEntryEntity = getRaw(logEntryId);
-    return mapper.toGetResponse(logEntryEntity);
+  public TimeLogGetResponse get(final long logEntryId) {
+    final TimeLogEntity timeLogEntity = getRaw(logEntryId);
+    return mapper.toGetResponse(timeLogEntity);
   }
 
-  private LogEntryEntity getRaw(final long logEntryId) {
+  private TimeLogEntity getRaw(final long logEntryId) {
     return repository.findById(logEntryId)
         .orElseThrow(() -> new NotFoundException("Log entry with such id does not exist"));
   }
 
   @Override
-  public LogEntryUpdateResponse update(final long logEntryId, final LogEntryUpdateRequest request) {
+  public TimeLogUpdateResponse update(final long logEntryId, final TimeLogUpdateRequest request) {
     if(request.getEndTime() == null) {
-      stopOtherLogEntries(logEntryId);
+      stopOtherTimeLogs(logEntryId);
     }
 
-    LogEntryEntity entity = getRaw(logEntryId);
+    TimeLogEntity entity = getRaw(logEntryId);
     mapper.fromUpdateRequest(request, entity);
     processSpentTime(entity);
     entity = repository.save(entity);
 
-    LogEntryUpdateResponse response = mapper.toUpdateResponse(entity);
-    if (isConflictedWithOthersLogEntries(logEntryId, entity.getStartTime(), entity.getEndTime())) {
+    TimeLogUpdateResponse response = mapper.toUpdateResponse(entity);
+    if (isConflictedWithOthersTimeLogs(logEntryId, entity.getStartTime(), entity.getEndTime())) {
       response.setConflicted(true);
     }
     return response;
@@ -130,7 +130,7 @@ public class LogEntryServiceImpl implements LogEntryService {
 
   @Override
   public void delete(final long logEntryId) {
-    final LogEntryEntity entity = getRaw(logEntryId);
+    final TimeLogEntity entity = getRaw(logEntryId);
     repository.delete(entity);
   }
 }

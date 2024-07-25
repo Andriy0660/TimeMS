@@ -5,7 +5,7 @@ import {ExclamationMark} from "./icons/ExclamationMark.jsx";
 import {useState} from "react";
 
 export default function ConfirmationModal({
-  show,
+  open,
   type,
   children,
   actionText,
@@ -16,7 +16,7 @@ export default function ConfirmationModal({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  if (!show) {
+  if (!open) {
     return null;
   }
 
