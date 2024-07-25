@@ -13,6 +13,9 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import Divider from "@mui/material/Divider";
 import useAppContext from "../context/useAppContext.js";
 
+const getFormattedTime = (time) => time?.format("HH:mm");
+const getFormattedDateTime = (time) => time?.format("YYYY-MM-DDTHH:mm");
+
 export default function TimeLog({
   timeLog,
   onCreate,
@@ -94,8 +97,8 @@ export default function TimeLog({
         handleUpdateTimeLog({
           id: timeLog.id,
           ticket,
-          startTime: startTime?.format("YYYY-MM-DDTHH:mm"),
-          endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
+          startTime: getFormattedDateTime(startTime),
+          endTime: getFormattedDateTime(endTime),
           description
         });
       }
@@ -184,7 +187,7 @@ export default function TimeLog({
                     setEditedField("startTime");
                   }}
                 >
-                  <Typography className="font-bold">{startTime?.format("HH:mm")}</Typography>
+                  <Typography className="font-bold">{getFormattedTime(startTime)}</Typography>
                 </div>
               }
               {endTime && (
@@ -197,7 +200,7 @@ export default function TimeLog({
                       setEditedField("endTime");
                     }}
                   >
-                    <Typography className="font-bold">{endTime?.format("HH:mm")}</Typography>
+                    <Typography className="font-bold">{getFormattedTime(endTime)}</Typography>
                   </div>
                 </>
               )}
@@ -266,8 +269,8 @@ export default function TimeLog({
                       onClick={() => handleUpdateTimeLog({
                         id: timeLog.id,
                         ticket,
-                        startTime: startTime?.format("YYYY-MM-DDTHH:mm"),
-                        endTime: endTime?.format("YYYY-MM-DDTHH:mm"),
+                        startTime: getFormattedDateTime(startTime),
+                        endTime: getFormattedDateTime(endTime),
                         description
                       })}
                       className="mr-0"
@@ -302,7 +305,7 @@ export default function TimeLog({
                   onClick={async () => {
                     setIsLoading(true);
                     try {
-                      await onCreate({ticket, startTime: dayjs().format("YYYY-MM-DDTHH:mm"), description});
+                      await onCreate({ticket, startTime: getFormattedDateTime(dayjs()), description});
                     } finally {
                       setIsLoading(false);
                     }
@@ -321,8 +324,8 @@ export default function TimeLog({
                     handleUpdateTimeLog({
                       id: timeLog.id,
                       ticket,
-                      startTime: startTime.format("YYYY-MM-DDTHH:mm"),
-                      endTime: dayjs().format("YYYY-MM-DDTHH:mm"),
+                      startTime:getFormattedDateTime(startTime),
+                      endTime: getFormattedDateTime(dayjs()),
                       description
                     });
                     setIsLoading(false);
@@ -341,7 +344,7 @@ export default function TimeLog({
                     handleUpdateTimeLog({
                       id: timeLog.id,
                       ticket,
-                      startTime: dayjs().format("YYYY-MM-DDTHH:mm"),
+                      startTime: getFormattedDateTime(dayjs()),
                       description
                     });
                     setIsLoading(false);
