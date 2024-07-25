@@ -58,6 +58,10 @@ export default function TimeLogPage() {
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => timeLogApi.create(body),
     onSuccess: async (body) => {
+      if(mode !== "Day" || !dayjs().isSame(date, "day")) {
+        setDate(dayjs());
+        setMode("Day");
+      }
       queryClient.invalidateQueries(timeLogs.key);
       if (body.conflicted) {
         addAlert({
