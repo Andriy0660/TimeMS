@@ -53,7 +53,6 @@ export default function TimeLog({
   }, [timeLog])
 
   const resetChanges = () => {
-    console.log("reset");
     setTicket(timeLog.ticket || "");
     setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
     setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
