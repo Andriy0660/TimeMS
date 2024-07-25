@@ -48,6 +48,7 @@ export default function TimeLog({
   useEffect(() => {
     initializeState();
   }, [timeLog]);
+
   function initializeState() {
     setTicket(timeLog.ticket || "");
     setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
@@ -55,6 +56,7 @@ export default function TimeLog({
     setDescription(timeLog.description || "");
     setTotalTime(timeLog.totalTime || "");
   }
+
   const handleUpdateTimeLog = async (body) => {
     setIsLoading(true);
     setIsEditing(false);
@@ -79,7 +81,7 @@ export default function TimeLog({
     };
   }, [timeLogRef.current, startTime, endTime, ticket, description, timeLog]);
 
-  function handleClickOutside (event)  {
+  function handleClickOutside(event) {
     if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
       setIsEditing(false);
       if (isModified && validateUpdateRequest()) {
@@ -102,7 +104,8 @@ export default function TimeLog({
       !isSameDate(endTime, timeLog.endTime)
     );
   }, [ticket, description, startTime, endTime, timeLog]);
-  function isSameDate (date1, date2)  {
+
+  function isSameDate(date1, date2) {
     if (!date1 && !date2) return true;
     if (!date1 || !date2) return false;
     return date1.isSame(dayjs(date2));
@@ -197,7 +200,7 @@ export default function TimeLog({
 
   function getNonEditableFields() {
     return <>
-    {(startTime || endTime) &&
+      {(startTime || endTime) &&
         <div
           className="mr-4 my-2 hover:bg-blue-100"
           onClick={() => {
@@ -205,11 +208,11 @@ export default function TimeLog({
             setEditedField("startTime");
           }}
         >
-          <Typography className={`${startTime?"font-bold":"text-xs leading-6"}`}>
+          <Typography className={`${startTime ? "font-bold" : "text-xs leading-6"}`}>
             {startTime ? dateTimeService.getFormattedTime(startTime) : "____"}
           </Typography>
         </div>
-    }
+      }
       {endTime && (
         <>
           -
@@ -227,8 +230,8 @@ export default function TimeLog({
 
       {ticket && (
         <>
-        {(startTime || endTime) &&
-          <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />}
+          {(startTime || endTime) &&
+            <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />}
           <div
             className="mr-4 my-2 hover:bg-blue-100"
             onClick={() => {
@@ -247,7 +250,7 @@ export default function TimeLog({
   const statusConfig = {
     Done: {
       label: totalTime,
-      action: isHovered && (
+      action: (isHovered || isEditing) && (
         <Tooltip title="continue">
           <IconButton
             onClick={async () => {
@@ -271,7 +274,7 @@ export default function TimeLog({
       label: currentTime.diff(timeLog.startTime) >= 0
         ? `${currentTime.diff(timeLog.startTime, "hour")}h ${currentTime.diff(timeLog.startTime, "minute") % 60}m`
         : null,
-      action: isHovered && (
+      action: (isHovered || isEditing) && (
         <Tooltip title="stop">
           <IconButton
             onClick={() => {
@@ -296,7 +299,7 @@ export default function TimeLog({
     },
     Pending: {
       label: 'Pending',
-      action: isHovered && (
+      action: (isHovered || isEditing) && (
         <Tooltip title="start">
           <IconButton
             onClick={() => {
@@ -372,22 +375,8 @@ export default function TimeLog({
             )}
 
             {statusConfig[status] ? statusConfig[status].action : null}
-
-            {(isHovered && !isEditing) && (
+            {(isHovered || isEditing) &&
               <>
-                <Tooltip title="Edit">
-                  <IconButton
-                    className="mr-2"
-                    color="success"
-                    onMouseDown={() => {
-                      setTimeout(() => {
-                        setIsEditing(true);
-                      }, 0)
-                    }}
-                  >
-                    <EditOutlinedIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
                 <Tooltip title="Delete">
                   <IconButton
                     color="error"
@@ -405,11 +394,29 @@ export default function TimeLog({
                     onDelete(timeLog.id);
                     setIsLoading(false);
                   }}
-                  onClose={() => setShowDeleteModal(false)}
+                  onClose={() => {
+                    setShowDeleteModal(false);
+                    setIsHovered(false);
+                  }}
                 >
                   Are you sure you want to delete this time log?
                 </ConfirmationModal>
               </>
+            }
+            {(isHovered && !isEditing) && (
+              <Tooltip title="Edit">
+                <IconButton
+                  className="mr-2"
+                  color="success"
+                  onMouseDown={() => {
+                    setTimeout(() => {
+                      setIsEditing(true);
+                    }, 0)
+                  }}
+                >
+                  <EditOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             )}
           </div>
         </div>
@@ -441,7 +448,7 @@ export default function TimeLog({
           <div className="text-justify whitespace-pre-wrap">{description}</div>
         )}
       </div>
-      {isLoading && <LinearProgress /> }
+      {isLoading && <LinearProgress />}
     </div>
   );
 }
