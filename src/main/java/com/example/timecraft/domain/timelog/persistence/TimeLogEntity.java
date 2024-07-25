@@ -51,8 +51,4 @@ public class TimeLogEntity {
   @ToString.Include
   private LocalDateTime endTime;
 
-  @Column(name = "time_spent_seconds")
-  @ToString.Include
-  private Integer timeSpentSeconds;
-
 }
