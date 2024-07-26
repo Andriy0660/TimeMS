@@ -89,16 +89,16 @@ public class TimeLogServiceImpl implements TimeLogService {
 
     timeLogEntity = repository.save(timeLogEntity);
     TimeLogCreateResponse response = mapper.toCreateResponse(timeLogEntity);
-    if (isConflictedWithOthersTimeLogs(null, request.getStartTime(), null)) {
+    if (isConflictedWithOthersTimeLogs(timeLogEntity, request.getStartTime(), null)) {
       response.setConflicted(true);
     }
     return response;
   }
 
-  private boolean isConflictedWithOthersTimeLogs(final Long timeLogId, final LocalDateTime startTime, final LocalDateTime endTime) {
-    final List<TimeLogEntity> timeLogEntities = repository.findAllByDateIs(LocalDate.now(clock));
+  private boolean isConflictedWithOthersTimeLogs(final TimeLogEntity timeLogEntity, final LocalTime startTime, final LocalTime endTime) {
+    final List<TimeLogEntity> timeLogEntities = repository.findAllByDateIs(timeLogEntity.getDate());
     return timeLogEntities.stream().anyMatch(timeLog ->
-        !timeLog.getId().equals(timeLogId) &&
+        !timeLog.getId().equals(timeLogEntity.getId()) &&
             areIntervalsOverlapping(startTime, endTime, timeLog.getStartTime(), timeLog.getEndTime())
     );
   }
