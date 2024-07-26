@@ -22,21 +22,10 @@ export default function TimeLog({
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
-  const [startTime, setStartTime] = useState(timeLog.startTime ? dayjs(timeLog.startTime, "HH:mm") : null);
-  const [endTime, setEndTime] = useState(timeLog.endTime ? dayjs(timeLog.endTime, "HH:mm") : null);
+  const [startTime, setStartTime] = useState(timeLog.startTime);
+  const [endTime, setEndTime] = useState(timeLog.endTime);
   const [description, setDescription] = useState(timeLog.description || "");
   const [totalTime, setTotalTime] = useState(timeLog.totalTime);
-
-  const startTimeFromDb = timeLog.startTime ? dayjs(timeLog.startTime, "HH:mm") : null;
-  const endTimeFromDb = getEndTimeFromDb();
-
-  function getEndTimeFromDb() {
-    const endTimeFromDb = timeLog.endTime ? dayjs(timeLog.endTime, "HH:mm") : null;
-    if (endTimeFromDb && endTimeFromDb.isBefore(startTimeFromDb)) {
-      endTimeFromDb.add(1, "day");
-    }
-    return endTimeFromDb;
-  }
 
   const status = useMemo(() => {
     if (totalTime) {
@@ -56,24 +45,37 @@ export default function TimeLog({
 
   const timeLogRef = useRef(null);
   const {addAlert} = useAppContext();
-
   useEffect(() => {
     initializeState();
   }, [timeLog]);
 
   function initializeState() {
     setTicket(timeLog.ticket || "");
-    setStartTime(startTimeFromDb);
-    setEndTime(endTimeFromDb);
+    setStartTime(timeLog.startTime);
+    setEndTime(timeLog.endTime);
     setDescription(timeLog.description || "");
     setTotalTime(timeLog.totalTime || "");
   }
 
   const handleUpdateTimeLog = async (body) => {
+    console.log(body.startTime)
+    console.log(body.endTime)
+    if (!validateUpdateRequest(body)) {
+      return;
+    }
     setIsLoading(true);
     setIsEditing(false);
+    console.log({
+      ...body,
+      startTime: dateTimeService.getFormattedDateTime(body.startTime),
+      endTime: dateTimeService.getFormattedDateTime(body.endTime)
+    })
     try {
-      await onUpdate(body);
+      await onUpdate({
+        ...body,
+        startTime: dateTimeService.getFormattedDateTime(body.startTime),
+        endTime: dateTimeService.getFormattedDateTime(body.endTime)
+      });
     } catch (error) {
       resetChanges();
     } finally {
@@ -96,12 +98,12 @@ export default function TimeLog({
   function handleClickOutside(event) {
     if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
       setIsEditing(false);
-      if (isModified && validateUpdateRequest()) {
+      if (isModified) {
         handleUpdateTimeLog({
           id: timeLog.id,
           ticket,
-          startTime: dateTimeService.getFormattedDateTime(startTime),
-          endTime: dateTimeService.getFormattedDateTime(endTime),
+          startTime,
+          endTime,
           description
         });
       }
@@ -112,8 +114,8 @@ export default function TimeLog({
     return (
       (ticket || "") !== (timeLog.ticket || "") ||
       (description || "") !== (timeLog.description || "") ||
-      !isSameDate(startTime, startTimeFromDb) ||
-      !isSameDate(endTime, endTimeFromDb)
+      !isSameDate(startTime, timeLog.startTime) ||
+      !isSameDate(endTime, timeLog.endTime)
     );
   }, [ticket, description, startTime, endTime, timeLog]);
 
@@ -129,9 +131,15 @@ export default function TimeLog({
     }
   }, [isEditing, editedField]);
 
-  const validateUpdateRequest = () => {
+  const validateUpdateRequest = (body) => {
+    console.log("hello")
     const alerts = [];
-
+    if (body.startTime && body.endTime && Math.abs(body.startTime.diff(body.endTime, "minute")) >= 1440) {
+      alerts.push({
+        text: "Time log can not durate more than 24 hours. Set end time manually.",
+        type: "error"
+      });
+    }
     if (!isTicketFieldValid) {
       alerts.push({
         text: "Invalid ticket number",
@@ -141,10 +149,6 @@ export default function TimeLog({
     if (alerts.length > 0) {
       alerts.forEach(alert => addAlert(alert));
       resetChanges();
-      return false;
-    }
-    if ((startTime && endTime) && endTime.isBefore(startTime)) {
-      setShowConfirmUpdateModal(true);
       return false;
     } else {
       return true;
@@ -167,7 +171,10 @@ export default function TimeLog({
             if (date === null) {
               setStartTime(null);
             } else if (dayjs(date).isValid()) {
-              setStartTime(dayjs(date))
+              const startTime = dayjs(timeLog.date, "YYYY-MM-DD")
+                .set("hour", dayjs(date).get("hour"))
+                .set("minute", dayjs(date).get("minute"))
+              setStartTime(startTime)
             }
           }}
           format="HH:mm"
@@ -184,7 +191,13 @@ export default function TimeLog({
             if (date === null) {
               setEndTime(null);
             } else if (dayjs(date).isValid()) {
-              setEndTime(dayjs(date))
+              let endTime = dayjs(timeLog.date, "YYYY-MM-DD")
+                  .set("hour", dayjs(date).get("hour"))
+                  .set("minute", dayjs(date).get("minute"));
+              if (endTime && startTime && endTime.isBefore(startTime)) {
+                endTime = endTime.add(1, "day");
+              }
+              setEndTime(endTime);
             }
           }}
           size="small"
@@ -255,6 +268,7 @@ export default function TimeLog({
     </>;
   }
 
+  const diffInMinutes = currentTime.diff(dayjs(timeLog.startTime), "minute");
   const statusConfig = {
     Done: {
       label: totalTime,
@@ -279,8 +293,8 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: currentTime.diff(dayjs(timeLog.startTime, "HH:mm")) >= 0
-        ? `${currentTime.diff(startTimeFromDb, "hour")}h ${currentTime.diff(startTimeFromDb, "minute") % 60}m`
+      label: diffInMinutes >= 0 && diffInMinutes < 1440
+        ? `${currentTime.diff(timeLog.startTime, "hour")}h ${diffInMinutes % 60}m`
         : null,
       action: (isHovered || isEditing) && (
         <Tooltip title="stop">
@@ -290,8 +304,8 @@ export default function TimeLog({
               handleUpdateTimeLog({
                 id: timeLog.id,
                 ticket,
-                startTime: dateTimeService.getFormattedDateTime(startTime),
-                endTime: dateTimeService.getFormattedDateTime(currentTime),
+                startTime,
+                endTime: currentTime,
                 description,
               });
               setIsLoading(false);
@@ -315,7 +329,7 @@ export default function TimeLog({
               handleUpdateTimeLog({
                 id: timeLog.id,
                 ticket,
-                startTime: dateTimeService.getFormattedDateTime(currentTime),
+                startTime: currentTime,
                 description,
               });
               setIsLoading(false);
@@ -349,8 +363,8 @@ export default function TimeLog({
               handleUpdateTimeLog({
                 id: timeLog.id,
                 ticket,
-                startTime: dateTimeService.getFormattedDateTime(startTime),
-                endTime: dateTimeService.getFormattedDateTime(endTime),
+                startTime,
+                endTime,
                 description
               });
             }}
@@ -387,15 +401,14 @@ export default function TimeLog({
                   <span>
                     <IconButton
                       onClick={() => {
-                        if(validateUpdateRequest()) {
-                          handleUpdateTimeLog({
-                            id: timeLog.id,
-                            ticket,
-                            startTime: dateTimeService.getFormattedDateTime(startTime),
-                            endTime: dateTimeService.getFormattedDateTime(endTime),
-                            description
-                          });
-                        }
+                        handleUpdateTimeLog({
+                          id: timeLog.id,
+                          ticket,
+                          startTime,
+                          endTime,
+                          description
+                        });
+
                       }}
                       className="mr-0"
                       color="success"
