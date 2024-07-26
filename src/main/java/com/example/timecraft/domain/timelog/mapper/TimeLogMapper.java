@@ -1,7 +1,7 @@
 package com.example.timecraft.domain.timelog.mapper;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -21,11 +21,14 @@ public interface TimeLogMapper {
   @Mapping(target = "totalTime", expression = "java(mapTotalTime(entity.getStartTime(), entity.getEndTime()))")
   TimeLogListResponse.TimeLogDto toListItem(final TimeLogEntity entity);
 
-  default String mapTotalTime(LocalDateTime startTime, LocalDateTime endTime) {
+  default String mapTotalTime(LocalTime startTime, LocalTime endTime) {
     if (startTime == null || endTime == null) {
       return null;
     }
     Duration duration = Duration.between(startTime, endTime);
+    if (endTime.isBefore(startTime)) {
+      duration = duration.plusDays(1);
+    }
     return DurationService.formatDuration(duration);
   }
 

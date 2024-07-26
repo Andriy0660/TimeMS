@@ -3,7 +3,7 @@ package com.example.timecraft.domain.timelog.service;
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Comparator;
 import java.util.List;
@@ -103,8 +103,8 @@ public class TimeLogServiceImpl implements TimeLogService {
     );
   }
 
-  private boolean areIntervalsOverlapping(final LocalDateTime startTime1, final LocalDateTime endTime1,
-                                          final LocalDateTime startTime2, final LocalDateTime endTime2) {
+  private boolean areIntervalsOverlapping(final LocalTime startTime1, final LocalTime endTime1,
+                                          final LocalTime startTime2, final LocalTime endTime2) {
     return
         isInInterval(startTime1, endTime1, startTime2) ||
             isInInterval(startTime1, endTime1, endTime2) ||
@@ -112,11 +112,17 @@ public class TimeLogServiceImpl implements TimeLogService {
             isInInterval(startTime2, endTime2, endTime1);
   }
 
-  private boolean isInInterval(final LocalDateTime border1, final LocalDateTime border2, final LocalDateTime target) {
+  private boolean isInInterval(final LocalTime border1, final LocalTime border2, final LocalTime target) {
     if (target == null || border1 == null || border2 == null) {
       return false;
     }
-    return !target.isBefore(border1) && !target.isAfter(border2);
+    if (border2.isBefore(border1)) {
+      return  ((!target.isBefore(border1) && !target.isAfter(LocalTime.MAX))
+          || (!target.isBefore(LocalTime.MIN) && !target.isAfter(border2)));
+
+    } else {
+      return !target.isBefore(border1) && !target.isAfter(border2);
+    }
   }
 
   private void stopOtherTimeLogs(Long excludedId) {
@@ -124,7 +130,7 @@ public class TimeLogServiceImpl implements TimeLogService {
       if (logEntry.getId().equals(excludedId) || logEntry.getStartTime() == null) {
         return;
       }
-      logEntry.setEndTime(LocalDateTime.now(clock).withSecond(0).withNano(0));
+      logEntry.setEndTime(LocalTime.now(clock).withSecond(0).withNano(0));
       repository.save(logEntry);
     });
   }
@@ -152,7 +158,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     entity = repository.save(entity);
 
     TimeLogUpdateResponse response = mapper.toUpdateResponse(entity);
-    if (isConflictedWithOthersTimeLogs(logEntryId, entity.getStartTime(), entity.getEndTime())) {
+    if (isConflictedWithOthersTimeLogs(entity, entity.getStartTime(), entity.getEndTime())) {
       response.setConflicted(true);
     }
     return response;
