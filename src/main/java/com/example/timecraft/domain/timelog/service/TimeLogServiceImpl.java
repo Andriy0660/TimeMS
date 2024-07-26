@@ -1,14 +1,20 @@
 package com.example.timecraft.domain.timelog.service;
 
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
@@ -30,17 +36,46 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final Clock clock;
 
   @Override
-  public TimeLogListResponse list() {
-    final List<TimeLogEntity> timeLogEntityList = repository.findAll();
-    final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
-        .map(mapper::toListItem)
-        .sorted(
-            Comparator.comparing(
-                TimeLogListResponse.TimeLogDto::getStartTime,
-                Comparator.nullsLast(Comparator.naturalOrder())
-            ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
-        .toList();
-    return new TimeLogListResponse(timeLogDtoList);
+  public TimeLogListResponse list(String mode, LocalDate date) {
+    final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date);
+
+    Map<LocalDate, List<TimeLogEntity>> groupedAndSortedByDate = timeLogEntityList.stream()
+            .collect(Collectors.groupingBy(TimeLogEntity::getDate));
+
+    Map<LocalDate, List<TimeLogListResponse.TimeLogDto>> response = new TreeMap<>(groupedAndSortedByDate.entrySet().stream()
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            entry -> entry.getValue().stream()
+                .map(mapper::toListItem)
+                .sorted(Comparator.comparing(
+                    TimeLogListResponse.TimeLogDto::getStartTime,
+                    Comparator.nullsLast(Comparator.naturalOrder())
+                ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
+                .toList()
+        )));
+    return new TimeLogListResponse(response);
+  }
+
+  private List<TimeLogEntity> getAllTimeLogEntitiesInMode(String mode, LocalDate date) {
+    switch (mode) {
+      case "Day" -> {
+        return repository.findAllByDateIs(date);
+      }
+      case "Week" -> {
+        LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        return repository.findAllByDateBetween(startOfWeek, endOfWeek);
+      }
+      case "Month" -> {
+        LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
+        return repository.findAllByDateBetween(startOfMonth, endOfMonth);
+      }
+      case "All" -> {
+        return repository.findAll();
+      }
+      default -> throw new BadRequestException("Invalid time mode");
+    }
   }
 
   @Override
@@ -60,11 +95,11 @@ public class TimeLogServiceImpl implements TimeLogService {
     return response;
   }
 
-  private boolean isConflictedWithOthersTimeLogs(final Long logEntryId, final LocalDateTime startTime, final LocalDateTime endTime) {
-    final List<TimeLogEntity> logEntryEntities = repository.findAll();
-    return logEntryEntities.stream().anyMatch(logEntry ->
-        !logEntry.getId().equals(logEntryId) &&
-            areIntervalsOverlapping(startTime, endTime, logEntry.getStartTime(), logEntry.getEndTime())
+  private boolean isConflictedWithOthersTimeLogs(final Long timeLogId, final LocalDateTime startTime, final LocalDateTime endTime) {
+    final List<TimeLogEntity> timeLogEntities = repository.findAllByDateIs(LocalDate.now(clock));
+    return timeLogEntities.stream().anyMatch(timeLog ->
+        !timeLog.getId().equals(timeLogId) &&
+            areIntervalsOverlapping(startTime, endTime, timeLog.getStartTime(), timeLog.getEndTime())
     );
   }
 

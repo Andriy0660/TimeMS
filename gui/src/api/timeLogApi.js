@@ -3,8 +3,9 @@ import axios from "./config/axiosConfig.js";
 const key = "time-logs"
 const timeLogApi = {
   key,
-  listAll: async () => {
-    const {data} = await axios.get(`/${key}`, {baseMsg: "Error while fetching time logs"});
+  list: async (body) => {
+    const params = new URLSearchParams({...body});
+    const {data} = await axios.get(`/${key}`, {params, baseMsg: "Error while fetching time logs"});
     return data.items;
   },
 

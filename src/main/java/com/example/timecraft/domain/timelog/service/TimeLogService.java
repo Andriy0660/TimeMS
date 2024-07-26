@@ -1,5 +1,7 @@
 package com.example.timecraft.domain.timelog.service;
 
+import java.time.LocalDate;
+
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -8,7 +10,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 
 public interface TimeLogService {
-  TimeLogListResponse list();
+  TimeLogListResponse list(String mode, LocalDate date);
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 

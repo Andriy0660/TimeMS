@@ -30,8 +30,8 @@ export default function TimeLogCreateBar({onCreate}) {
     setIsStarting(true);
     const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
     const match = ticketAndDescription.match(jiraIssuePattern);
-    let ticket = "";
-    let description = ticketAndDescription;
+    let ticket = null;
+    let description = ticketAndDescription || null;
     if (match) {
       ticket = match[0];
       description = description.slice(ticket.length).trim();
@@ -44,8 +44,8 @@ export default function TimeLogCreateBar({onCreate}) {
     setTicketAndDescription("");
   }
   return (
-    <div className="flex items-center">
-      <div className="w-full mx-2 my-2">
+    <div className="m-4 flex justify-center">
+      <div className="p-2 flex items-center w-3/5 overflow-x-auto shadow-md bg-gray-50">
         <TextField
           className="w-full"
           label="Description"
@@ -61,22 +61,22 @@ export default function TimeLogCreateBar({onCreate}) {
             }
           }}
         />
-      </div>
-      <div className="mx-2 my-2">
-        <Button
-          variant="outlined"
-          onClick={handleCreate}
-        >
-          {isCreating ? <CircularProgress size={25} /> : "Create"}
-        </Button>
-      </div>
-      <div className="mx-2 my-2">
-        <Button
-          variant="outlined"
-          onClick={handleStart}
-        >
-          {isStarting ? <CircularProgress size={25} /> : "Start"}
-        </Button>
+        <div className="mx-2">
+          <Button
+            variant="outlined"
+            onClick={handleCreate}
+          >
+            {isCreating ? <CircularProgress size={25} /> : "Create"}
+          </Button>
+        </div>
+        <div>
+          <Button
+            variant="outlined"
+            onClick={handleStart}
+          >
+            {isStarting ? <CircularProgress size={25} /> : "Start"}
+          </Button>
+        </div>
       </div>
     </div>
   )

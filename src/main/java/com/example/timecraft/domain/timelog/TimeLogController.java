@@ -1,5 +1,7 @@
 package com.example.timecraft.domain.timelog;
 
+import java.time.LocalDate;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -7,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
@@ -25,8 +28,8 @@ public class TimeLogController {
   private final TimeLogService timeLogService;
 
   @GetMapping
-  public TimeLogListResponse list() {
-    return timeLogService.list();
+  public TimeLogListResponse list(@RequestParam String mode, @RequestParam LocalDate date) {
+    return timeLogService.list(mode, date);
   }
 
   @PostMapping

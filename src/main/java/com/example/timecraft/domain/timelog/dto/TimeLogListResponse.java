@@ -1,7 +1,9 @@
 package com.example.timecraft.domain.timelog.dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 public class TimeLogListResponse {
-  private List<TimeLogDto> items;
+  private Map<LocalDate, List<TimeLogDto>> items;
 
   @Data
   @Builder
@@ -20,6 +22,7 @@ public class TimeLogListResponse {
   public static class TimeLogDto {
     private Long id;
     private String ticket;
+    private LocalDate date;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String description;
