@@ -1,6 +1,6 @@
 package com.example.timecraft.domain.timelog.dto;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 public class TimeLogUpdateResponse {
   private Long id;
   private String ticket;
-  private LocalDateTime startTime;
-  private LocalDateTime endTime;
+  private LocalTime startTime;
+  private LocalTime endTime;
   private String description;
   private String totalTime;
   private boolean isConflicted;

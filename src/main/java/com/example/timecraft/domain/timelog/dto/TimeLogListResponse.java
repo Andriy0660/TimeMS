@@ -2,6 +2,7 @@ package com.example.timecraft.domain.timelog.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +24,8 @@ public class TimeLogListResponse {
     private Long id;
     private String ticket;
     private LocalDate date;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private LocalTime startTime;
+    private LocalTime endTime;
     private String description;
     private String totalTime;
   }
