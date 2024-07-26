@@ -22,10 +22,21 @@ export default function TimeLog({
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
-  const [startTime, setStartTime] = useState(timeLog.startTime ? dayjs(timeLog.startTime) : null);
-  const [endTime, setEndTime] = useState(timeLog.endTime ? dayjs(timeLog.endTime) : null);
+  const [startTime, setStartTime] = useState(timeLog.startTime ? dayjs(timeLog.startTime, "HH:mm") : null);
+  const [endTime, setEndTime] = useState(timeLog.endTime ? dayjs(timeLog.endTime, "HH:mm") : null);
   const [description, setDescription] = useState(timeLog.description || "");
   const [totalTime, setTotalTime] = useState(timeLog.totalTime);
+
+  const startTimeFromDb = timeLog.startTime ? dayjs(timeLog.startTime, "HH:mm") : null;
+  const endTimeFromDb = getEndTime();
+
+  function getEndTime() {
+    const endTimeFromDb = timeLog.endTime ? dayjs(timeLog.endTime, "HH:mm") : null;
+    if (endTimeFromDb && endTimeFromDb.isBefore(startTimeFromDb)) {
+      endTimeFromDb.add(1, "day");
+    }
+    return endTimeFromDb;
+  }
 
   const status = useMemo(() => {
     if (totalTime) {
@@ -51,8 +62,8 @@ export default function TimeLog({
 
   function initializeState() {
     setTicket(timeLog.ticket || "");
-    setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
-    setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
+    setStartTime(startTimeFromDb);
+    setEndTime(endTimeFromDb);
     setDescription(timeLog.description || "");
     setTotalTime(timeLog.totalTime || "");
   }
@@ -100,15 +111,15 @@ export default function TimeLog({
     return (
       (ticket || "") !== (timeLog.ticket || "") ||
       (description || "") !== (timeLog.description || "") ||
-      !isSameDate(startTime, timeLog.startTime) ||
-      !isSameDate(endTime, timeLog.endTime)
+      !isSameDate(startTime, startTimeFromDb) ||
+      !isSameDate(endTime, endTimeFromDb)
     );
   }, [ticket, description, startTime, endTime, timeLog]);
 
   function isSameDate(date1, date2) {
     if (!date1 && !date2) return true;
     if (!date1 || !date2) return false;
-    return date1.isSame(dayjs(date2));
+    return date1.isSame(date2, "second");
   }
 
   useEffect(() => {
@@ -139,7 +150,7 @@ export default function TimeLog({
     }
     return true;
   }
-  const isTimeFieldsValid = (startTime && endTime) ? !startTime?.isAfter(endTime) : true;
+  const isTimeFieldsValid = true;
 
   const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
   const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
@@ -271,8 +282,8 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: currentTime.diff(timeLog.startTime) >= 0
-        ? `${currentTime.diff(timeLog.startTime, "hour")}h ${currentTime.diff(timeLog.startTime, "minute") % 60}m`
+      label: currentTime.diff(dayjs(timeLog.startTime, "HH:mm")) >= 0
+        ? `${currentTime.diff(startTimeFromDb, "hour")}h ${currentTime.diff(startTimeFromDb, "minute") % 60}m`
         : null,
       action: (isHovered || isEditing) && (
         <Tooltip title="stop">
