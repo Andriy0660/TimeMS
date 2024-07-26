@@ -28,9 +28,9 @@ export default function TimeLog({
   const [totalTime, setTotalTime] = useState(timeLog.totalTime);
 
   const startTimeFromDb = timeLog.startTime ? dayjs(timeLog.startTime, "HH:mm") : null;
-  const endTimeFromDb = getEndTime();
+  const endTimeFromDb = getEndTimeFromDb();
 
-  function getEndTime() {
+  function getEndTimeFromDb() {
     const endTimeFromDb = timeLog.endTime ? dayjs(timeLog.endTime, "HH:mm") : null;
     if (endTimeFromDb && endTimeFromDb.isBefore(startTimeFromDb)) {
       endTimeFromDb.add(1, "day");
@@ -52,6 +52,7 @@ export default function TimeLog({
   const [editedField, setEditedField] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showConfirmUpdateModal, setShowConfirmUpdateModal] = useState(false);
 
   const timeLogRef = useRef(null);
   const {addAlert} = useAppContext();
@@ -131,12 +132,6 @@ export default function TimeLog({
   const validateUpdateRequest = () => {
     const alerts = [];
 
-    if (!isTimeFieldsValid) {
-      alerts.push({
-        text: "End time must be greater than start time",
-        type: "error"
-      });
-    }
     if (!isTicketFieldValid) {
       alerts.push({
         text: "Invalid ticket number",
@@ -148,9 +143,13 @@ export default function TimeLog({
       resetChanges();
       return false;
     }
-    return true;
+    if ((startTime && endTime) && endTime.isBefore(startTime)) {
+      setShowConfirmUpdateModal(true);
+      return false;
+    } else {
+      return true;
+    }
   }
-  const isTimeFieldsValid = true;
 
   const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
   const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
@@ -160,7 +159,6 @@ export default function TimeLog({
       <div className="mr-4 my-2">
         <TimeField
           name="startTime"
-          error={!isTimeFieldsValid}
           className="w-20"
           label="Start"
           size="small"
@@ -179,7 +177,6 @@ export default function TimeLog({
       <div className="mr-4 my-2">
         <TimeField
           name="endTime"
-          error={!isTimeFieldsValid}
           className="w-20"
           label="End"
           value={endTime}
@@ -344,6 +341,28 @@ export default function TimeLog({
       <div className="flex justify-between">
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
+          <ConfirmationModal
+            open={showConfirmUpdateModal}
+            type="info"
+            actionText="OK"
+            onConfirm={() => {
+              handleUpdateTimeLog({
+                id: timeLog.id,
+                ticket,
+                startTime: dateTimeService.getFormattedDateTime(startTime),
+                endTime: dateTimeService.getFormattedDateTime(endTime),
+                description
+              });
+            }}
+            onClose={() => {
+              resetChanges();
+              setShowConfirmUpdateModal(false);
+              setIsHovered(false);
+            }}
+          >
+            Are you sure you want to set end of time to next day?
+          </ConfirmationModal>
+
           {statusConfig[status].label ? <Chip
             label={statusConfig[status].label}
             color="primary"
@@ -367,16 +386,20 @@ export default function TimeLog({
                 <Tooltip title="Save">
                   <span>
                     <IconButton
-                      onClick={() => handleUpdateTimeLog({
-                        id: timeLog.id,
-                        ticket,
-                        startTime: dateTimeService.getFormattedDateTime(startTime),
-                        endTime: dateTimeService.getFormattedDateTime(endTime),
-                        description
-                      })}
+                      onClick={() => {
+                        if(validateUpdateRequest()) {
+                          handleUpdateTimeLog({
+                            id: timeLog.id,
+                            ticket,
+                            startTime: dateTimeService.getFormattedDateTime(startTime),
+                            endTime: dateTimeService.getFormattedDateTime(endTime),
+                            description
+                          });
+                        }
+                      }}
                       className="mr-0"
                       color="success"
-                      disabled={!isTimeFieldsValid || !isTicketFieldValid}
+                      disabled={!isTicketFieldValid}
                     >
                       <SaveOutlinedIcon fontSize="small" />
                     </IconButton>
