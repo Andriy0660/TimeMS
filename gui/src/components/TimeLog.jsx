@@ -13,6 +13,7 @@ import Divider from "@mui/material/Divider";
 import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../utils/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
+import useAsyncCall from "../hooks/useAsyncCall.js";
 
 export default function TimeLog({
   timeLog,
@@ -35,8 +36,6 @@ export default function TimeLog({
       return "InProgress";
     } else return "Pending";
   }, [totalTime, startTime]);
-
-  const [isLoading, setIsLoading] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedField, setEditedField] = useState(null);
@@ -61,24 +60,28 @@ export default function TimeLog({
     setTotalTime(timeLog.totalTime || "");
   }
 
-  const handleUpdateTimeLog = async (body) => {
+  const updateTimeLog = async (body) => {
     if (!body.validated && !validateUpdateRequest(body)) {
       return;
     }
-    setIsLoading(true);
     setIsEditing(false);
-    try {
-      await onUpdate({
-        ...body,
-        startTime: dateTimeService.getFormattedDateTime(body.startTime),
-        endTime: dateTimeService.getFormattedDateTime(body.endTime)
-      });
-    } catch (error) {
-      resetChanges();
-    } finally {
-      setIsLoading(false);
-    }
+    await onUpdate({
+      ...body,
+      startTime: dateTimeService.getFormattedDateTime(body.startTime),
+      endTime: dateTimeService.getFormattedDateTime(body.endTime)
+    });
   };
+
+  const {execute: handleCreateTimeLog, isExecuting: isCreateLoading} = useAsyncCall({
+    fn: (body) => onCreate(body),
+  })
+  const {execute: handleUpdateTimeLog, isExecuting: isUpdateLoading} = useAsyncCall({
+    fn: (body) => updateTimeLog(body),
+    onError: resetChanges,
+  })
+  const {execute: handleDeleteTimeLog, isExecuting: isDeleteLoading} = useAsyncCall({
+    fn: (body) => onDelete(body),
+  })
 
   function resetChanges() {
     initializeState();
@@ -282,14 +285,8 @@ export default function TimeLog({
       action: (isHovered || isEditing) && (
         <Tooltip title="continue">
           <IconButton
-            onClick={async () => {
-              setIsLoading(true);
-              try {
-                await onCreate({ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description});
-              } finally {
-                setIsLoading(false);
-              }
-            }}
+            onClick={() => handleCreateTimeLog(
+              {ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description})}
             variant="outlined"
             color="primary"
             className="mr-2"
@@ -307,7 +304,6 @@ export default function TimeLog({
         <Tooltip title="stop">
           <IconButton
             onClick={() => {
-              setIsLoading(true);
               handleUpdateTimeLog({
                 id: timeLog.id,
                 ticket,
@@ -315,7 +311,6 @@ export default function TimeLog({
                 endTime: currentTime,
                 description,
               });
-              setIsLoading(false);
             }}
             variant="outlined"
             color="warning"
@@ -332,14 +327,12 @@ export default function TimeLog({
         <Tooltip title="start">
           <IconButton
             onClick={() => {
-              setIsLoading(true);
               handleUpdateTimeLog({
                 id: timeLog.id,
                 ticket,
                 startTime: currentTime,
                 description,
               });
-              setIsLoading(false);
             }}
             variant="outlined"
             color="primary"
@@ -444,11 +437,7 @@ export default function TimeLog({
                   open={showDeleteModal}
                   type="error"
                   actionText="Delete"
-                  onConfirm={() => {
-                    setIsLoading(true);
-                    onDelete(timeLog.id);
-                    setIsLoading(false);
-                  }}
+                  onConfirm={() => handleDeleteTimeLog(timeLog.id)}
                   onClose={() => {
                     setShowDeleteModal(false);
                     setIsHovered(false);
@@ -503,7 +492,7 @@ export default function TimeLog({
           <div className="text-justify whitespace-pre-wrap">{description}</div>
         )}
       </div>
-      {isLoading && <LinearProgress />}
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading) && <LinearProgress />}
     </div>
   );
 }
