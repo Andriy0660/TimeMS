@@ -58,18 +58,11 @@ export default function TimeLog({
   }
 
   const handleUpdateTimeLog = async (body) => {
-    console.log(body.startTime)
-    console.log(body.endTime)
     if (!validateUpdateRequest(body)) {
       return;
     }
     setIsLoading(true);
     setIsEditing(false);
-    console.log({
-      ...body,
-      startTime: dateTimeService.getFormattedDateTime(body.startTime),
-      endTime: dateTimeService.getFormattedDateTime(body.endTime)
-    })
     try {
       await onUpdate({
         ...body,
@@ -132,7 +125,6 @@ export default function TimeLog({
   }, [isEditing, editedField]);
 
   const validateUpdateRequest = (body) => {
-    console.log("hello")
     const alerts = [];
     if (body.startTime && body.endTime && Math.abs(body.startTime.diff(body.endTime, "minute")) >= 1440) {
       alerts.push({
