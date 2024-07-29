@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListByDateAndDescriptionResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListByDateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -28,8 +30,18 @@ public class TimeLogController {
   private final TimeLogService timeLogService;
 
   @GetMapping
-  public TimeLogListResponse list(@RequestParam final String mode, final @RequestParam LocalDate date) {
-    return timeLogService.list(mode, date);
+  public TimeLogListResponse list() {
+    return timeLogService.list();
+  }
+  @GetMapping("/byDate")
+  public TimeLogListByDateResponse listGroupedByDate(@RequestParam final String mode, final @RequestParam LocalDate date) {
+    return timeLogService.listGroupedByDate(mode, date);
+  }
+
+  @GetMapping("/byDateAndDescription")
+  public TimeLogListByDateAndDescriptionResponse listGroupedByDateAndDescription(@RequestParam final String mode,
+                                                                                 final @RequestParam LocalDate date) {
+    return timeLogService.listGroupedByDateAndDescription(mode, date);
   }
 
   @PostMapping

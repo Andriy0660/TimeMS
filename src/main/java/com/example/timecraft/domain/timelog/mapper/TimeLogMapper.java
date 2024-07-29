@@ -6,6 +6,8 @@ import org.mapstruct.MappingTarget;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListByDateAndDescriptionResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListByDateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -14,6 +16,10 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 @Mapper(componentModel = "spring")
 public interface TimeLogMapper {
   TimeLogListResponse.TimeLogDto toListItem(final TimeLogEntity entity);
+
+  TimeLogListByDateResponse.TimeLogDto toListGroupByDateItem(final TimeLogEntity entity);
+
+  TimeLogListByDateAndDescriptionResponse.TimeLogDto toListGroupByDateAndDescriptionItem(final TimeLogEntity entity);
 
   TimeLogEntity fromCreateRequest(final TimeLogCreateRequest request);
 

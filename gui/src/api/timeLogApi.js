@@ -9,6 +9,18 @@ const timeLogApi = {
     return data.items;
   },
 
+  listByDate: async (body) => {
+    const params = new URLSearchParams({...body});
+    const {data} = await axios.get(`/${key}/byDate`, {params, baseMsg: "Error while fetching time logs"});
+    return data.items;
+  },
+
+  listByDateAndDescription: async (body) => {
+    const params = new URLSearchParams({...body});
+    const {data} = await axios.get(`/${key}/byDateAndDescription`, {params, baseMsg: "Error while fetching time logs"});
+    return data.items;
+  },
+
   create: async ({ticket, startTime, description}) => {
     const {data} = await axios.post(`/${key}`, {ticket, startTime, description}, {baseMsg: "Error while creating time log"});
     return data;

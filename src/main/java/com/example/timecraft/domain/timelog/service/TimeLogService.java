@@ -5,12 +5,18 @@ import java.time.LocalDate;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListByDateAndDescriptionResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogListByDateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 
 public interface TimeLogService {
-  TimeLogListResponse list(final String mode, final LocalDate date);
+  TimeLogListResponse list();
+
+  TimeLogListByDateResponse listGroupedByDate(final String mode, final LocalDate date);
+
+  TimeLogListByDateAndDescriptionResponse listGroupedByDateAndDescription(final String mode, final LocalDate date);
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 

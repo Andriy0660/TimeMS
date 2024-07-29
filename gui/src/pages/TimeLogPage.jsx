@@ -4,7 +4,7 @@ import {LocalizationProvider} from "@mui/x-date-pickers";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress, IconButton, MenuItem, Select, Tooltip} from "@mui/material";
+import {CircularProgress, FormControlLabel, IconButton, MenuItem, Select, Switch, Tooltip} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useState} from "react";
 import dayjs from "dayjs";
@@ -21,6 +21,7 @@ export default function TimeLogPage() {
   const queryParams = new URLSearchParams(location.search);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs());
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
+  const [groupByDescription, setGroupByDescription] = useState(true);
 
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
@@ -41,9 +42,13 @@ export default function TimeLogPage() {
     isPending: isListing,
     error: listAllError,
   } = useQuery({
-    queryKey: [timeLogApi.key, mode, date],
+    queryKey: [timeLogApi.key, mode, date, groupByDescription],
     queryFn: () => {
-      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
+      if (!groupByDescription) {
+        return timeLogApi.listByDate({mode, date: dateTimeService.getFormattedDate(date)});
+      } else {
+        return timeLogApi.listByDateAndDescription({mode, date: dateTimeService.getFormattedDate(date)});
+      }
     },
     placeholderData: (prev) => prev,
     retryDelay: 300,
@@ -160,6 +165,17 @@ export default function TimeLogPage() {
         />
         <div className="flex flex-col">
           <div className="flex justify-center">
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={groupByDescription}
+                  onChange={() => setGroupByDescription((event.target.checked))}
+                />
+              }
+              label="Group"
+              labelPlacement="start"
+              className="mx-2"
+            />
             <Select
               className="mx-2"
               size="small"
