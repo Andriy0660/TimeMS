@@ -62,7 +62,7 @@ export default function TimeLog({
   }
 
   const handleUpdateTimeLog = async (body) => {
-    if (!validateUpdateRequest(body)) {
+    if (!body.validated && !validateUpdateRequest(body)) {
       return;
     }
     setIsLoading(true);
@@ -129,8 +129,10 @@ export default function TimeLog({
   }, [isEditing, editedField]);
 
   const validateUpdateRequest = (body) => {
+    const startTime = body.startTime
+    const endTime = body.endTime
     const alerts = [];
-    if (body.startTime && body.endTime && Math.abs(body.startTime.diff(body.endTime, "minute")) >= 1440) {
+    if (startTime && endTime && Math.abs(startTime.diff(endTime, "minute")) >= 1440) {
       alerts.push({
         text: "Time log can not durate more than 24 hours. Set end time manually.",
         type: "error"
@@ -142,7 +144,10 @@ export default function TimeLog({
         type: "error"
       });
     }
-    if (alerts.length > 0) {
+    if(alerts.length === 0 && startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0) {
+      setShowConfirmUpdateModal(true);
+    }
+    else if (alerts.length > 0) {
       alerts.forEach(alert => addAlert(alert));
       resetChanges();
       return false;
@@ -367,7 +372,8 @@ export default function TimeLog({
                 ticket,
                 startTime,
                 endTime,
-                description
+                description,
+                validated: true
               });
             }}
             onClose={() => {
