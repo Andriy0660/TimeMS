@@ -18,7 +18,8 @@ export default function TimeLog({
   timeLog,
   onCreate,
   onUpdate,
-  onDelete
+  onDelete,
+  buildTime
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -42,6 +43,9 @@ export default function TimeLog({
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showConfirmUpdateModal, setShowConfirmUpdateModal] = useState(false);
+
+  const [startTimeError, setStartTimeError] = useState(false);
+  const [endTimeError, setEndTimeError] = useState(false);
 
   const timeLogRef = useRef(null);
   const {addAlert} = useAppContext();
@@ -155,18 +159,17 @@ export default function TimeLog({
       <div className="mr-4 my-2">
         <TimeField
           name="startTime"
+          error={startTimeError}
           className="w-20"
           label="Start"
           size="small"
           value={startTime}
-          onChange={(date) => {
-            if (date === null) {
+          onChange={(startTimeToSet) => {
+            validateTimeFields(startTimeToSet, setStartTimeError);
+            if (startTimeToSet === null) {
               setStartTime(null);
-            } else if (dayjs(date).isValid()) {
-              const startTime = dayjs(timeLog.date, "YYYY-MM-DD")
-                .set("hour", dayjs(date).get("hour"))
-                .set("minute", dayjs(date).get("minute"))
-              setStartTime(startTime)
+            } else {
+              setStartTime(buildTime.startTime(timeLog.date, startTimeToSet))
             }
           }}
           format="HH:mm"
@@ -176,20 +179,16 @@ export default function TimeLog({
       <div className="mr-4 my-2">
         <TimeField
           name="endTime"
+          error={endTimeError}
           className="w-20"
           label="End"
           value={endTime}
-          onChange={(date) => {
-            if (date === null) {
+          onChange={(endTimeToSet) => {
+            validateTimeFields(endTimeToSet, setEndTimeError);
+            if (endTimeToSet === null) {
               setEndTime(null);
-            } else if (dayjs(date).isValid()) {
-              let endTime = dayjs(timeLog.date, "YYYY-MM-DD")
-                  .set("hour", dayjs(date).get("hour"))
-                  .set("minute", dayjs(date).get("minute"));
-              if (endTime && startTime && endTime.isBefore(startTime)) {
-                endTime = endTime.add(1, "day");
-              }
-              setEndTime(endTime);
+            } else {
+              setEndTime(buildTime.endTime(timeLog.date, startTime, endTimeToSet))
             }
           }}
           size="small"
@@ -209,6 +208,13 @@ export default function TimeLog({
         />
       </div>
     </>;
+  }
+  function validateTimeFields(newTime, setError) {
+    if (newTime === null || (newTime.isValid && newTime.isValid())) {
+      setError(false);
+    } else {
+      setError(true);
+    }
   }
 
   function getNonEditableFields() {
@@ -404,7 +410,7 @@ export default function TimeLog({
                       }}
                       className="mr-0"
                       color="success"
-                      disabled={!isTicketFieldValid}
+                      disabled={(startTimeError || endTimeError) || !isTicketFieldValid}
                     >
                       <SaveOutlinedIcon fontSize="small" />
                     </IconButton>

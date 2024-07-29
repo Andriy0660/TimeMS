@@ -9,21 +9,26 @@ export default function TimeLogList({
   onUpdate,
   onDelete
 }) {
-  function buildTime(date, startTimeFromDb, endTimeFromDb) {
-    startTimeFromDb = dayjs(startTimeFromDb, "HH:mm");
-    endTimeFromDb = dayjs(endTimeFromDb, "HH:mm");
-    const startTime = startTimeFromDb.isValid() ? dayjs(date, "YYYY-MM-DD")
-        .set("hour", startTimeFromDb.get("hour"))
-        .set("minute", startTimeFromDb.get("minute"))
-      : null;
-    let endTime = endTimeFromDb.isValid() ? dayjs(date, "YYYY-MM-DD")
-        .set("hour", endTimeFromDb.get("hour"))
-        .set("minute", endTimeFromDb.get("minute"))
-      : null;
-    if (endTimeFromDb && startTimeFromDb && endTimeFromDb.isBefore(startTimeFromDb)) {
-      endTime = endTime.add(1, "day");
+  const buildTime = {
+    startTime: (date, startTimeToSet) => {
+      startTimeToSet = dayjs(startTimeToSet, "HH:mm");
+      return startTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
+          .set("hour", startTimeToSet.get("hour"))
+          .set("minute", startTimeToSet.get("minute"))
+        : null;
+    },
+    endTime: (date, startTimeToSet, endTimeToSet) => {
+      startTimeToSet = dayjs(startTimeToSet, "HH:mm");
+      endTimeToSet = dayjs(endTimeToSet, "HH:mm");
+      let endTime = endTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
+          .set("hour", endTimeToSet.get("hour"))
+          .set("minute", endTimeToSet.get("minute"))
+        : null;
+      if (endTimeToSet && startTimeToSet && endTimeToSet.isBefore(startTimeToSet)) {
+        endTime = endTime.add(1, "day");
+      }
+      return endTime
     }
-    return {startTime, endTime}
   }
 
   const renderedTimeLogs = Object.keys(timeLogs).map(date => {
@@ -32,7 +37,9 @@ export default function TimeLogList({
       <div key={date} className="mb-2 w-3/5 shadow-md bg-gray-50">
         {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{date}</div>}
         {logsForDate.map((timeLog) => {
-          const {startTime, endTime} = buildTime(date, timeLog.startTime, timeLog.endTime, "HH:mm");
+          const startTime = buildTime.startTime(date, timeLog.startTime);
+          const endTime = buildTime.endTime(date, timeLog.startTime, timeLog.endTime);
+
           timeLog.startTime = startTime;
           timeLog.endTime = endTime;
           return (
@@ -43,6 +50,7 @@ export default function TimeLogList({
                 onCreate={onCreate}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
+                buildTime={buildTime}
               />
             </div>
           )
