@@ -28,7 +28,7 @@ public class TimeLogController {
   private final TimeLogService timeLogService;
 
   @GetMapping
-  public TimeLogListResponse list(@RequestParam String mode, @RequestParam LocalDate date) {
+  public TimeLogListResponse list(@RequestParam final String mode, final @RequestParam LocalDate date) {
     return timeLogService.list(mode, date);
   }
 
