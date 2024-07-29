@@ -209,12 +209,12 @@ export default function TimeLog({
             validateTimeFields(timeToSet, setError);
             if (timeToSet === null) {
               setValue(null);
-            } else {
-              const newValue = name === 'startTime'
-                ? buildTime.startTime(timeLog.date, timeToSet)
-                : buildTime.endTime(timeLog.date, startTime, timeToSet);
-              setValue(newValue);
-            }
+            } else if(timeToSet.isValid()){
+                const newValue = name === 'startTime'
+                  ? buildTime.startTime(timeLog.date, timeToSet)
+                  : buildTime.endTime(timeLog.date, startTime, timeToSet);
+                setValue(newValue);
+              }
           }}
           format="HH:mm"
         />
