@@ -156,45 +156,22 @@ export default function TimeLog({
 
   function getEditableFields() {
     return <>
-      <div className="mr-4 my-2">
-        <TimeField
-          name="startTime"
-          error={startTimeError}
-          className="w-20"
-          label="Start"
-          size="small"
-          value={startTime}
-          onChange={(startTimeToSet) => {
-            validateTimeFields(startTimeToSet, setStartTimeError);
-            if (startTimeToSet === null) {
-              setStartTime(null);
-            } else {
-              setStartTime(buildTime.startTime(timeLog.date, startTimeToSet))
-            }
-          }}
-          format="HH:mm"
-        />
-      </div>
-
-      <div className="mr-4 my-2">
-        <TimeField
-          name="endTime"
-          error={endTimeError}
-          className="w-20"
-          label="End"
-          value={endTime}
-          onChange={(endTimeToSet) => {
-            validateTimeFields(endTimeToSet, setEndTimeError);
-            if (endTimeToSet === null) {
-              setEndTime(null);
-            } else {
-              setEndTime(buildTime.endTime(timeLog.date, startTime, endTimeToSet))
-            }
-          }}
-          size="small"
-          format="HH:mm"
-        />
-      </div>
+      {createTimeField({
+        name: "startTime",
+        label: "Start",
+        value: startTime,
+        setValue: setStartTime,
+        error: startTimeError,
+        setError: setStartTimeError
+      })}
+      {createTimeField({
+        name: "endTime",
+        label: "End",
+        value: endTime,
+        setValue: setEndTime,
+        error: endTimeError,
+        setError: setEndTimeError
+      })}
       <div className="mr-4 my-2">
         <TextField
           error={!isTicketFieldValid}
@@ -209,6 +186,33 @@ export default function TimeLog({
       </div>
     </>;
   }
+
+  const createTimeField = ({name, label, value, setValue, error, setError}) => {
+    return (
+      <div className="mr-4 my-2">
+        <TimeField
+          name={name}
+          error={error}
+          className="w-20"
+          label={label}
+          size="small"
+          value={value}
+          onChange={(timeToSet) => {
+            validateTimeFields(timeToSet, setError);
+            if (timeToSet === null) {
+              setValue(null);
+            } else {
+              const newValue = name === 'startTime'
+                ? buildTime.startTime(timeLog.date, timeToSet)
+                : buildTime.endTime(timeLog.date, startTime, timeToSet);
+              setValue(newValue);
+            }
+          }}
+          format="HH:mm"
+        />
+      </div>
+    );
+  };
   function validateTimeFields(newTime, setError) {
     if (newTime === null || (newTime.isValid && newTime.isValid())) {
       setError(false);
