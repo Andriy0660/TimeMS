@@ -2,6 +2,7 @@ package com.example.timecraft.domain.timelog.service;
 
 import java.time.Clock;
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
@@ -47,6 +48,7 @@ public class TimeLogServiceImpl implements TimeLogService {
             Map.Entry::getKey,
             entry -> entry.getValue().stream()
                 .map(mapper::toListItem)
+                .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
                 .sorted(Comparator.comparing(
                     TimeLogListResponse.TimeLogDto::getStartTime,
                     Comparator.nullsLast(Comparator.naturalOrder())
@@ -76,6 +78,17 @@ public class TimeLogServiceImpl implements TimeLogService {
       }
       default -> throw new BadRequestException("Invalid time mode");
     }
+  }
+
+  private String mapTotalTime(LocalTime startTime, LocalTime endTime) {
+    if (startTime == null || endTime == null) {
+      return null;
+    }
+    Duration duration = Duration.between(startTime, endTime);
+    if (endTime.isBefore(startTime)) {
+      duration = duration.plusDays(1);
+    }
+    return DurationService.formatDuration(duration);
   }
 
   @Override
@@ -139,7 +152,9 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogGetResponse get(final long logEntryId) {
     final TimeLogEntity timeLogEntity = getRaw(logEntryId);
-    return mapper.toGetResponse(timeLogEntity);
+    TimeLogGetResponse response = mapper.toGetResponse(timeLogEntity);
+    response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
+    return response;
   }
 
   private TimeLogEntity getRaw(final long logEntryId) {
@@ -158,6 +173,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     entity = repository.save(entity);
 
     TimeLogUpdateResponse response = mapper.toUpdateResponse(entity);
+    response.setTotalTime(mapTotalTime(entity.getStartTime(), entity.getEndTime()));
     if (isConflictedWithOthersTimeLogs(entity, entity.getStartTime(), entity.getEndTime())) {
       response.setConflicted(true);
     }
