@@ -73,14 +73,14 @@ export default function TimeLog({
   };
 
   const {execute: handleCreateTimeLog, isExecuting: isCreateLoading} = useAsyncCall({
-    fn: (body) => onCreate(body),
+    fn: onCreate,
   })
   const {execute: handleUpdateTimeLog, isExecuting: isUpdateLoading} = useAsyncCall({
-    fn: (body) => updateTimeLog(body),
+    fn: updateTimeLog,
     onError: resetChanges,
   })
   const {execute: handleDeleteTimeLog, isExecuting: isDeleteLoading} = useAsyncCall({
-    fn: (body) => onDelete(body),
+    fn: onDelete,
   })
 
   function resetChanges() {
