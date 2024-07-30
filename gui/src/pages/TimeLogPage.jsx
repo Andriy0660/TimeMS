@@ -22,7 +22,7 @@ export default function TimeLogPage() {
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs());
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
   const [groupByDescription, setGroupByDescription] = useState(true);
-  const [isGroupedByDescription, setIsGroupedByDescription] = useState(true)
+
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
 
@@ -59,10 +59,6 @@ export default function TimeLogPage() {
       setTimeLogs(data);
     }
   }, [data]);
-
-  useEffect(() => {
-    setIsGroupedByDescription(groupByDescription);
-  }, [timeLogs]);
 
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => timeLogApi.create(body),
@@ -146,9 +142,9 @@ export default function TimeLogPage() {
     }
   }, [listAllError]);
 
-  if (isListing || groupByDescription !== isGroupedByDescription) {
+  if (isListing) {
     return (
-      <div className="absolute inset-1/2">
+      <div className="flex justify-center items-center h-screen">
         <CircularProgress />
       </div>
     );
@@ -216,7 +212,6 @@ export default function TimeLogPage() {
             onCreate={create}
             onUpdate={update}
             onDelete={deleteTimeLog}
-            isGroupedByDescription={isGroupedByDescription}
           />
         </div>
       </div>

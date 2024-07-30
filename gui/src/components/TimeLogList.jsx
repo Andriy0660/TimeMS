@@ -7,8 +7,7 @@ export default function TimeLogList({
   mode,
   onCreate,
   onUpdate,
-  onDelete,
-  isGroupedByDescription
+  onDelete
 }) {
   const buildTime = {
     startTime: (date, startTimeToSet) => {
@@ -37,7 +36,7 @@ export default function TimeLogList({
     return (
       <div key={date} className="mb-2 w-3/5 shadow-md bg-gray-50">
         {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{date}</div>}
-        {!isGroupedByDescription ? (
+        {(logsForDate.length) ? (
             logsForDate.map((timeLog) => {
               const startTime = buildTime.startTime(date, timeLog.startTime);
               const endTime = buildTime.endTime(date, timeLog.startTime, timeLog.endTime);
