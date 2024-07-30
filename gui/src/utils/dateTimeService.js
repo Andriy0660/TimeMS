@@ -17,6 +17,25 @@ const dateTimeService = {
     } else {
       return null;
     }
+  },
+  buildStartTime: (date, startTimeToSet) => {
+    startTimeToSet = dayjs(startTimeToSet, "HH:mm");
+    return startTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
+        .set("hour", startTimeToSet.get("hour"))
+        .set("minute", startTimeToSet.get("minute"))
+      : null;
+  },
+  buildEndTime: (date, startTimeToSet, endTimeToSet) => {
+    startTimeToSet = dayjs(startTimeToSet, "HH:mm");
+    endTimeToSet = dayjs(endTimeToSet, "HH:mm");
+    let endTime = endTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
+        .set("hour", endTimeToSet.get("hour"))
+        .set("minute", endTimeToSet.get("minute"))
+      : null;
+    if (endTimeToSet && startTimeToSet && endTimeToSet.isBefore(startTimeToSet)) {
+      endTime = endTime.add(1, "day");
+    }
+    return endTime
   }
 }
 export default dateTimeService;

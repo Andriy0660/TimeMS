@@ -1,6 +1,6 @@
 import TimeLog from "./TimeLog.jsx";
 import Divider from "@mui/material/Divider";
-import dayjs from "dayjs";
+import dateTimeService from "../utils/dateTimeService.js";
 
 export default function TimeLogList({
   timeLogs,
@@ -9,27 +9,6 @@ export default function TimeLogList({
   onUpdate,
   onDelete
 }) {
-  const buildTime = {
-    startTime: (date, startTimeToSet) => {
-      startTimeToSet = dayjs(startTimeToSet, "HH:mm");
-      return startTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
-          .set("hour", startTimeToSet.get("hour"))
-          .set("minute", startTimeToSet.get("minute"))
-        : null;
-    },
-    endTime: (date, startTimeToSet, endTimeToSet) => {
-      startTimeToSet = dayjs(startTimeToSet, "HH:mm");
-      endTimeToSet = dayjs(endTimeToSet, "HH:mm");
-      let endTime = endTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
-          .set("hour", endTimeToSet.get("hour"))
-          .set("minute", endTimeToSet.get("minute"))
-        : null;
-      if (endTimeToSet && startTimeToSet && endTimeToSet.isBefore(startTimeToSet)) {
-        endTime = endTime.add(1, "day");
-      }
-      return endTime
-    }
-  }
 
   const renderedTimeLogs = Object.keys(timeLogs).map(date => {
     const logsForDate = timeLogs[date];
@@ -37,8 +16,8 @@ export default function TimeLogList({
       <div key={date} className="mb-2 w-3/5 shadow-md bg-gray-50">
         {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{date}</div>}
         {logsForDate.map((timeLog) => {
-          const startTime = buildTime.startTime(date, timeLog.startTime);
-          const endTime = buildTime.endTime(date, timeLog.startTime, timeLog.endTime);
+          const startTime = dateTimeService.buildStartTime(date, timeLog.startTime);
+          const endTime = dateTimeService.buildEndTime(date, timeLog.startTime, timeLog.endTime);
 
           timeLog.startTime = startTime;
           timeLog.endTime = endTime;
@@ -50,7 +29,6 @@ export default function TimeLogList({
                 onCreate={onCreate}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
-                buildTime={buildTime}
               />
             </div>
           )

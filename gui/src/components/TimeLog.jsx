@@ -19,8 +19,7 @@ export default function TimeLog({
   timeLog,
   onCreate,
   onUpdate,
-  onDelete,
-  buildTime
+  onDelete
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -211,8 +210,8 @@ export default function TimeLog({
               setValue(null);
             } else if(timeToSet.isValid()){
                 const newValue = name === 'startTime'
-                  ? buildTime.startTime(timeLog.date, timeToSet)
-                  : buildTime.endTime(timeLog.date, startTime, timeToSet);
+                  ? dateTimeService.buildStartTime(timeLog.date, timeToSet)
+                  : dateTimeService.buildEndTime(timeLog.date, startTime, timeToSet);
                 setValue(newValue);
               }
           }}
