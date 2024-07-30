@@ -61,9 +61,8 @@ export default function TimeLogList({
           :
           (Object.keys(logsForDate).map(description =>
             <div key={description}>
-              <Divider/>
-              <div className="text-justify whitespace-pre-wrap m-2 ml-4 font-medium">{description}</div>
-              {logsForDate[description].map((timeLog, index) => {
+              <div className="text-justify whitespace-pre-wrap mx-4 mt-4">{description}</div>
+              {logsForDate[description].map(timeLog => {
                 const startTime = buildTime.startTime(date, timeLog.startTime);
                 const endTime = buildTime.endTime(date, timeLog.startTime, timeLog.endTime);
 
@@ -79,7 +78,7 @@ export default function TimeLogList({
                       buildTime={buildTime}
                       groupByDescription={true}
                     />
-                    {index < logsForDate[description].length - 1 && <Divider variant="middle" />}
+                    <Divider />
                   </div>
                 );
               })}
