@@ -137,7 +137,7 @@ export default function TimeLog({
     const alerts = [];
     if (startTime && endTime && Math.abs(startTime.diff(endTime, "minute")) >= 1440) {
       alerts.push({
-        text: "Time log can not durate more than 24 hours. Set end time manually.",
+        text: "Time log can not last more than 24 hours. Set end time manually.",
         type: "error"
       });
     }
