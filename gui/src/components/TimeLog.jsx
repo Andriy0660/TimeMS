@@ -20,8 +20,7 @@ export default function TimeLog({
   onCreate,
   onUpdate,
   onDelete,
-  buildTime,
-  groupByDescription
+  buildTime
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -467,7 +466,7 @@ export default function TimeLog({
         </div>
       </div>
 
-      {!groupByDescription && <div
+      <div
         className={`mt-1 ${isEditing ? "" : "hover:bg-blue-100"}`}
         onClick={() => {
           setIsEditing(true);
@@ -493,7 +492,6 @@ export default function TimeLog({
           <div className="text-justify whitespace-pre-wrap">{description}</div>
         )}
       </div>
-      }
       {(isCreateLoading || isUpdateLoading || isDeleteLoading) && <LinearProgress />}
     </div>
   );

@@ -20,8 +20,6 @@ import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogListByDateAndDescriptionResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogListByDateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -39,68 +37,25 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final Clock clock;
 
   @Override
-  public TimeLogListResponse list() {
-    final List<TimeLogEntity> timeLogEntityList = repository.findAll();
-    final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
-        .map(mapper::toListItem)
-        .sorted(
-            Comparator.comparing(
-                TimeLogListResponse.TimeLogDto::getStartTime,
-                Comparator.nullsLast(Comparator.naturalOrder())
-            ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
-        .toList();
-    return new TimeLogListResponse(timeLogDtoList);
-  }
-
-  @Override
-  public TimeLogListByDateResponse listGroupedByDate(final String mode, final LocalDate date) {
+  public TimeLogListResponse list(final String mode, final LocalDate date) {
     final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date);
 
     Map<LocalDate, List<TimeLogEntity>> groupedAndSortedByDate = timeLogEntityList.stream()
             .collect(Collectors.groupingBy(TimeLogEntity::getDate));
 
-    Map<LocalDate, List<TimeLogListByDateResponse.TimeLogDto>> response = new TreeMap<>(groupedAndSortedByDate.entrySet().stream()
+    Map<LocalDate, List<TimeLogListResponse.TimeLogDto>> response = new TreeMap<>(groupedAndSortedByDate.entrySet().stream()
         .collect(Collectors.toMap(
             Map.Entry::getKey,
             entry -> entry.getValue().stream()
-                .map(mapper::toListGroupByDateItem)
+                .map(mapper::toListItem)
                 .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
                 .sorted(Comparator.comparing(
-                    TimeLogListByDateResponse.TimeLogDto::getStartTime,
+                    TimeLogListResponse.TimeLogDto::getStartTime,
                     Comparator.nullsLast(Comparator.naturalOrder())
-                ).thenComparing(TimeLogListByDateResponse.TimeLogDto::getId))
+                ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
                 .toList()
         )));
-
-    return new TimeLogListByDateResponse(response);
-  }
-
-  @Override
-  public TimeLogListByDateAndDescriptionResponse listGroupedByDateAndDescription(final String mode, final LocalDate date) {
-    final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date);
-
-    Map<LocalDate, Map<String, List<TimeLogEntity>>> groupedByDateAndDescription = timeLogEntityList.stream()
-        .collect(Collectors.groupingBy(TimeLogEntity::getDate,
-            Collectors.groupingBy(TimeLogEntity::getDescription)));
-
-    Map<LocalDate, Map<String, List<TimeLogListByDateAndDescriptionResponse.TimeLogDto>>> response = new TreeMap<>(groupedByDateAndDescription.entrySet().stream()
-        .collect(Collectors.toMap(
-            Map.Entry::getKey,
-            entry -> entry.getValue().entrySet().stream()
-                .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    subEntry -> subEntry.getValue().stream()
-                        .map(mapper::toListGroupByDateAndDescriptionItem)
-                        .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
-                        .sorted(Comparator.comparing(
-                            TimeLogListByDateAndDescriptionResponse.TimeLogDto::getStartTime,
-                            Comparator.nullsLast(Comparator.naturalOrder())
-                        ).thenComparing(TimeLogListByDateAndDescriptionResponse.TimeLogDto::getId))
-                        .toList()
-                ))
-        )));
-
-    return new TimeLogListByDateAndDescriptionResponse(response);
+    return new TimeLogListResponse(response);
   }
 
   private List<TimeLogEntity> getAllTimeLogEntitiesInMode(String mode, LocalDate date) {

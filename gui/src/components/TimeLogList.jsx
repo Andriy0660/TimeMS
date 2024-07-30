@@ -36,53 +36,25 @@ export default function TimeLogList({
     return (
       <div key={date} className="mb-2 w-3/5 shadow-md bg-gray-50">
         {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{date}</div>}
-        {(logsForDate.length) ? (
-            logsForDate.map((timeLog) => {
-              const startTime = buildTime.startTime(date, timeLog.startTime);
-              const endTime = buildTime.endTime(date, timeLog.startTime, timeLog.endTime);
+        {logsForDate.map((timeLog) => {
+          const startTime = buildTime.startTime(date, timeLog.startTime);
+          const endTime = buildTime.endTime(date, timeLog.startTime, timeLog.endTime);
 
-              timeLog.startTime = startTime;
-              timeLog.endTime = endTime;
-              return (
-                <div key={timeLog.id}>
-                  <Divider />
-                  <TimeLog
-                    timeLog={timeLog}
-                    onCreate={onCreate}
-                    onUpdate={onUpdate}
-                    onDelete={onDelete}
-                    buildTime={buildTime}
-                  />
-                </div>
-              )
-            })
+          timeLog.startTime = startTime;
+          timeLog.endTime = endTime;
+          return (
+            <div key={timeLog.id}>
+              <Divider />
+              <TimeLog
+                timeLog={timeLog}
+                onCreate={onCreate}
+                onUpdate={onUpdate}
+                onDelete={onDelete}
+                buildTime={buildTime}
+              />
+            </div>
           )
-          :
-          (Object.keys(logsForDate).map(description =>
-            <div key={description}>
-              <div className="text-justify whitespace-pre-wrap mx-4 mt-4">{description}</div>
-              {logsForDate[description].map(timeLog => {
-                const startTime = buildTime.startTime(date, timeLog.startTime);
-                const endTime = buildTime.endTime(date, timeLog.startTime, timeLog.endTime);
-
-                timeLog.startTime = startTime;
-                timeLog.endTime = endTime;
-                return (
-                  <div key={timeLog.id}>
-                    <TimeLog
-                      timeLog={timeLog}
-                      onCreate={onCreate}
-                      onUpdate={onUpdate}
-                      onDelete={onDelete}
-                      buildTime={buildTime}
-                      groupByDescription={true}
-                    />
-                    <Divider />
-                  </div>
-                );
-              })}
-            </div>))
-        }
+        })}
       </div>
     );
   });
