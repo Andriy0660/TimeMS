@@ -278,7 +278,6 @@ export default function TimeLog({
     </>;
   }
 
-  const diffInMinutes = currentTime.diff(dayjs(timeLog.startTime), "minute");
   const statusConfig = {
     Done: {
       label: totalTime,
@@ -297,9 +296,7 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: diffInMinutes >= 0 && diffInMinutes < 1440
-        ? `${currentTime.diff(timeLog.startTime, "hour")}h ${diffInMinutes % 60}m`
-        : null,
+      label: dateTimeService.getDurationOfProgressTimeLog(timeLog.startTime),
       action: (isHovered || isEditing) && (
         <Tooltip title="stop">
           <IconButton
