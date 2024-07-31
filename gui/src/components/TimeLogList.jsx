@@ -1,6 +1,4 @@
-import TimeLog from "./TimeLog.jsx";
-import Divider from "@mui/material/Divider";
-import dateTimeService from "../utils/dateTimeService.js";
+import dataRenderingService from "../service/dataRenderingService.jsx";
 
 export default function TimeLogList({
   timeLogs,
@@ -9,29 +7,19 @@ export default function TimeLogList({
   onUpdate,
   onDelete
 }) {
-
-  const renderedTimeLogs = timeLogs?.map((timeLog) => {
-    const startTime = dateTimeService.buildStartTime(timeLog.date, timeLog.startTime);
-    const endTime = dateTimeService.buildEndTime(timeLog.date, timeLog.startTime, timeLog.endTime);
-
-    timeLog.startTime = startTime;
-    timeLog.endTime = endTime;
-    return <div key={timeLog.id}>
-      <Divider />
-      <TimeLog
-        timeLog={timeLog}
-        onCreate={onCreate}
-        onUpdate={onUpdate}
-        onDelete={onDelete}
-      />
-    </div>
+  const renderedTimeLogs = dataRenderingService.render({
+    timeLogs,
+    mode,
+    onCreate,
+    onUpdate,
+    onDelete
   })
   return (
     <div className="m-4 flex flex-col items-center">
-      <div className="w-3/5 overflow-x-auto shadow-md bg-gray-50">
-        {timeLogs.length !== 0 ? renderedTimeLogs :
-          <div className="p-1 text-center italic">
-            No logs for this day...
+      <div className="w-3/5 overflow-x-auto">
+        {Object.keys(timeLogs.data).length > 0 ? renderedTimeLogs :
+          <div className="p-1 text-center italic ">
+            <div className="shadow-md bg-gray-50">No logs...</div>
           </div>}
       </div>
     </div>

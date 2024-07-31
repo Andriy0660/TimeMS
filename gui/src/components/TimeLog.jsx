@@ -19,7 +19,8 @@ export default function TimeLog({
   timeLog,
   onCreate,
   onUpdate,
-  onDelete
+  onDelete,
+  groupByDescription
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");

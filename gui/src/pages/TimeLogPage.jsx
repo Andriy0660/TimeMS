@@ -14,6 +14,7 @@ import MonthPicker from "../components/MonthPicker..jsx";
 import WeekPicker from "../components/WeekPicker.jsx";
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import {useNavigate} from "react-router-dom";
+import dataProcessingService from "../service/dataProcessingService.js";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -53,10 +54,20 @@ export default function TimeLogPage() {
   });
 
   useEffect(() => {
-    if (data) {
-      setTimeLogs(data);
+    let dataNotNull = data ? data : [];
+    dataNotNull = dataNotNull.map(timeLog => {
+      const startTime = dateTimeService.buildStartTime(timeLog.date, timeLog.startTime);
+      const endTime = dateTimeService.buildEndTime(timeLog.date, timeLog.startTime, timeLog.endTime);
+      timeLog.startTime = startTime;
+      timeLog.endTime = endTime;
+      return timeLog;
+    })
+    if (!groupByDescription) {
+      setTimeLogs(dataProcessingService.group(dataNotNull, ["date"]))
+    } else {
+      setTimeLogs(dataProcessingService.group(dataNotNull, ["date", "description"]))
     }
-  }, [data]);
+  }, [data, groupByDescription])
 
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => timeLogApi.create(body),

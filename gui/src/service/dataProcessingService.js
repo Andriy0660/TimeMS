@@ -4,8 +4,10 @@ const dataProcessingService = {
     groupOrder.forEach(groupBy => {
       res = this.groupBy(res, groupBy);
     })
-    res.groupOrder = groupOrder;
-    return res;
+    return {
+      data: res,
+      groupOrder
+    };
   },
   groupBy(data, key) {
     return this.groupNested(data, key);
