@@ -138,6 +138,8 @@ export default function TimeLog({
     }
   }, [isEditing, editedField]);
 
+  const shouldDisplayConfirmUpdateModal = startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0 &&
+    !isSameDate(endTime, timeLog.endTime);
   const validateUpdateRequest = (body) => {
     if(body.validated) {
       return {
@@ -162,7 +164,7 @@ export default function TimeLog({
         type: "error"
       });
     }
-    if (alerts.length === 0 && startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0) {
+    if (alerts.length === 0 && shouldDisplayConfirmUpdateModal) {
       return {
         valid: true,
         requiresConfirmation: true
