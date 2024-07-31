@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 const dateTimeService = {
   getFormattedTime: (time) => time?.format("HH:mm"),
   getFormattedDate: (time) => time?.format("YYYY-MM-DD"),
@@ -7,5 +9,33 @@ const dateTimeService = {
     const t2 = time2.hour() * 60 + time2.minute();
     return t1 - t2;
   },
+  getDurationOfProgressTimeLog: (startTime) => {
+    const currentTime = dayjs();
+    const diffInMinutes = currentTime.diff(dayjs(startTime), "minute");
+    if(diffInMinutes >= 0 && diffInMinutes < 1440) {
+      return `${currentTime.diff(startTime, "hour")}h ${diffInMinutes % 60}m`;
+    } else {
+      return null;
+    }
+  },
+  buildStartTime: (date, startTimeToSet) => {
+    startTimeToSet = dayjs(startTimeToSet, "HH:mm");
+    return startTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
+        .set("hour", startTimeToSet.get("hour"))
+        .set("minute", startTimeToSet.get("minute"))
+      : null;
+  },
+  buildEndTime: (date, startTimeToSet, endTimeToSet) => {
+    startTimeToSet = dayjs(startTimeToSet, "HH:mm");
+    endTimeToSet = dayjs(endTimeToSet, "HH:mm");
+    let endTime = endTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
+        .set("hour", endTimeToSet.get("hour"))
+        .set("minute", endTimeToSet.get("minute"))
+      : null;
+    if (endTimeToSet && startTimeToSet && endTimeToSet.isBefore(startTimeToSet)) {
+      endTime = endTime.add(1, "day");
+    }
+    return endTime
+  }
 }
 export default dateTimeService;

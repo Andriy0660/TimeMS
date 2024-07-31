@@ -1,8 +1,7 @@
 import axios from "axios";
-import {baseUrl} from "../../config/config.js";
 
 const axiosInstance = axios.create({
-  baseURL: baseUrl
+  baseURL: import.meta.env.VITE_BASE_URL
 });
 
 axiosInstance.interceptors.response.use(

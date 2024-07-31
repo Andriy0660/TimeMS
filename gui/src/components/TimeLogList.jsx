@@ -1,6 +1,6 @@
 import TimeLog from "./TimeLog.jsx";
 import Divider from "@mui/material/Divider";
-import dayjs from "dayjs";
+import dateTimeService from "../utils/dateTimeService.js";
 
 export default function TimeLogList({
   timeLogs,
@@ -9,30 +9,10 @@ export default function TimeLogList({
   onUpdate,
   onDelete
 }) {
-  const buildTime = {
-    startTime: (date, startTimeToSet) => {
-      startTimeToSet = dayjs(startTimeToSet, "HH:mm");
-      return startTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
-          .set("hour", startTimeToSet.get("hour"))
-          .set("minute", startTimeToSet.get("minute"))
-        : null;
-    },
-    endTime: (date, startTimeToSet, endTimeToSet) => {
-      startTimeToSet = dayjs(startTimeToSet, "HH:mm");
-      endTimeToSet = dayjs(endTimeToSet, "HH:mm");
-      let endTime = endTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
-          .set("hour", endTimeToSet.get("hour"))
-          .set("minute", endTimeToSet.get("minute"))
-        : null;
-      if (endTimeToSet && startTimeToSet && endTimeToSet.isBefore(startTimeToSet)) {
-        endTime = endTime.add(1, "day");
-      }
-      return endTime
-    }
-  }
+
   const renderedTimeLogs = timeLogs?.map((timeLog) => {
-    const startTime = buildTime.startTime(timeLog.date, timeLog.startTime);
-    const endTime = buildTime.endTime(timeLog.date, timeLog.startTime, timeLog.endTime);
+    const startTime = dateTimeService.buildStartTime(timeLog.date, timeLog.startTime);
+    const endTime = dateTimeService.buildEndTime(timeLog.date, timeLog.startTime, timeLog.endTime);
 
     timeLog.startTime = startTime;
     timeLog.endTime = endTime;
@@ -43,11 +23,9 @@ export default function TimeLogList({
         onCreate={onCreate}
         onUpdate={onUpdate}
         onDelete={onDelete}
-        buildTime={buildTime}
       />
     </div>
   })
-
   return (
     <div className="m-4 flex flex-col items-center">
       <div className="w-3/5 overflow-x-auto shadow-md bg-gray-50">
