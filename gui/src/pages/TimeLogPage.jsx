@@ -16,7 +16,7 @@ import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore
 import {useNavigate} from "react-router-dom";
 
 export default function TimeLogPage() {
-  const [timeLogs, setTimeLogs] = useState({});
+  const [timeLogs, setTimeLogs] = useState([]);
 
   const queryParams = new URLSearchParams(location.search);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs());
