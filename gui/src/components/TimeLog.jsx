@@ -40,6 +40,8 @@ export default function TimeLog({
   const [editedField, setEditedField] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const [confirmUpdateFunction, setConfirmUpdateFunction] = useState(null);
   const [showConfirmUpdateModal, setShowConfirmUpdateModal] = useState(false);
 
   const [startTimeError, setStartTimeError] = useState(false);
@@ -60,15 +62,21 @@ export default function TimeLog({
   }
 
   const updateTimeLog = async (body) => {
-    if (!body.validated && !validateUpdateRequest(body)) {
-      return;
+    const validation = validateUpdateRequest(body);
+    if (!validation.valid) {
+      validation.alerts.forEach(alert => addAlert(alert));
+      resetChanges();
+    } else if (validation.requiresConfirmation) {
+      setConfirmUpdateFunction(() => () => handleUpdateTimeLog({...body, validated: true}))
+      setShowConfirmUpdateModal(true)
+    } else {
+      setIsEditing(false);
+      await onUpdate({
+        ...body,
+        startTime: dateTimeService.getFormattedDateTime(body.startTime),
+        endTime: dateTimeService.getFormattedDateTime(body.endTime)
+      });
     }
-    setIsEditing(false);
-    await onUpdate({
-      ...body,
-      startTime: dateTimeService.getFormattedDateTime(body.startTime),
-      endTime: dateTimeService.getFormattedDateTime(body.endTime)
-    });
   };
 
   const {execute: handleCreateTimeLog, isExecuting: isCreateLoading} = useAsyncCall({
@@ -131,32 +139,49 @@ export default function TimeLog({
   }, [isEditing, editedField]);
 
   const validateUpdateRequest = (body) => {
-    const startTime = body.startTime
-    const endTime = body.endTime
+    if(body.validated) {
+      return {
+        valid: true,
+        requiresConfirmation: false
+      };
+    }
+    const startTime = body.startTime;
+    const endTime = body.endTime;
     const alerts = [];
+
     if (startTime && endTime && Math.abs(startTime.diff(endTime, "minute")) >= 1440) {
       alerts.push({
         text: "Time log can not last more than 24 hours. Set end time manually.",
         type: "error"
       });
     }
+
     if (!isTicketFieldValid) {
       alerts.push({
         text: "Invalid ticket number",
         type: "error"
       });
     }
-    if(alerts.length === 0 && startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0) {
-      setShowConfirmUpdateModal(true);
+    if (alerts.length === 0 && startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0) {
+      return {
+        valid: true,
+        requiresConfirmation: true
+      };
     }
-    else if (alerts.length > 0) {
-      alerts.forEach(alert => addAlert(alert));
-      resetChanges();
-      return false;
-    } else {
-      return true;
+
+    if (alerts.length > 0) {
+      return {
+        valid: false,
+        alerts
+      };
     }
-  }
+
+    return {
+      valid: true,
+      requiresConfirmation: false
+    };
+  };
+
 
   const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
   const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
@@ -220,6 +245,7 @@ export default function TimeLog({
       </div>
     );
   };
+
   function validateTimeFields(newTime, setError) {
     if (newTime === null || (newTime.isValid && newTime.isValid())) {
       setError(false);
@@ -355,21 +381,12 @@ export default function TimeLog({
             open={showConfirmUpdateModal}
             type="info"
             actionText="OK"
-            onConfirm={() => {
-              handleUpdateTimeLog({
-                id: timeLog.id,
-                ticket,
-                startTime,
-                endTime,
-                description,
-                validated: true
-              });
-            }}
+            onConfirm={confirmUpdateFunction}
             onClose={() => {
-              resetChanges();
               setShowConfirmUpdateModal(false);
               setIsHovered(false);
             }}
+            onCancel={resetChanges}
           >
             Are you sure you want to set end of time to next day?
           </ConfirmationModal>
