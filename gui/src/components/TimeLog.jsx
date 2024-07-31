@@ -258,13 +258,13 @@ export default function TimeLog({
     return <>
       {(startTime || endTime) &&
         <div
-          className="mr-4 my-2 hover:bg-blue-100"
+          className="mr-4 my-1 hover:bg-blue-100"
           onClick={() => {
             setIsEditing(true);
             setEditedField("startTime");
           }}
         >
-          <Typography className={`${startTime ? "font-bold" : "text-xs leading-6"}`}>
+          <Typography className={`text-sm ${startTime ? "font-bold" : "text-xs leading-6"}`}>
             {startTime ? dateTimeService.getFormattedTime(startTime) : "____"}
           </Typography>
         </div>
@@ -273,13 +273,13 @@ export default function TimeLog({
         <>
           -
           <div
-            className="mx-4 my-2 hover:bg-blue-100"
+            className="mx-4 my-1 hover:bg-blue-100"
             onClick={() => {
               setIsEditing(true);
               setEditedField("endTime");
             }}
           >
-            <Typography className="font-bold">{dateTimeService.getFormattedTime(endTime)}</Typography>
+            <Typography className="font-bold text-sm">{dateTimeService.getFormattedTime(endTime)}</Typography>
           </div>
         </>
       )}
@@ -287,15 +287,15 @@ export default function TimeLog({
       {ticket && (
         <>
           {(startTime || endTime) &&
-            <Divider className="bg-gray-500 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />}
+            <Divider className="bg-gray-500 my-0.5 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />}
           <div
-            className="mr-4 my-2 hover:bg-blue-100"
+            className="mr-4 hover:bg-blue-100"
             onClick={() => {
               setIsEditing(true);
               setEditedField("ticket");
             }}
           >
-            <Typography className="font-bold">{ticket}</Typography>
+            <Typography className="font-bold my-1 text-sm">{ticket}</Typography>
           </div>
         </>
       )}
@@ -313,7 +313,7 @@ export default function TimeLog({
               {ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description})}
             variant="outlined"
             color="primary"
-            className="mr-2"
+            className="mr-2 p-0"
           >
             <KeyboardTabOutlinedIcon />
           </IconButton>
@@ -336,7 +336,7 @@ export default function TimeLog({
             }}
             variant="outlined"
             color="warning"
-            className="mr-2"
+            className="mr-2 p-0"
           >
             <StopCircleOutlinedIcon />
           </IconButton>
@@ -358,7 +358,7 @@ export default function TimeLog({
             }}
             variant="outlined"
             color="primary"
-            className="mr-2"
+            className="mr-2 p-0"
           >
             <StartOutlinedIcon />
           </IconButton>
@@ -369,7 +369,7 @@ export default function TimeLog({
 
   return (
     <div
-      className={`p-4 ${status === "InProgress" ? "bg-blue-50" : ""}`}
+      className={`py-1 px-4  ${status === "InProgress" ? "bg-blue-50" : ""}`}
       ref={timeLogRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -396,7 +396,7 @@ export default function TimeLog({
             color="primary"
             variant="outlined"
             size="small"
-            className="shadow-md mr-2 my-2"
+            className="shadow-md mr-2"
           /> : null}
 
         </div>
@@ -406,7 +406,7 @@ export default function TimeLog({
             {(isEditing) && (
               <div>
                 <Tooltip onClick={() => resetChanges()} title="Reset">
-                  <IconButton className="mr-0">
+                  <IconButton className="mr-1">
                     <BackspaceOutlinedIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
@@ -424,7 +424,7 @@ export default function TimeLog({
                         });
 
                       }}
-                      className="mr-0"
+                      className="mr-2 p-0"
                       color="success"
                       disabled={(startTimeError || endTimeError) || !isTicketFieldValid}
                     >
@@ -440,6 +440,7 @@ export default function TimeLog({
               <>
                 <Tooltip title="Delete">
                   <IconButton
+                    className="mr-2 p-0"
                     color="error"
                     onClick={() => setShowDeleteModal(true)}
                   >
@@ -463,7 +464,7 @@ export default function TimeLog({
             {(isHovered && !isEditing) && (
               <Tooltip title="Edit">
                 <IconButton
-                  className="mr-2"
+                  className="mr-2 p-0"
                   color="success"
                   onMouseDown={() => {
                     setTimeout(() => {
