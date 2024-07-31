@@ -40,6 +40,7 @@ export default function TimeLogPage() {
     data,
     isPending: isListing,
     error: listAllError,
+    isPlaceholderData
   } = useQuery({
     queryKey: [timeLogApi.key, mode, date],
     queryFn: () => {
@@ -146,9 +147,9 @@ export default function TimeLogPage() {
   }
 
   const modeDatePickerConfig = {
-    Day: <DayPicker date={date} setDate={setDate}/>,
-    Week: <WeekPicker date={date} setDate={setDate}/>,
-    Month: <MonthPicker date={date} setDate={setDate}/>,
+    Day: <DayPicker date={date} setDate={setDate} isPlaceholderData={isPlaceholderData}/>,
+    Week: <WeekPicker date={date} setDate={setDate} isPlaceholderData={isPlaceholderData}/>,
+    Month: <MonthPicker date={date} setDate={setDate} isPlaceholderData={isPlaceholderData}/>,
     All: null,
   };
 

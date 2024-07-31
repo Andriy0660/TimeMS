@@ -35,7 +35,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogListResponse list(final String mode, final LocalDate date) {
-    final List<TimeLogEntity> timeLogEntityList = repository.findAllByDateIs(date);
+    final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date);
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(mapper::toListItem)
         .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
