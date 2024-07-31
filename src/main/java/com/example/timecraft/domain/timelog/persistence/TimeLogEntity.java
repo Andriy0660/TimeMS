@@ -2,6 +2,7 @@ package com.example.timecraft.domain.timelog.persistence;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,10 +46,10 @@ public class TimeLogEntity {
 
   @Column(name = "start_time")
   @ToString.Include
-  private LocalDateTime startTime;
+  private LocalTime startTime;
 
   @Column(name = "end_time")
   @ToString.Include
-  private LocalDateTime endTime;
+  private LocalTime endTime;
 
 }

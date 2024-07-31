@@ -2,8 +2,9 @@ package com.example.timecraft.domain.timelog.service;
 
 import java.time.Clock;
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +37,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final Clock clock;
 
   @Override
-  public TimeLogListResponse list(String mode, LocalDate date) {
+  public TimeLogListResponse list(final String mode, final LocalDate date) {
     final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date);
 
     Map<LocalDate, List<TimeLogEntity>> groupedAndSortedByDate = timeLogEntityList.stream()
@@ -47,6 +48,7 @@ public class TimeLogServiceImpl implements TimeLogService {
             Map.Entry::getKey,
             entry -> entry.getValue().stream()
                 .map(mapper::toListItem)
+                .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
                 .sorted(Comparator.comparing(
                     TimeLogListResponse.TimeLogDto::getStartTime,
                     Comparator.nullsLast(Comparator.naturalOrder())
@@ -78,6 +80,17 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
   }
 
+  private String mapTotalTime(LocalTime startTime, LocalTime endTime) {
+    if (startTime == null || endTime == null) {
+      return null;
+    }
+    Duration duration = Duration.between(startTime, endTime);
+    if (endTime.isBefore(startTime)) {
+      duration = duration.plusDays(1);
+    }
+    return DurationService.formatDuration(duration);
+  }
+
   @Override
   public TimeLogCreateResponse create(final TimeLogCreateRequest request) {
     TimeLogEntity timeLogEntity = mapper.fromCreateRequest(request);
@@ -89,22 +102,22 @@ public class TimeLogServiceImpl implements TimeLogService {
 
     timeLogEntity = repository.save(timeLogEntity);
     TimeLogCreateResponse response = mapper.toCreateResponse(timeLogEntity);
-    if (isConflictedWithOthersTimeLogs(null, request.getStartTime(), null)) {
+    if (isConflictedWithOthersTimeLogs(timeLogEntity, request.getStartTime(), null)) {
       response.setConflicted(true);
     }
     return response;
   }
 
-  private boolean isConflictedWithOthersTimeLogs(final Long timeLogId, final LocalDateTime startTime, final LocalDateTime endTime) {
-    final List<TimeLogEntity> timeLogEntities = repository.findAllByDateIs(LocalDate.now(clock));
+  private boolean isConflictedWithOthersTimeLogs(final TimeLogEntity timeLogEntity, final LocalTime startTime, final LocalTime endTime) {
+    final List<TimeLogEntity> timeLogEntities = repository.findAllByDateIs(timeLogEntity.getDate());
     return timeLogEntities.stream().anyMatch(timeLog ->
-        !timeLog.getId().equals(timeLogId) &&
+        !timeLog.getId().equals(timeLogEntity.getId()) &&
             areIntervalsOverlapping(startTime, endTime, timeLog.getStartTime(), timeLog.getEndTime())
     );
   }
 
-  private boolean areIntervalsOverlapping(final LocalDateTime startTime1, final LocalDateTime endTime1,
-                                          final LocalDateTime startTime2, final LocalDateTime endTime2) {
+  private boolean areIntervalsOverlapping(final LocalTime startTime1, final LocalTime endTime1,
+                                          final LocalTime startTime2, final LocalTime endTime2) {
     return
         isInInterval(startTime1, endTime1, startTime2) ||
             isInInterval(startTime1, endTime1, endTime2) ||
@@ -112,55 +125,64 @@ public class TimeLogServiceImpl implements TimeLogService {
             isInInterval(startTime2, endTime2, endTime1);
   }
 
-  private boolean isInInterval(final LocalDateTime border1, final LocalDateTime border2, final LocalDateTime target) {
+  private boolean isInInterval(final LocalTime border1, final LocalTime border2, final LocalTime target) {
     if (target == null || border1 == null || border2 == null) {
       return false;
     }
-    return !target.isBefore(border1) && !target.isAfter(border2);
+    if (border2.isBefore(border1)) {
+      return  ((!target.isBefore(border1) && !target.isAfter(LocalTime.MAX))
+          || (!target.isBefore(LocalTime.MIN) && !target.isAfter(border2)));
+
+    } else {
+      return !target.isBefore(border1) && !target.isAfter(border2);
+    }
   }
 
   private void stopOtherTimeLogs(Long excludedId) {
-    repository.findAllByEndTimeIsNull().forEach((logEntry) -> {
-      if (logEntry.getId().equals(excludedId) || logEntry.getStartTime() == null) {
+    repository.findAllByEndTimeIsNull().forEach((timeLogEntity) -> {
+      if (timeLogEntity.getId().equals(excludedId) || timeLogEntity.getStartTime() == null) {
         return;
       }
-      logEntry.setEndTime(LocalDateTime.now(clock).withSecond(0).withNano(0));
-      repository.save(logEntry);
+      timeLogEntity.setEndTime(LocalTime.now(clock).withSecond(0).withNano(0));
+      repository.save(timeLogEntity);
     });
   }
 
 
   @Override
-  public TimeLogGetResponse get(final long logEntryId) {
-    final TimeLogEntity timeLogEntity = getRaw(logEntryId);
-    return mapper.toGetResponse(timeLogEntity);
+  public TimeLogGetResponse get(final long timeLogId) {
+    final TimeLogEntity timeLogEntity = getRaw(timeLogId);
+    TimeLogGetResponse response = mapper.toGetResponse(timeLogEntity);
+    response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
+    return response;
   }
 
-  private TimeLogEntity getRaw(final long logEntryId) {
-    return repository.findById(logEntryId)
+  private TimeLogEntity getRaw(final long timeLogId) {
+    return repository.findById(timeLogId)
         .orElseThrow(() -> new NotFoundException("Log entry with such id does not exist"));
   }
 
   @Override
-  public TimeLogUpdateResponse update(final long logEntryId, final TimeLogUpdateRequest request) {
+  public TimeLogUpdateResponse update(final long timeLogId, final TimeLogUpdateRequest request) {
     if (request.getEndTime() == null) {
-      stopOtherTimeLogs(logEntryId);
+      stopOtherTimeLogs(timeLogId);
     }
 
-    TimeLogEntity entity = getRaw(logEntryId);
-    mapper.fromUpdateRequest(request, entity);
-    entity = repository.save(entity);
+    TimeLogEntity timeLogEntity = getRaw(timeLogId);
+    mapper.fromUpdateRequest(request, timeLogEntity);
+    timeLogEntity = repository.save(timeLogEntity);
 
-    TimeLogUpdateResponse response = mapper.toUpdateResponse(entity);
-    if (isConflictedWithOthersTimeLogs(logEntryId, entity.getStartTime(), entity.getEndTime())) {
+    TimeLogUpdateResponse response = mapper.toUpdateResponse(timeLogEntity);
+    response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
+    if (isConflictedWithOthersTimeLogs(timeLogEntity, timeLogEntity.getStartTime(), timeLogEntity.getEndTime())) {
       response.setConflicted(true);
     }
     return response;
   }
 
   @Override
-  public void delete(final long logEntryId) {
-    final TimeLogEntity entity = getRaw(logEntryId);
-    repository.delete(entity);
+  public void delete(final long timeLogId) {
+    final TimeLogEntity timeLogEntity = getRaw(timeLogId);
+    repository.delete(timeLogEntity);
   }
 }

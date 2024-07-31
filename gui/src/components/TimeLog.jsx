@@ -13,6 +13,7 @@ import Divider from "@mui/material/Divider";
 import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../utils/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
+import useAsyncCall from "../hooks/useAsyncCall.js";
 
 export default function TimeLog({
   timeLog,
@@ -22,8 +23,8 @@ export default function TimeLog({
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
-  const [startTime, setStartTime] = useState(timeLog.startTime ? dayjs(timeLog.startTime) : null);
-  const [endTime, setEndTime] = useState(timeLog.endTime ? dayjs(timeLog.endTime) : null);
+  const [startTime, setStartTime] = useState(timeLog.startTime);
+  const [endTime, setEndTime] = useState(timeLog.endTime);
   const [description, setDescription] = useState(timeLog.description || "");
   const [totalTime, setTotalTime] = useState(timeLog.totalTime);
 
@@ -35,39 +36,59 @@ export default function TimeLog({
     } else return "Pending";
   }, [totalTime, startTime]);
 
-  const [isLoading, setIsLoading] = useState(false);
-
   const [isEditing, setIsEditing] = useState(false);
   const [editedField, setEditedField] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  const [confirmUpdateFunction, setConfirmUpdateFunction] = useState(null);
+  const [showConfirmUpdateModal, setShowConfirmUpdateModal] = useState(false);
+
+  const [startTimeError, setStartTimeError] = useState(false);
+  const [endTimeError, setEndTimeError] = useState(false);
+
   const timeLogRef = useRef(null);
   const {addAlert} = useAppContext();
-
   useEffect(() => {
     initializeState();
   }, [timeLog]);
 
   function initializeState() {
     setTicket(timeLog.ticket || "");
-    setStartTime(timeLog.startTime ? dayjs(timeLog.startTime) : null);
-    setEndTime(timeLog.endTime ? dayjs(timeLog.endTime) : null);
+    setStartTime(timeLog.startTime);
+    setEndTime(timeLog.endTime);
     setDescription(timeLog.description || "");
     setTotalTime(timeLog.totalTime || "");
   }
 
-  const handleUpdateTimeLog = async (body) => {
-    setIsLoading(true);
-    setIsEditing(false);
-    try {
-      await onUpdate(body);
-    } catch (error) {
+  const updateTimeLog = async (body) => {
+    const validation = validateUpdateRequest(body);
+    if (!validation.valid) {
+      validation.alerts.forEach(alert => addAlert(alert));
       resetChanges();
-    } finally {
-      setIsLoading(false);
+    } else if (validation.requiresConfirmation) {
+      setConfirmUpdateFunction(() => () => handleUpdateTimeLog({...body, validated: true}))
+      setShowConfirmUpdateModal(true)
+    } else {
+      setIsEditing(false);
+      await onUpdate({
+        ...body,
+        startTime: dateTimeService.getFormattedDateTime(body.startTime),
+        endTime: dateTimeService.getFormattedDateTime(body.endTime)
+      });
     }
   };
+
+  const {execute: handleCreateTimeLog, isExecuting: isCreateLoading} = useAsyncCall({
+    fn: onCreate,
+  })
+  const {execute: handleUpdateTimeLog, isExecuting: isUpdateLoading} = useAsyncCall({
+    fn: updateTimeLog,
+    onError: resetChanges,
+  })
+  const {execute: handleDeleteTimeLog, isExecuting: isDeleteLoading} = useAsyncCall({
+    fn: onDelete,
+  })
 
   function resetChanges() {
     initializeState();
@@ -84,12 +105,12 @@ export default function TimeLog({
   function handleClickOutside(event) {
     if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
       setIsEditing(false);
-      if (isModified && validateUpdateRequest()) {
+      if (isModified) {
         handleUpdateTimeLog({
           id: timeLog.id,
           ticket,
-          startTime: dateTimeService.getFormattedDateTime(startTime),
-          endTime: dateTimeService.getFormattedDateTime(endTime),
+          startTime,
+          endTime,
           description
         });
       }
@@ -108,7 +129,7 @@ export default function TimeLog({
   function isSameDate(date1, date2) {
     if (!date1 && !date2) return true;
     if (!date1 || !date2) return false;
-    return date1.isSame(dayjs(date2));
+    return date1.isSame(date2, "second");
   }
 
   useEffect(() => {
@@ -117,72 +138,72 @@ export default function TimeLog({
     }
   }, [isEditing, editedField]);
 
-  const validateUpdateRequest = () => {
+  const validateUpdateRequest = (body) => {
+    if(body.validated) {
+      return {
+        valid: true,
+        requiresConfirmation: false
+      };
+    }
+    const startTime = body.startTime;
+    const endTime = body.endTime;
     const alerts = [];
 
-    if (!isTimeFieldsValid) {
+    if (startTime && endTime && Math.abs(startTime.diff(endTime, "minute")) >= 1440) {
       alerts.push({
-        text: "End time must be greater than start time",
+        text: "Time log can not last more than 24 hours. Set end time manually.",
         type: "error"
       });
     }
+
     if (!isTicketFieldValid) {
       alerts.push({
         text: "Invalid ticket number",
         type: "error"
       });
     }
-    if (alerts.length > 0) {
-      alerts.forEach(alert => addAlert(alert));
-      resetChanges();
-      return false;
+    if (alerts.length === 0 && startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0) {
+      return {
+        valid: true,
+        requiresConfirmation: true
+      };
     }
-    return true;
-  }
-  const isTimeFieldsValid = (startTime && endTime) ? !startTime?.isAfter(endTime) : true;
+
+    if (alerts.length > 0) {
+      return {
+        valid: false,
+        alerts
+      };
+    }
+
+    return {
+      valid: true,
+      requiresConfirmation: false
+    };
+  };
+
 
   const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
   const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
 
   function getEditableFields() {
     return <>
-      <div className="mr-4 my-2">
-        <TimeField
-          name="startTime"
-          error={!isTimeFieldsValid}
-          className="w-20"
-          label="Start"
-          size="small"
-          value={startTime}
-          onChange={(date) => {
-            if (date === null) {
-              setStartTime(null);
-            } else if (dayjs(date).isValid()) {
-              setStartTime(dayjs(date))
-            }
-          }}
-          format="HH:mm"
-        />
-      </div>
-
-      <div className="mr-4 my-2">
-        <TimeField
-          name="endTime"
-          error={!isTimeFieldsValid}
-          className="w-20"
-          label="End"
-          value={endTime}
-          onChange={(date) => {
-            if (date === null) {
-              setEndTime(null);
-            } else if (dayjs(date).isValid()) {
-              setEndTime(dayjs(date))
-            }
-          }}
-          size="small"
-          format="HH:mm"
-        />
-      </div>
+      {createTimeField({
+        name: "startTime",
+        label: "Start",
+        value: startTime,
+        setValue: setStartTime,
+        error: startTimeError,
+        setError: setStartTimeError
+      })}
+      {createTimeField({
+        name: "endTime",
+        label: "End",
+        value: endTime,
+        setValue: setEndTime,
+        error: endTimeError,
+        setError: setEndTimeError
+      })}
       <div className="mr-4 my-2">
         <TextField
           error={!isTicketFieldValid}
@@ -196,6 +217,41 @@ export default function TimeLog({
         />
       </div>
     </>;
+  }
+
+  const createTimeField = ({name, label, value, setValue, error, setError}) => {
+    return (
+      <div className="mr-4 my-2">
+        <TimeField
+          name={name}
+          error={error}
+          className="w-20"
+          label={label}
+          size="small"
+          value={value}
+          onChange={(timeToSet) => {
+            validateTimeFields(timeToSet, setError);
+            if (timeToSet === null) {
+              setValue(null);
+            } else if(timeToSet.isValid()){
+                const newValue = name === 'startTime'
+                  ? dateTimeService.buildStartTime(timeLog.date, timeToSet)
+                  : dateTimeService.buildEndTime(timeLog.date, startTime, timeToSet);
+                setValue(newValue);
+              }
+          }}
+          format="HH:mm"
+        />
+      </div>
+    );
+  };
+
+  function validateTimeFields(newTime, setError) {
+    if (newTime === null || (newTime.isValid && newTime.isValid())) {
+      setError(false);
+    } else {
+      setError(true);
+    }
   }
 
   function getNonEditableFields() {
@@ -253,14 +309,8 @@ export default function TimeLog({
       action: (isHovered || isEditing) && (
         <Tooltip title="continue">
           <IconButton
-            onClick={async () => {
-              setIsLoading(true);
-              try {
-                await onCreate({ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description});
-              } finally {
-                setIsLoading(false);
-              }
-            }}
+            onClick={() => handleCreateTimeLog(
+              {ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description})}
             variant="outlined"
             color="primary"
             className="mr-2"
@@ -271,22 +321,18 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: currentTime.diff(timeLog.startTime) >= 0
-        ? `${currentTime.diff(timeLog.startTime, "hour")}h ${currentTime.diff(timeLog.startTime, "minute") % 60}m`
-        : null,
+      label: dateTimeService.getDurationOfProgressTimeLog(timeLog.startTime),
       action: (isHovered || isEditing) && (
         <Tooltip title="stop">
           <IconButton
             onClick={() => {
-              setIsLoading(true);
               handleUpdateTimeLog({
                 id: timeLog.id,
                 ticket,
-                startTime: dateTimeService.getFormattedDateTime(startTime),
-                endTime: dateTimeService.getFormattedDateTime(currentTime),
+                startTime,
+                endTime: currentTime,
                 description,
               });
-              setIsLoading(false);
             }}
             variant="outlined"
             color="warning"
@@ -303,14 +349,12 @@ export default function TimeLog({
         <Tooltip title="start">
           <IconButton
             onClick={() => {
-              setIsLoading(true);
               handleUpdateTimeLog({
                 id: timeLog.id,
                 ticket,
-                startTime: dateTimeService.getFormattedDateTime(currentTime),
+                startTime: currentTime,
                 description,
               });
-              setIsLoading(false);
             }}
             variant="outlined"
             color="primary"
@@ -333,6 +377,20 @@ export default function TimeLog({
       <div className="flex justify-between">
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
+          <ConfirmationModal
+            open={showConfirmUpdateModal}
+            type="info"
+            actionText="OK"
+            onConfirm={confirmUpdateFunction}
+            onClose={() => {
+              setShowConfirmUpdateModal(false);
+              setIsHovered(false);
+            }}
+            onCancel={resetChanges}
+          >
+            Are you sure you want to set end of time to next day?
+          </ConfirmationModal>
+
           {statusConfig[status].label ? <Chip
             label={statusConfig[status].label}
             color="primary"
@@ -356,16 +414,19 @@ export default function TimeLog({
                 <Tooltip title="Save">
                   <span>
                     <IconButton
-                      onClick={() => handleUpdateTimeLog({
-                        id: timeLog.id,
-                        ticket,
-                        startTime: dateTimeService.getFormattedDateTime(startTime),
-                        endTime: dateTimeService.getFormattedDateTime(endTime),
-                        description
-                      })}
+                      onClick={() => {
+                        handleUpdateTimeLog({
+                          id: timeLog.id,
+                          ticket,
+                          startTime,
+                          endTime,
+                          description
+                        });
+
+                      }}
                       className="mr-0"
                       color="success"
-                      disabled={!isTimeFieldsValid || !isTicketFieldValid}
+                      disabled={(startTimeError || endTimeError) || !isTicketFieldValid}
                     >
                       <SaveOutlinedIcon fontSize="small" />
                     </IconButton>
@@ -389,11 +450,7 @@ export default function TimeLog({
                   open={showDeleteModal}
                   type="error"
                   actionText="Delete"
-                  onConfirm={() => {
-                    setIsLoading(true);
-                    onDelete(timeLog.id);
-                    setIsLoading(false);
-                  }}
+                  onConfirm={() => handleDeleteTimeLog(timeLog.id)}
                   onClose={() => {
                     setShowDeleteModal(false);
                     setIsHovered(false);
@@ -448,7 +505,7 @@ export default function TimeLog({
           <div className="text-justify whitespace-pre-wrap">{description}</div>
         )}
       </div>
-      {isLoading && <LinearProgress />}
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading) && <LinearProgress />}
     </div>
   );
 }

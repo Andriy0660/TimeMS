@@ -10,13 +10,13 @@ import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 
 public interface TimeLogService {
-  TimeLogListResponse list(String mode, LocalDate date);
+  TimeLogListResponse list(final String mode, final LocalDate date);
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 
-  TimeLogGetResponse get(final long logEntryId);
+  TimeLogGetResponse get(final long timeLogId);
 
-  TimeLogUpdateResponse update(final long logEntryId, final TimeLogUpdateRequest request);
+  TimeLogUpdateResponse update(final long timeLogId, final TimeLogUpdateRequest request);
 
-  void delete(final long logEntryId);
+  void delete(final long timeLogId);
 }

@@ -1,5 +1,6 @@
 import TimeLog from "./TimeLog.jsx";
 import Divider from "@mui/material/Divider";
+import dateTimeService from "../utils/dateTimeService.js";
 
 export default function TimeLogList({
   timeLogs,
@@ -15,6 +16,11 @@ export default function TimeLogList({
       <div key={date} className="mb-2 w-3/5 shadow-md bg-gray-50">
         {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{date}</div>}
         {logsForDate.map((timeLog) => {
+          const startTime = dateTimeService.buildStartTime(date, timeLog.startTime);
+          const endTime = dateTimeService.buildEndTime(date, timeLog.startTime, timeLog.endTime);
+
+          timeLog.startTime = startTime;
+          timeLog.endTime = endTime;
           return (
             <div key={timeLog.id}>
               <Divider />
