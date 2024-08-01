@@ -4,6 +4,11 @@ const dateTimeService = {
   getFormattedTime: (time) => time?.format("HH:mm"),
   getFormattedDate: (time) => time?.format("YYYY-MM-DD"),
   getFormattedDateTime: (time) => time?.format("YYYY-MM-DDTHH:mm"),
+  isSameDate: (date1, date2) => {
+    if (!date1 && !date2) return true;
+    if (!date1 || !date2) return false;
+    return date1.isSame(date2, "second");
+  },
   compareDates: (date1, date2) => {
     date1 = dayjs(date1);
     date2 = dayjs(date2);

@@ -11,7 +11,7 @@ import StartOutlinedIcon from '@mui/icons-material/StartOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import Divider from "@mui/material/Divider";
 import useAppContext from "../context/useAppContext.js";
-import dateTimeService from "../utils/dateTimeService.js";
+import dateTimeService from "../service/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import useAsyncCall from "../hooks/useAsyncCall.js";
 
@@ -122,16 +122,10 @@ export default function TimeLog({
     return (
       (ticket || "") !== (timeLog.ticket || "") ||
       (description || "") !== (timeLog.description || "") ||
-      !isSameDate(startTime, timeLog.startTime) ||
-      !isSameDate(endTime, timeLog.endTime)
+      !dateTimeService.isSameDate(startTime, timeLog.startTime) ||
+      !dateTimeService.isSameDate(endTime, timeLog.endTime)
     );
   }, [ticket, description, startTime, endTime, timeLog]);
-
-  function isSameDate(date1, date2) {
-    if (!date1 && !date2) return true;
-    if (!date1 || !date2) return false;
-    return date1.isSame(date2, "second");
-  }
 
   useEffect(() => {
     if (isEditing && editedField) {
@@ -140,7 +134,7 @@ export default function TimeLog({
   }, [isEditing, editedField]);
 
   const shouldDisplayConfirmUpdateModal = startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0 &&
-    !isSameDate(endTime, timeLog.endTime);
+    !dateTimeService.isSameDate(endTime, timeLog.endTime);
   const validateUpdateRequest = (body) => {
     if(body.validated) {
       return {

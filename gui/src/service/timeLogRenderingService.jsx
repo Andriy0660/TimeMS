@@ -1,4 +1,4 @@
-import dateTimeService from "../utils/dateTimeService.js";
+import dateTimeService from "./dateTimeService.js";
 import Divider from "@mui/material/Divider";
 import TimeLog from "../components/TimeLog.jsx";
 

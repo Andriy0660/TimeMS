@@ -1,7 +1,7 @@
 import {Button, CircularProgress, TextField} from "@mui/material";
 import dayjs from "dayjs";
 import {useState} from "react";
-import dateTimeService from "../utils/dateTimeService.js";
+import dateTimeService from "../service/dateTimeService.js";
 
 export default function TimeLogCreateBar({onCreate}) {
   const [ticketAndDescription, setTicketAndDescription] = useState("");

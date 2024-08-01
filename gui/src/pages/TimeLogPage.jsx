@@ -8,7 +8,7 @@ import {CircularProgress, FormControlLabel, IconButton, MenuItem, Select, Switch
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useState} from "react";
 import dayjs from "dayjs";
-import dateTimeService from "../utils/dateTimeService.js";
+import dateTimeService from "../service/dateTimeService.js";
 import DayPicker from "../components/DayPicker.jsx";
 import MonthPicker from "../components/MonthPicker..jsx";
 import WeekPicker from "../components/WeekPicker.jsx";
