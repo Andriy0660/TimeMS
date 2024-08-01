@@ -1,4 +1,4 @@
-import dataRenderingService from "../service/dataRenderingService.jsx";
+import timeLogRenderingService from "../service/timeLogRenderingService.jsx";
 
 export default function TimeLogList({
   timeLogs,
@@ -7,7 +7,7 @@ export default function TimeLogList({
   onUpdate,
   onDelete
 }) {
-  const renderedTimeLogs = dataRenderingService.render({
+  const renderedTimeLogs = timeLogRenderingService.render({
     timeLogs,
     mode,
     onCreate,

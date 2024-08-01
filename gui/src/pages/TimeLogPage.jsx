@@ -14,7 +14,7 @@ import MonthPicker from "../components/MonthPicker..jsx";
 import WeekPicker from "../components/WeekPicker.jsx";
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import {useNavigate} from "react-router-dom";
-import dataProcessingService from "../service/dataProcessingService.js";
+import timeLogProcessingService from "../service/timeLogProcessingService.js";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -63,9 +63,9 @@ export default function TimeLogPage() {
       return timeLog;
     })
     if (!groupByDescription) {
-      setTimeLogs(dataProcessingService.group(dataNotNull, ["date"]))
+      setTimeLogs(timeLogProcessingService.group(dataNotNull, ["date"]))
     } else {
-      setTimeLogs(dataProcessingService.group(dataNotNull, ["date", "description"]))
+      setTimeLogs(timeLogProcessingService.group(dataNotNull, ["date", "description"]))
     }
   }, [data, groupByDescription])
 

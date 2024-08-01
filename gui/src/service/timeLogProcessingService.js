@@ -1,4 +1,4 @@
-const dataProcessingService = {
+const timeLogProcessingService = {
   group(data, groupOrder) {
     let res = data;
     groupOrder.forEach(groupBy => {
@@ -34,4 +34,4 @@ const dataProcessingService = {
   },
 };
 
-export default dataProcessingService;
+export default timeLogProcessingService;

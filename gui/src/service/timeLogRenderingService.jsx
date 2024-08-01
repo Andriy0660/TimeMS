@@ -2,7 +2,7 @@ import dateTimeService from "./dateTimeService.js";
 import Divider from "@mui/material/Divider";
 import TimeLog from "../components/TimeLog.jsx";
 
-const dataRenderingService = {
+const timeLogRenderingService = {
   render({timeLogs, mode, onCreate, onUpdate, onDelete}) {
     const renderFunctionName = Object.keys(this).find(f=> {
       if(!this[f].groupOrder) return;
@@ -82,4 +82,4 @@ const dataRenderingService = {
     }
   }
 }
-export default dataRenderingService;
+export default timeLogRenderingService;
