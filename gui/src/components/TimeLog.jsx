@@ -29,13 +29,7 @@ export default function TimeLog({
   const [description, setDescription] = useState(timeLog.description || "");
   const [totalTime, setTotalTime] = useState(timeLog.totalTime);
 
-  const status = useMemo(() => {
-    if (totalTime) {
-      return "Done";
-    } else if (startTime) {
-      return "InProgress";
-    } else return "Pending";
-  }, [totalTime, startTime]);
+  const status = timeLog.status
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedField, setEditedField] = useState(null);

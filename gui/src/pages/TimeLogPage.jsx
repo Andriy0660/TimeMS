@@ -57,12 +57,20 @@ export default function TimeLogPage() {
   });
 
   useEffect(() => {
+    const getStatus = ({totalTime, startTime}) => {
+      if (totalTime) {
+        return "Done";
+      } else if (startTime) {
+        return "InProgress";
+      } else return "Pending";
+    }
     let dataNotNull = data ? data : [];
     dataNotNull = dataNotNull.map(timeLog => {
       const startTime = dateTimeService.buildStartTime(timeLog.date, timeLog.startTime);
       const endTime = dateTimeService.buildEndTime(timeLog.date, timeLog.startTime, timeLog.endTime);
       timeLog.startTime = startTime;
       timeLog.endTime = endTime;
+      timeLog.status = getStatus(timeLog);
       return timeLog;
     })
     if (!groupByDescription) {

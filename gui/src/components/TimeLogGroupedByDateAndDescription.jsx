@@ -5,6 +5,11 @@ import {Chip} from "@mui/material";
 import Divider from "@mui/material/Divider";
 
 export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription}) {
+  const getTotalMinutes = (timeString) => {
+    const hoursMatch = parseInt(timeString.match(/(\d+)h/)[1], 10);
+    const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
+    return hoursMatch * 60 + minutesMatch;
+  }
   return Object.keys(timeLogs.data)
     .sort((a, b) => dateTimeService.compareDates(a, b))
     .map(date => {
@@ -20,10 +25,14 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
             }, [])
 
             const totalTime = logsForDate[description].reduce((result, item) => {
-              const hoursMatch = parseInt(item.totalTime.match(/(\d+)h/)[1], 10);
-              const minutesMatch = parseInt(item.totalTime.match(/(\d+)m/)[1], 10);
-              const totalMinutes = hoursMatch * 60 + minutesMatch;
-              result += totalMinutes;
+              if (item.status === "Done") {
+                result += getTotalMinutes(item.totalTime);
+              } else if (item.status === "InProgress") {
+                const progressTime = dateTimeService.getDurationOfProgressTimeLog(item.startTime);
+                if (progressTime) {
+                  result += getTotalMinutes(progressTime);
+                }
+              }
               return result;
             }, 0)
             const label = `${Math.floor(totalTime / 60)}h ${totalTime % 60}m`;
