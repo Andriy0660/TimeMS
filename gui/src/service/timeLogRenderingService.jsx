@@ -1,6 +1,7 @@
 import dateTimeService from "./dateTimeService.js";
 import Divider from "@mui/material/Divider";
 import TimeLog from "../components/TimeLog.jsx";
+import {Chip} from "@mui/material";
 
 const timeLogRenderingService = {
   render({timeLogs, mode, onCreate, onUpdate, onDelete}) {
@@ -30,13 +31,13 @@ const timeLogRenderingService = {
 
                 return (
                   <div key={timeLog.id}>
-                    <Divider />
                     <TimeLog
                       timeLog={timeLog}
                       onCreate={onCreate}
                       onUpdate={onUpdate}
                       onDelete={onDelete}
                     />
+                    <Divider />
                   </div>
                 )
               })}
@@ -55,27 +56,48 @@ const timeLogRenderingService = {
           return (
             <div key={date} className="mb-2 shadow-md bg-gray-50">
               {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{date}</div>}
-              {Object.keys(logsForDate).map(description =>
-                <div key={description}>
-                  {logsForDate[description].map(timeLog => {
+              {Object.keys(logsForDate).map(description => {
+                const totalTime = logsForDate[description].reduce((result, item) => {
+                  const hoursMatch = parseInt(item.totalTime.match(/(\d+)h/)[1], 10);
+                  const minutesMatch = parseInt(item.totalTime.match(/(\d+)m/)[1], 10);
+                  const totalMinutes = hoursMatch * 60 + minutesMatch;
+                  result += totalMinutes;
+                  return result;
+                }, 0)
+                const label = `${Math.floor(totalTime / 60)}h ${totalTime % 60}m`;
+                return (
+                  <div key={description}>
+                    {logsForDate[description].map(timeLog => {
 
-                    return (
-                      <div key={timeLog.id}>
-                        <TimeLog
-                          timeLog={timeLog}
-                          onCreate={onCreate}
-                          onUpdate={onUpdate}
-                          onDelete={onDelete}
-                          groupByDescription={true}
+                      return (
+                        <div key={timeLog.id}>
+                          <TimeLog
+                            timeLog={timeLog}
+                            onCreate={onCreate}
+                            onUpdate={onUpdate}
+                            onDelete={onDelete}
+                            groupByDescription={true}
+                          />
+
+                        </div>
+                      );
+                    })}
+                    <div className="flex items-center my-1">
+                      <div className="text-justify whitespace-pre-wrap mx-4">{description}</div>
+                      {logsForDate[description].length > 1 &&
+                        <Chip
+                          label={label}
+                          color="primary"
+                          variant="outlined"
+                          size="small"
+                          className="shadow-md"
                         />
-
-                      </div>
-                    );
-                  })}
-                  <div className="text-justify whitespace-pre-wrap mx-4 mb-1">{description}</div>
-                  <Divider />
-                </div>)
-              }
+                      }
+                    </div>
+                    <Divider />
+                  </div>
+                )
+              })}
             </div>
           );
         });
