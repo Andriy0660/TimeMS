@@ -36,9 +36,6 @@ export default function TimeLog({
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const [confirmUpdateFunction, setConfirmUpdateFunction] = useState(null);
-  const [showConfirmUpdateModal, setShowConfirmUpdateModal] = useState(false);
-
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
 
@@ -57,13 +54,8 @@ export default function TimeLog({
   }
 
   const updateTimeLog = async (body) => {
-    const validation = validateUpdateRequest(body);
-    if (!validation.valid) {
-      validation.alerts.forEach(alert => addAlert(alert));
+    if (!validateUpdateRequest(body)) {
       resetChanges();
-    } else if (validation.requiresConfirmation) {
-      setConfirmUpdateFunction(() => () => handleUpdateTimeLog({...body, validated: true}))
-      setShowConfirmUpdateModal(true)
     } else {
       setIsEditing(false);
       await onUpdate({
@@ -127,15 +119,7 @@ export default function TimeLog({
     }
   }, [isEditing, editedField]);
 
-  const shouldDisplayConfirmUpdateModal = startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0 &&
-    !dateTimeService.isSameDate(endTime, timeLog.endTime);
   const validateUpdateRequest = (body) => {
-    if(body.validated) {
-      return {
-        valid: true,
-        requiresConfirmation: false
-      };
-    }
     const startTime = body.startTime;
     const endTime = body.endTime;
     const alerts = [];
@@ -153,24 +137,12 @@ export default function TimeLog({
         type: "error"
       });
     }
-    if (alerts.length === 0 && shouldDisplayConfirmUpdateModal) {
-      return {
-        valid: true,
-        requiresConfirmation: true
-      };
-    }
 
     if (alerts.length > 0) {
-      return {
-        valid: false,
-        alerts
-      };
+      alerts.forEach(alert => addAlert(alert));
+      return false;
     }
-
-    return {
-      valid: true,
-      requiresConfirmation: false
-    };
+    return true;
   };
 
 
@@ -368,19 +340,6 @@ export default function TimeLog({
       <div className="flex justify-between">
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
-          <ConfirmationModal
-            open={showConfirmUpdateModal}
-            type="info"
-            actionText="OK"
-            onConfirm={confirmUpdateFunction}
-            onClose={() => {
-              setShowConfirmUpdateModal(false);
-              setIsHovered(false);
-            }}
-            onCancel={resetChanges}
-          >
-            Are you sure you want to set end of time to next day?
-          </ConfirmationModal>
 
           {statusConfig[status].label ? <Chip
             label={statusConfig[status].label}
