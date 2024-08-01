@@ -483,7 +483,7 @@ export default function TimeLog({
         </div>
       </div>
 
-      <div
+      {!groupByDescription && <div
         className={`mt-1 ${isEditing ? "" : "hover:bg-blue-100"}`}
         onClick={() => {
           setIsEditing(true);
@@ -509,6 +509,7 @@ export default function TimeLog({
           <div className="text-justify whitespace-pre-wrap">{description}</div>
         )}
       </div>
+      }
       {(isCreateLoading || isUpdateLoading || isDeleteLoading) && <LinearProgress />}
     </div>
   );
