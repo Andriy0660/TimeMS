@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,6 +17,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.service.TimeLogService;
@@ -50,6 +52,11 @@ public class TimeLogController {
   @DeleteMapping("/{logEntryId}")
   public void delete(@PathVariable final long logEntryId) {
     timeLogService.delete(logEntryId);
+  }
+
+  @PatchMapping("/setGroupDescription")
+  public void setGroupDescription(@RequestBody final TimeLogSetGroupDescrRequest request) {
+    timeLogService.setGroupDescription(request);
   }
 
 }

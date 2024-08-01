@@ -18,6 +18,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
@@ -174,5 +175,11 @@ public class TimeLogServiceImpl implements TimeLogService {
   public void delete(final long timeLogId) {
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
     repository.delete(timeLogEntity);
+  }
+
+  @Override
+  public void setGroupDescription(final TimeLogSetGroupDescrRequest request) {
+    List<TimeLogEntity> timeLogEntityList = repository.findAllById(request.getIds());
+    timeLogEntityList.forEach(timeLogEntity -> timeLogEntity.setDescription(request.getDescription()));
   }
 }

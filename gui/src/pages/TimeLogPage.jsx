@@ -141,6 +141,23 @@ export default function TimeLogPage() {
       console.error("Deleting time log failed:", error);
     }
   });
+  const {mutateAsync: setGroupDescription} = useMutation({
+    mutationFn: (body) => timeLogApi.setGroupDescription(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries(timeLogs.key);
+      addAlert({
+        text: "You have successfully set description",
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("Setting group description failed:", error);
+    }
+  });
 
   useEffect(() => {
     if (listAllError) {
@@ -221,6 +238,7 @@ export default function TimeLogPage() {
             onCreate={create}
             onUpdate={update}
             onDelete={deleteTimeLog}
+            setGroupDescription={setGroupDescription}
           />
         </div>
       </div>

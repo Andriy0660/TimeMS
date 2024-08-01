@@ -5,14 +5,16 @@ export default function TimeLogList({
   mode,
   onCreate,
   onUpdate,
-  onDelete
+  onDelete,
+  setGroupDescription
 }) {
   const renderedTimeLogs = timeLogRenderingService.render({
     timeLogs,
     mode,
     onCreate,
     onUpdate,
-    onDelete
+    onDelete,
+    setGroupDescription
   })
   return (
     <div className="m-4 flex flex-col items-center">
