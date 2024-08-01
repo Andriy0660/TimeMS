@@ -85,7 +85,9 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogCreateResponse create(final TimeLogCreateRequest request) {
     TimeLogEntity timeLogEntity = mapper.fromCreateRequest(request);
-    timeLogEntity.setDate(LocalDate.now(clock));
+    if(timeLogEntity.getDate() == null) {
+      timeLogEntity.setDate(LocalDate.now(clock));
+    }
 
     if(timeLogEntity.getStartTime() != null) {
       stopOtherTimeLogs(null);

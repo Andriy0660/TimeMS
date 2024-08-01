@@ -83,10 +83,6 @@ export default function TimeLogPage() {
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => timeLogApi.create(body),
     onSuccess: async (body) => {
-      if(mode !== "Day" || !dayjs().isSame(date, "day")) {
-        setDate(dayjs());
-        setMode("Day");
-      }
       queryClient.invalidateQueries(timeLogs.key);
       if (body.conflicted) {
         addAlert({
@@ -199,6 +195,8 @@ export default function TimeLogPage() {
       <div>
         <TimeLogCreateBar
           onCreate={create}
+          date={date}
+          canCreate={mode === "Day"}
         />
         <div className="flex flex-col">
           <div className="flex justify-center">
