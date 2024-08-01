@@ -22,7 +22,7 @@ export default function TimeLogPage() {
   const queryParams = new URLSearchParams(location.search);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs());
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
-  const [groupByDescription, setGroupByDescription] = useState(false);
+  const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
 
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
@@ -36,8 +36,11 @@ export default function TimeLogPage() {
     if (date && !dayjs().isSame(date, "day")) {
       params.set("date", dateTimeService.getFormattedDateTime(date));
     }
+    if(groupByDescription) {
+      params.set("groupByDescription", true);
+    }
     navigate({search: params.toString()});
-  }, [mode, date]);
+  }, [mode, date, groupByDescription]);
 
   const {
     data,
