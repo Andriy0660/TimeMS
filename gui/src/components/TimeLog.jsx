@@ -14,6 +14,7 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import useAsyncCall from "../hooks/useAsyncCall.js";
+import Button from "@mui/material/Button";
 
 export default function TimeLog({
   timeLog,
@@ -39,8 +40,10 @@ export default function TimeLog({
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
 
+  const updateTimerRef = useRef(null);
+
   const timeLogRef = useRef(null);
-  const {addAlert} = useAppContext();
+  const {addAlert, removeAlert, showAlertSeconds} = useAppContext();
   useEffect(() => {
     initializeState();
   }, [timeLog]);
@@ -56,6 +59,8 @@ export default function TimeLog({
   const updateTimeLog = async (body) => {
     if (!validateUpdateRequest(body)) {
       resetChanges();
+    } else if (endTime && startTime && dateTimeService.compareTimes(startTime, endTime) > 0) {
+      showAlertWhenEndTimeIsNextDay(body);
     } else {
       setIsEditing(false);
       await onUpdate({
@@ -64,6 +69,76 @@ export default function TimeLog({
         endTime: dateTimeService.getFormattedDateTime(body.endTime)
       });
     }
+  };
+
+  function showAlertWhenEndTimeIsNextDay(body) {
+    addAlert({
+      text: "You set the end time for the next day",
+      type: "warning",
+      action: ({closeToast}) => (
+        <Button
+          onClick={() => {
+            handleCancelUpdate();
+            closeToast();
+          }}
+        >
+          Undo
+        </Button>
+      ),
+      id: timeLog.id
+    });
+    const timer = setTimeout(async () => {
+      if (updateTimerRef.current) {
+        removeAlert(timeLog.id)
+        setIsEditing(false);
+        await onUpdate({
+          ...body,
+          startTime: dateTimeService.getFormattedDateTime(body.startTime),
+          endTime: dateTimeService.getFormattedDateTime(body.endTime)
+        });
+        updateTimerRef.current = null;
+      }
+    }, showAlertSeconds + 1000);
+    updateTimerRef.current = timer;
+  }
+
+  const validateUpdateRequest = (body) => {
+    const startTime = body.startTime;
+    const endTime = body.endTime;
+    const alerts = [];
+
+    if (startTime && endTime && Math.abs(startTime.diff(endTime, "minute")) >= 1440) {
+      alerts.push({
+        text: "Time log can not last more than 24 hours. Set end time manually.",
+        type: "error"
+      });
+    }
+
+    if (!isTicketFieldValid) {
+      alerts.push({
+        text: "Invalid ticket number",
+        type: "error"
+      });
+    }
+
+    if (alerts.length > 0) {
+      alerts.forEach(alert => addAlert(alert));
+      return false;
+    }
+    return true;
+  };
+  const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
+  const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
+
+  function resetChanges() {
+    initializeState();
+    setIsEditing(false);
+  }
+
+  const handleCancelUpdate = () => {
+    clearTimeout(updateTimerRef.current);
+    updateTimerRef.current = null;
+    resetChanges();
   };
 
   const {execute: handleCreateTimeLog, isExecuting: isCreateLoading} = useAsyncCall({
@@ -76,11 +151,6 @@ export default function TimeLog({
   const {execute: handleDeleteTimeLog, isExecuting: isDeleteLoading} = useAsyncCall({
     fn: onDelete,
   })
-
-  function resetChanges() {
-    initializeState();
-    setIsEditing(false);
-  }
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
@@ -118,36 +188,6 @@ export default function TimeLog({
       timeLogRef.current.querySelector(`[name="${editedField}"]`).focus();
     }
   }, [isEditing, editedField]);
-
-  const validateUpdateRequest = (body) => {
-    const startTime = body.startTime;
-    const endTime = body.endTime;
-    const alerts = [];
-
-    if (startTime && endTime && Math.abs(startTime.diff(endTime, "minute")) >= 1440) {
-      alerts.push({
-        text: "Time log can not last more than 24 hours. Set end time manually.",
-        type: "error"
-      });
-    }
-
-    if (!isTicketFieldValid) {
-      alerts.push({
-        text: "Invalid ticket number",
-        type: "error"
-      });
-    }
-
-    if (alerts.length > 0) {
-      alerts.forEach(alert => addAlert(alert));
-      return false;
-    }
-    return true;
-  };
-
-
-  const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
-  const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
 
   function getEditableFields() {
     return <>
