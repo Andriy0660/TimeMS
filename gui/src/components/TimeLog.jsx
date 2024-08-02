@@ -1,4 +1,4 @@
-import {Chip, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
+import {Chip, Icon, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useMemo, useRef, useState} from "react";
@@ -15,6 +15,7 @@ import dateTimeService from "../service/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import Button from "@mui/material/Button";
+import {TiArrowForward} from "react-icons/ti";
 
 export default function TimeLog({
   timeLog,
@@ -265,13 +266,20 @@ export default function TimeLog({
         <>
           -
           <div
-            className="mx-4 my-1 hover:bg-blue-100"
+            className="flex mx-4 my-1 hover:bg-blue-100"
             onClick={() => {
               setIsEditing(true);
               setEditedField("endTime");
             }}
           >
-            <Typography className="font-bold text-sm">{dateTimeService.getFormattedTime(endTime)}</Typography>
+            {startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0 &&
+              <Tooltip className="flex items-center" title="next day">
+                <Icon fontSize="small">
+                  <TiArrowForward/>
+                </Icon>
+              </Tooltip>
+            }
+            <Typography className="mx-1 font-bold text-sm">{dateTimeService.getFormattedTime(endTime)}</Typography>
           </div>
         </>
       )}
