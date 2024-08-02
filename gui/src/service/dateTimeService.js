@@ -7,6 +7,11 @@ const dateTimeService = {
   isSameDate: (date1, date2) => {
     if (!date1 && !date2) return true;
     if (!date1 || !date2) return false;
+    return date1.isSame(date2, "date");
+  },
+  isSameDateTime: (date1, date2) => {
+    if (!date1 && !date2) return true;
+    if (!date1 || !date2) return false;
     return date1.isSame(date2, "second");
   },
   compareDates: (date1, date2) => {

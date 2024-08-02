@@ -57,7 +57,7 @@ export default function TimeLog({
   }
 
   const updateTimeLog = async (body) => {
-    if (!validateUpdateRequest(body)) {
+    if (!validateUpdateRequest()) {
       resetChanges();
     } else if (endTime && startTime && dateTimeService.compareTimes(startTime, endTime) > 0) {
       showAlertWhenEndTimeIsNextDay(body);
@@ -106,27 +106,12 @@ export default function TimeLog({
     updateTimerRef.current = timer;
   }
 
-  const validateUpdateRequest = (body) => {
-    const startTime = body.startTime;
-    const endTime = body.endTime;
-    const alerts = [];
-
-    if (startTime && endTime && Math.abs(startTime.diff(endTime, "minute")) >= 1440) {
-      alerts.push({
-        text: "Time log can not last more than 24 hours. Set end time manually.",
-        type: "error"
-      });
-    }
-
+  const validateUpdateRequest = () => {
     if (!isTicketFieldValid) {
-      alerts.push({
+      addAlert({
         text: "Invalid ticket number",
         type: "error"
       });
-    }
-
-    if (alerts.length > 0) {
-      alerts.forEach(alert => addAlert(alert));
       return false;
     }
     return true;
@@ -182,8 +167,8 @@ export default function TimeLog({
     return (
       (ticket || "") !== (timeLog.ticket || "") ||
       (description || "") !== (timeLog.description || "") ||
-      !dateTimeService.isSameDate(startTime, timeLog.startTime) ||
-      !dateTimeService.isSameDate(endTime, timeLog.endTime)
+      !dateTimeService.isSameDateTime(startTime, timeLog.startTime) ||
+      !dateTimeService.isSameDateTime(endTime, timeLog.endTime)
     );
   }, [ticket, description, startTime, endTime, timeLog]);
 
@@ -329,7 +314,7 @@ export default function TimeLog({
     },
     InProgress: {
       label: dateTimeService.getDurationOfProgressTimeLog(timeLog.startTime),
-      action: (isHovered || isEditing) && (
+      action: ((isHovered || isEditing) && dateTimeService.isSameDate(dayjs(timeLog.date), currentTime)) && (
         <Tooltip title="stop">
           <IconButton
             onClick={() => {
@@ -352,7 +337,7 @@ export default function TimeLog({
     },
     Pending: {
       label: 'Pending',
-      action: (isHovered || isEditing) && (
+      action: ((isHovered || isEditing) && dateTimeService.isSameDate(dayjs(timeLog.date), currentTime)) && (
         <Tooltip title="start">
           <IconButton
             onClick={() => {
