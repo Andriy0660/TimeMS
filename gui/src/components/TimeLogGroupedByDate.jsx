@@ -1,6 +1,7 @@
 import dateTimeService from "../service/dateTimeService.js";
 import TimeLog from "./TimeLog.jsx";
 import Divider from "@mui/material/Divider";
+import dayjs from "dayjs";
 
 export default function TimeLogGroupedByDate({timeLogs, mode, onCreate, onUpdate, onDelete}) {
   return Object.keys(timeLogs.data)
@@ -9,7 +10,7 @@ export default function TimeLogGroupedByDate({timeLogs, mode, onCreate, onUpdate
       const logsForDate = timeLogs.data[date];
       return (
         <div key={date} className="mb-2 shadow-md bg-gray-50">
-          {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{date}</div>}
+          {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
           {logsForDate.map((timeLog) => {
 
             return (

@@ -3,6 +3,7 @@ import TimeLog from "./TimeLog.jsx";
 import GroupDescription from "./GroupDescription.jsx";
 import {Chip} from "@mui/material";
 import Divider from "@mui/material/Divider";
+import dayjs from "dayjs";
 
 export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription}) {
   const getTotalMinutes = (timeString) => {
@@ -16,7 +17,7 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
       const logsForDate = timeLogs.data[date];
       return (
         <div key={date} className="mb-2 shadow-md bg-gray-50">
-          {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{date}</div>}
+          {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
           {Object.keys(logsForDate).map(description => {
 
             const ids = logsForDate[description].reduce((result, item) => {

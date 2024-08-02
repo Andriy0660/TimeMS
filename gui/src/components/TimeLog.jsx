@@ -57,10 +57,12 @@ export default function TimeLog({
     setTotalTime(timeLog.totalTime || "");
   }
 
+  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(startTime, endTime);
+
   const updateTimeLog = async (body) => {
     if (!validateUpdateRequest()) {
       resetChanges();
-    } else if (endTime && startTime && dateTimeService.compareTimes(startTime, endTime) > 0) {
+    } else if (isTimeLogInNextDay.startTime || isTimeLogInNextDay.endTime) {
       showAlertWhenEndTimeIsNextDay(body);
     } else {
       setIsEditing(false);
@@ -74,7 +76,7 @@ export default function TimeLog({
 
   function showAlertWhenEndTimeIsNextDay(body) {
     addAlert({
-      text: "You set the end time for the next day",
+      text: "You set the time for the next day",
       type: "warning",
       action: ({closeToast}) => (
         <Button
@@ -251,12 +253,19 @@ export default function TimeLog({
     return <>
       {(startTime || endTime) &&
         <div
-          className="mr-4 my-1 hover:bg-blue-100"
+          className="flex mr-4 my-1 hover:bg-blue-100"
           onClick={() => {
             setIsEditing(true);
             setEditedField("startTime");
           }}
         >
+          {startTime && isTimeLogInNextDay.startTime &&
+            <Tooltip className="flex items-center mr-1" title="next day">
+              <Icon fontSize="small">
+                <TiArrowForward />
+              </Icon>
+            </Tooltip>
+          }
           <Typography className={`text-sm ${startTime ? "font-bold" : "text-xs leading-6"}`}>
             {startTime ? dateTimeService.getFormattedTime(startTime) : "____"}
           </Typography>
@@ -272,7 +281,7 @@ export default function TimeLog({
               setEditedField("endTime");
             }}
           >
-            {startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0 &&
+            {endTime && isTimeLogInNextDay.endTime > 0 &&
               <Tooltip className="flex items-center" title="next day">
                 <Icon fontSize="small">
                   <TiArrowForward/>
