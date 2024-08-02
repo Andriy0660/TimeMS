@@ -87,6 +87,10 @@ export default function TimeLog({
       ),
       id: timeLog.id
     });
+
+    if (updateTimerRef.current) {
+      clearTimeout(updateTimerRef.current);
+    }
     const timer = setTimeout(async () => {
       if (updateTimerRef.current) {
         removeAlert(timeLog.id)
