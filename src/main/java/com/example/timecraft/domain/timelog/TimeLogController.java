@@ -40,19 +40,19 @@ public class TimeLogController {
     return timeLogService.create(request);
   }
 
-  @GetMapping("/{logEntryId}")
-  public TimeLogGetResponse get(@PathVariable final long logEntryId) {
-    return timeLogService.get(logEntryId);
+  @GetMapping("/{timeLogId}")
+  public TimeLogGetResponse get(@PathVariable final long timeLogId) {
+    return timeLogService.get(timeLogId);
   }
 
-  @PutMapping("/{logEntryId}")
-  public TimeLogUpdateResponse update(@PathVariable final long logEntryId, @RequestBody final TimeLogUpdateRequest request) {
-    return timeLogService.update(logEntryId, request);
+  @PutMapping("/{timeLogId}")
+  public TimeLogUpdateResponse update(@PathVariable final long timeLogId, @RequestBody final TimeLogUpdateRequest request) {
+    return timeLogService.update(timeLogId, request);
   }
 
-  @DeleteMapping("/{logEntryId}")
-  public void delete(@PathVariable final long logEntryId) {
-    timeLogService.delete(logEntryId);
+  @DeleteMapping("/{timeLogId}")
+  public void delete(@PathVariable final long timeLogId) {
+    timeLogService.delete(timeLogId);
   }
 
   @PatchMapping("/setGroupDescription")

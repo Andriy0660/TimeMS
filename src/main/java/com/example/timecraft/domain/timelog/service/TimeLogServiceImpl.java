@@ -35,7 +35,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final Clock clock;
 
   @Override
-  public TimeLogListResponse list(final String mode, final LocalDate date, int offset) {
+  public TimeLogListResponse list(final String mode, final LocalDate date, final int offset) {
     final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date, offset);
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(mapper::toListItem)
@@ -44,7 +44,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     return new TimeLogListResponse(timeLogDtoList);
   }
 
-  private List<TimeLogEntity> getAllTimeLogEntitiesInMode(String mode, LocalDate date, int offset) {
+  private List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
     switch (mode) {
       case "Day" -> {
         return repository.findAllInRange(date, date.plusDays(1), LocalTime.of(offset, 0));
@@ -66,7 +66,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
   }
 
-  private String mapTotalTime(LocalTime startTime, LocalTime endTime) {
+  private String mapTotalTime(final LocalTime startTime, final LocalTime endTime) {
     if (startTime == null || endTime == null) {
       return null;
     }
@@ -147,7 +147,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   private TimeLogEntity getRaw(final long timeLogId) {
     return repository.findById(timeLogId)
-        .orElseThrow(() -> new NotFoundException("Log entry with such id does not exist"));
+        .orElseThrow(() -> new NotFoundException("Time log with such id does not exist"));
   }
 
   @Override
@@ -176,14 +176,14 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public void setGroupDescription(final TimeLogSetGroupDescrRequest request) {
-    List<TimeLogEntity> timeLogEntityList = repository.findAllById(request.getIds());
+    final List<TimeLogEntity> timeLogEntityList = repository.findAllById(request.getIds());
     timeLogEntityList.forEach(timeLogEntity -> timeLogEntity.setDescription(request.getDescription()));
   }
 
   @Override
   public void changeDate(final long timeLogId, final TimeLogChangeDateRequest request) {
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
-    LocalDate newDate = request.getIsNext() ? timeLogEntity.getDate().plusDays(1) : timeLogEntity.getDate().minusDays(1);
+    final LocalDate newDate = request.getIsNext() ? timeLogEntity.getDate().plusDays(1) : timeLogEntity.getDate().minusDays(1);
     timeLogEntity.setDate(newDate);
     repository.save(timeLogEntity);
   }

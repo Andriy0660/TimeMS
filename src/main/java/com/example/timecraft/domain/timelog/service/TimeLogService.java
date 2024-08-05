@@ -12,7 +12,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 
 public interface TimeLogService {
-  TimeLogListResponse list(final String mode, final LocalDate date, int offset);
+  TimeLogListResponse list(final String mode, final LocalDate date, final int offset);
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 
@@ -22,6 +22,6 @@ public interface TimeLogService {
 
   void delete(final long timeLogId);
 
-  void setGroupDescription(TimeLogSetGroupDescrRequest request);
+  void setGroupDescription(final TimeLogSetGroupDescrRequest request);
   void changeDate(final long timeLogId, TimeLogChangeDateRequest isNext);
 }
