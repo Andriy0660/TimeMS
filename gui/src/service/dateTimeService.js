@@ -54,8 +54,8 @@ const dateTimeService = {
   },
   buildDate(date, startTime) {
     date = dayjs(date);
-    if (startTime && this.compareTimes(dayjs(startTime), dayjs().startOf("day")) > 0 &&
-      this.compareTimes(startTime, this.getStartOfDay()) < 0) {
+    if (startTime && this.compareTimes(dayjs(startTime, "HH:mm"), dayjs().startOf("day")) > 0 &&
+      this.compareTimes(dayjs(startTime, "HH:mm"), this.getStartOfDay()) < 0) {
       date = date.subtract(1, "day");
     }
     return date;
