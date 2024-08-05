@@ -8,9 +8,6 @@ import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +18,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
@@ -39,23 +37,16 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogListResponse list(final String mode, final LocalDate date) {
     final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date);
-
-    Map<LocalDate, List<TimeLogEntity>> groupedAndSortedByDate = timeLogEntityList.stream()
-            .collect(Collectors.groupingBy(TimeLogEntity::getDate));
-
-    Map<LocalDate, List<TimeLogListResponse.TimeLogDto>> response = new TreeMap<>(groupedAndSortedByDate.entrySet().stream()
-        .collect(Collectors.toMap(
-            Map.Entry::getKey,
-            entry -> entry.getValue().stream()
-                .map(mapper::toListItem)
-                .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
-                .sorted(Comparator.comparing(
-                    TimeLogListResponse.TimeLogDto::getStartTime,
-                    Comparator.nullsLast(Comparator.naturalOrder())
-                ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
-                .toList()
-        )));
-    return new TimeLogListResponse(response);
+    final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
+        .map(mapper::toListItem)
+        .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
+        .sorted(
+            Comparator.comparing(
+                TimeLogListResponse.TimeLogDto::getStartTime,
+                Comparator.nullsLast(Comparator.naturalOrder())
+            ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
+        .toList();
+    return new TimeLogListResponse(timeLogDtoList);
   }
 
   private List<TimeLogEntity> getAllTimeLogEntitiesInMode(String mode, LocalDate date) {
@@ -184,5 +175,11 @@ public class TimeLogServiceImpl implements TimeLogService {
   public void delete(final long timeLogId) {
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
     repository.delete(timeLogEntity);
+  }
+
+  @Override
+  public void setGroupDescription(final TimeLogSetGroupDescrRequest request) {
+    List<TimeLogEntity> timeLogEntityList = repository.findAllById(request.getIds());
+    timeLogEntityList.forEach(timeLogEntity -> timeLogEntity.setDescription(request.getDescription()));
   }
 }

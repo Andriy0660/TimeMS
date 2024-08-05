@@ -26,6 +26,10 @@ const timeLogApi = {
 
   delete: async (id) => {
     await axios.delete(`/${key}/${id}`, {baseMsg: "Error while deleting time log"});
+  },
+
+  setGroupDescription: async ({ids, description}) => {
+    await axios.patch(`/${key}/setGroupDescription`, {ids, description}, {baseMsg: "Error while setting description"});
   }
 };
 

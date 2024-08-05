@@ -4,23 +4,25 @@ import {LocalizationProvider} from "@mui/x-date-pickers";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress, IconButton, MenuItem, Select, Tooltip} from "@mui/material";
+import {CircularProgress, FormControlLabel, IconButton, MenuItem, Select, Switch, Tooltip} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useState} from "react";
 import dayjs from "dayjs";
-import dateTimeService from "../utils/dateTimeService.js";
+import dateTimeService from "../service/dateTimeService.js";
 import DayPicker from "../components/DayPicker.jsx";
 import MonthPicker from "../components/MonthPicker..jsx";
 import WeekPicker from "../components/WeekPicker.jsx";
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import {useNavigate} from "react-router-dom";
+import timeLogProcessingService from "../service/timeLogProcessingService.js";
 
 export default function TimeLogPage() {
-  const [timeLogs, setTimeLogs] = useState({});
+  const [timeLogs, setTimeLogs] = useState([]);
 
   const queryParams = new URLSearchParams(location.search);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs());
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
+  const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
 
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
@@ -34,14 +36,19 @@ export default function TimeLogPage() {
     if (date && !dayjs().isSame(date, "day")) {
       params.set("date", dateTimeService.getFormattedDateTime(date));
     }
+    if(groupByDescription) {
+      params.set("groupByDescription", true);
+    }
     navigate({search: params.toString()});
-  }, [mode, date]);
+  }, [mode, date, groupByDescription]);
+
   const {
     data,
     isPending: isListing,
     error: listAllError,
+    isPlaceholderData
   } = useQuery({
-    queryKey: [timeLogApi.key, mode, date],
+    queryKey: [timeLogApi.key, mode, date, groupByDescription],
     queryFn: () => {
       return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
     },
@@ -50,10 +57,28 @@ export default function TimeLogPage() {
   });
 
   useEffect(() => {
-    if (data) {
-      setTimeLogs(data);
+    const getStatus = ({totalTime, startTime}) => {
+      if (totalTime) {
+        return "Done";
+      } else if (startTime) {
+        return "InProgress";
+      } else return "Pending";
     }
-  }, [data]);
+    let dataNotNull = data ? data : [];
+    dataNotNull = dataNotNull.map(timeLog => {
+      const startTime = dateTimeService.buildStartTime(timeLog.date, timeLog.startTime);
+      const endTime = dateTimeService.buildEndTime(timeLog.date, timeLog.startTime, timeLog.endTime);
+      timeLog.startTime = startTime;
+      timeLog.endTime = endTime;
+      timeLog.status = getStatus(timeLog);
+      return timeLog;
+    })
+    if (!groupByDescription) {
+      setTimeLogs(timeLogProcessingService.group(dataNotNull, ["date"]))
+    } else {
+      setTimeLogs(timeLogProcessingService.group(dataNotNull, ["date", "description"]))
+    }
+  }, [data, groupByDescription])
 
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => timeLogApi.create(body),
@@ -127,6 +152,23 @@ export default function TimeLogPage() {
       console.error("Deleting time log failed:", error);
     }
   });
+  const {mutateAsync: setGroupDescription} = useMutation({
+    mutationFn: (body) => timeLogApi.setGroupDescription(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries(timeLogs.key);
+      addAlert({
+        text: "You have successfully set description",
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("Setting group description failed:", error);
+    }
+  });
 
   useEffect(() => {
     if (listAllError) {
@@ -146,9 +188,9 @@ export default function TimeLogPage() {
   }
 
   const modeDatePickerConfig = {
-    Day: <DayPicker date={date} setDate={setDate}/>,
-    Week: <WeekPicker date={date} setDate={setDate}/>,
-    Month: <MonthPicker date={date} setDate={setDate}/>,
+    Day: <DayPicker date={date} setDate={setDate} isPlaceholderData={isPlaceholderData}/>,
+    Week: <WeekPicker date={date} setDate={setDate} isPlaceholderData={isPlaceholderData}/>,
+    Month: <MonthPicker date={date} setDate={setDate} isPlaceholderData={isPlaceholderData}/>,
     All: null,
   };
 
@@ -160,6 +202,17 @@ export default function TimeLogPage() {
         />
         <div className="flex flex-col">
           <div className="flex justify-center">
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={groupByDescription}
+                  onChange={() => setGroupByDescription((event.target.checked))}
+                />
+              }
+              label="Group"
+              labelPlacement="start"
+              className="mx-2"
+            />
             <Select
               className="mx-2"
               size="small"
@@ -196,6 +249,7 @@ export default function TimeLogPage() {
             onCreate={create}
             onUpdate={update}
             onDelete={deleteTimeLog}
+            setGroupDescription={setGroupDescription}
           />
         </div>
       </div>

@@ -61,7 +61,7 @@ function Day({day, selectedDay, hoveredDay, ...other}) {
   );
 }
 
-export default function WeekPicker({date, setDate}) {
+export default function WeekPicker({date, setDate, isPlaceholderData}) {
   const [hoveredDay, setHoveredDay] = React.useState(null);
 
   const startOfWeekDate = date.startOf('week')
@@ -69,9 +69,12 @@ export default function WeekPicker({date, setDate}) {
 
   return (
     <div className="flex items-center justify-center">
-      <Button onClick={() => {
-        setDate(date.subtract(1, "week"))
-      }}>
+      <Button
+        onClick={() => {
+          setDate(date.subtract(1, "week"))
+        }}
+        disabled={isPlaceholderData}
+      >
         <ArrowBackIosIcon />
       </Button>
       <DatePicker
@@ -92,9 +95,12 @@ export default function WeekPicker({date, setDate}) {
         }}
         format="DD/MM/YYYY"
       />
-      <Button onClick={() => {
-        setDate(date.add(1, "week"))
-      }}>
+      <Button
+        onClick={() => {
+          setDate(date.add(1, "week"))
+        }}
+        disabled={isPlaceholderData}
+      >
         <ArrowForwardIosIcon />
       </Button>
     </div>
