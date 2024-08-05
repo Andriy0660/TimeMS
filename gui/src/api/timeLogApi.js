@@ -9,18 +9,13 @@ const timeLogApi = {
     return data.items;
   },
 
-  create: async ({ticket, startTime, description}) => {
-    const {data} = await axios.post(`/${key}`, {ticket, startTime, description}, {baseMsg: "Error while creating time log"});
+  create: async (body) => {
+    const {data} = await axios.post(`/${key}`, {...body}, {baseMsg: "Error while creating time log"});
     return data;
   },
 
-  update: async ({id, ticket, startTime, endTime, description}) => {
-    const {data} = await axios.put(`/${key}/${id}`, {
-      ticket,
-      startTime,
-      endTime,
-      description
-    }, {baseMsg: "Error while updating time log"});
+  update: async ({id, ...body}) => {
+    const {data} = await axios.put(`/${key}/${id}`, {...body}, {baseMsg: "Error while updating time log"});
     return data;
   },
 
@@ -28,8 +23,8 @@ const timeLogApi = {
     await axios.delete(`/${key}/${id}`, {baseMsg: "Error while deleting time log"});
   },
 
-  setGroupDescription: async ({ids, description}) => {
-    await axios.patch(`/${key}/setGroupDescription`, {ids, description}, {baseMsg: "Error while setting description"});
+  setGroupDescription: async (body) => {
+    await axios.patch(`/${key}/setGroupDescription`, {...body}, {baseMsg: "Error while setting description"});
   }
 };
 

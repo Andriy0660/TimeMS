@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import {useState} from "react";
 import dateTimeService from "../service/dateTimeService.js";
 
-export default function TimeLogCreateBar({onCreate}) {
+export default function TimeLogCreateBar({onCreate, date, canCreate}) {
   const [ticketAndDescription, setTicketAndDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -19,7 +19,7 @@ export default function TimeLogCreateBar({onCreate}) {
       description = description.slice(ticket.length).trim();
     }
     try {
-      await onCreate({ticket, description});
+      await onCreate({ticket, description, date: dateTimeService.getFormattedDate(date)});
     } finally {
       setIsCreating(false);
     }
@@ -61,7 +61,7 @@ export default function TimeLogCreateBar({onCreate}) {
             }
           }}
         />
-        <div className="mx-2">
+        {canCreate && <div className="ml-2">
           <Button
             variant="outlined"
             onClick={handleCreate}
@@ -69,7 +69,8 @@ export default function TimeLogCreateBar({onCreate}) {
             {isCreating ? <CircularProgress size={25} /> : "Create"}
           </Button>
         </div>
-        <div>
+        }
+        <div className="ml-2">
           <Button
             variant="outlined"
             onClick={handleStart}
