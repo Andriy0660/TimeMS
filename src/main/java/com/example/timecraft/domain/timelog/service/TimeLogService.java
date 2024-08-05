@@ -11,7 +11,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 
 public interface TimeLogService {
-  TimeLogListResponse list(final String mode, final LocalDate date);
+  TimeLogListResponse list(final String mode, final LocalDate date, int offset);
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 

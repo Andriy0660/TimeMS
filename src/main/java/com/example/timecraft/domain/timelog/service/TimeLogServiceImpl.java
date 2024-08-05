@@ -35,8 +35,8 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final Clock clock;
 
   @Override
-  public TimeLogListResponse list(final String mode, final LocalDate date) {
-    final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date);
+  public TimeLogListResponse list(final String mode, final LocalDate date, int offset) {
+    final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date, offset);
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(mapper::toListItem)
         .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
@@ -44,10 +44,10 @@ public class TimeLogServiceImpl implements TimeLogService {
     return new TimeLogListResponse(timeLogDtoList);
   }
 
-  private List<TimeLogEntity> getAllTimeLogEntitiesInMode(String mode, LocalDate date) {
+  private List<TimeLogEntity> getAllTimeLogEntitiesInMode(String mode, LocalDate date, int offset) {
     switch (mode) {
       case "Day" -> {
-        return repository.findAllByDateIs(date);
+        return repository.findAllInRange(date, date.plusDays(1), LocalTime.of(offset, 0));
       }
       case "Week" -> {
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));

@@ -30,8 +30,8 @@ public class TimeLogController {
   private final TimeLogService timeLogService;
 
   @GetMapping
-  public TimeLogListResponse list(@RequestParam final String mode, final @RequestParam LocalDate date) {
-    return timeLogService.list(mode, date);
+  public TimeLogListResponse list(@RequestParam final String mode, @RequestParam final LocalDate date, @RequestParam final int offset) {
+    return timeLogService.list(mode, date, offset);
   }
 
   @PostMapping

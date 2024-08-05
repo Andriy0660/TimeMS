@@ -15,6 +15,7 @@ import WeekPicker from "../components/WeekPicker.jsx";
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import {useNavigate} from "react-router-dom";
 import timeLogProcessingService from "../service/timeLogProcessingService.js";
+import {startHourOfDay} from "../config/timeConfig.js";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -22,6 +23,7 @@ export default function TimeLogPage() {
   const queryParams = new URLSearchParams(location.search);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs());
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
+  const offset = startHourOfDay;
   const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
 
   const queryClient = useQueryClient();
@@ -48,9 +50,9 @@ export default function TimeLogPage() {
     error: listAllError,
     isPlaceholderData
   } = useQuery({
-    queryKey: [timeLogApi.key, mode, date],
+    queryKey: [timeLogApi.key, mode, date, offset],
     queryFn: () => {
-      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
+      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date), offset});
     },
     placeholderData: (prev) => prev,
     retryDelay: 300,
