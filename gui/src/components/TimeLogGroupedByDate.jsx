@@ -2,9 +2,10 @@ import dateTimeService from "../service/dateTimeService.js";
 import TimeLog from "./TimeLog.jsx";
 import Divider from "@mui/material/Divider";
 import dayjs from "dayjs";
+import NoLogs from "./NoLogs.jsx";
 
 export default function TimeLogGroupedByDate({timeLogs, mode, onCreate, onUpdate, onDelete}) {
-  return Object.keys(timeLogs.data)
+  const renderedTimeLogs = Object.keys(timeLogs.data)
     .sort((a, b) => dateTimeService.compareDates(a, b))
     .map(date => {
       const logsForDate = timeLogs.data[date];
@@ -28,4 +29,6 @@ export default function TimeLogGroupedByDate({timeLogs, mode, onCreate, onUpdate
         </div>
       );
     });
+  return Object.keys(timeLogs.data).length > 0 ? renderedTimeLogs :
+    <NoLogs />
 }

@@ -48,7 +48,7 @@ export default function TimeLogPage() {
     error: listAllError,
     isPlaceholderData
   } = useQuery({
-    queryKey: [timeLogApi.key, mode, date, groupByDescription],
+    queryKey: [timeLogApi.key, mode, date],
     queryFn: () => {
       return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
     },
@@ -57,7 +57,7 @@ export default function TimeLogPage() {
   });
 
   useEffect(() => {
-    let dataNotNull = data ? data : [];
+    let dataNotNull = data ? JSON.parse(JSON.stringify(data)) : [];
     dataNotNull = timeLogProcessingService.processTimeLogDateTime(dataNotNull);
     let groupedAndSortedData;
     if (!groupByDescription) {
@@ -66,7 +66,7 @@ export default function TimeLogPage() {
       groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date", "description"])
     }
     setTimeLogs(groupedAndSortedData)
-  }, [data])
+  }, [data, groupByDescription])
 
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => timeLogApi.create(body),
