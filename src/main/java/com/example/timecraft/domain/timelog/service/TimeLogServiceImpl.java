@@ -6,7 +6,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
+import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -178,5 +178,13 @@ public class TimeLogServiceImpl implements TimeLogService {
   public void setGroupDescription(final TimeLogSetGroupDescrRequest request) {
     List<TimeLogEntity> timeLogEntityList = repository.findAllById(request.getIds());
     timeLogEntityList.forEach(timeLogEntity -> timeLogEntity.setDescription(request.getDescription()));
+  }
+
+  @Override
+  public void changeDate(final long timeLogId, final TimeLogChangeDateRequest request) {
+    final TimeLogEntity timeLogEntity = getRaw(timeLogId);
+    LocalDate newDate = request.getIsNext() ? timeLogEntity.getDate().plusDays(1) : timeLogEntity.getDate().minusDays(1);
+    timeLogEntity.setDate(newDate);
+    repository.save(timeLogEntity);
   }
 }

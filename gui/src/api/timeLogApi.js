@@ -25,6 +25,10 @@ const timeLogApi = {
 
   setGroupDescription: async (body) => {
     await axios.patch(`/${key}/setGroupDescription`, {...body}, {baseMsg: "Error while setting description"});
+  },
+
+  changeDate: async ({id, ...body}) => {
+    await axios.patch(`/${key}/${id}/changeDate`, {...body}, {baseMsg: "Error while changing date"});
   }
 };
 

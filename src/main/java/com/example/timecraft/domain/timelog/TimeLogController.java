@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -57,6 +58,11 @@ public class TimeLogController {
   @PatchMapping("/setGroupDescription")
   public void setGroupDescription(@RequestBody final TimeLogSetGroupDescrRequest request) {
     timeLogService.setGroupDescription(request);
+  }
+
+  @PatchMapping("/{timeLogId}/changeDate")
+  public void changeDate(@PathVariable final long timeLogId, @RequestBody final TimeLogChangeDateRequest request) {
+    timeLogService.changeDate(timeLogId, request);
   }
 
 }

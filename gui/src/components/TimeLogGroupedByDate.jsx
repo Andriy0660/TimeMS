@@ -4,7 +4,7 @@ import Divider from "@mui/material/Divider";
 import dayjs from "dayjs";
 import NoLogs from "./NoLogs.jsx";
 
-export default function TimeLogGroupedByDate({timeLogs, mode, onCreate, onUpdate, onDelete}) {
+export default function TimeLogGroupedByDate({timeLogs, mode, onCreate, onUpdate, onDelete, changeDate}) {
   const renderedTimeLogs = Object.keys(timeLogs.data)
     .sort((a, b) => dateTimeService.compareDates(a, b))
     .map(date => {
@@ -21,6 +21,7 @@ export default function TimeLogGroupedByDate({timeLogs, mode, onCreate, onUpdate
                   onCreate={onCreate}
                   onUpdate={onUpdate}
                   onDelete={onDelete}
+                  changeDate={changeDate}
                 />
                 <Divider />
               </div>

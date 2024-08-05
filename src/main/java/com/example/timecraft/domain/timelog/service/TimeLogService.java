@@ -2,6 +2,7 @@ package com.example.timecraft.domain.timelog.service;
 
 import java.time.LocalDate;
 
+import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -22,4 +23,5 @@ public interface TimeLogService {
   void delete(final long timeLogId);
 
   void setGroupDescription(TimeLogSetGroupDescrRequest request);
+  void changeDate(final long timeLogId, TimeLogChangeDateRequest isNext);
 }

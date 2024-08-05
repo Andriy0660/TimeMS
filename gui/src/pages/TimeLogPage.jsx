@@ -155,6 +155,23 @@ export default function TimeLogPage() {
       console.error("Setting group description failed:", error);
     }
   });
+  const {mutateAsync: changeDate} = useMutation({
+    mutationFn: (body) => timeLogApi.changeDate(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries(timeLogs.key);
+      addAlert({
+        text: "You have successfully changed date",
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("Changing date failed:", error);
+    }
+  });
 
   useEffect(() => {
     if (listAllError) {
@@ -238,6 +255,7 @@ export default function TimeLogPage() {
             onUpdate={update}
             onDelete={deleteTimeLog}
             setGroupDescription={setGroupDescription}
+            changeDate={changeDate}
           />
         </div>
       </div>

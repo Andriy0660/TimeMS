@@ -6,7 +6,7 @@ import Divider from "@mui/material/Divider";
 import dayjs from "dayjs";
 import NoLogs from "./NoLogs.jsx";
 
-export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription}) {
+export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription, changeDate}) {
   const getTotalMinutes = (timeString) => {
     const hoursMatch = parseInt(timeString.match(/(\d+)h/)[1], 10);
     const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
@@ -50,6 +50,7 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
                         onUpdate={onUpdate}
                         onDelete={onDelete}
                         groupByDescription={true}
+                        changeDate={changeDate}
                       />
 
                     </div>

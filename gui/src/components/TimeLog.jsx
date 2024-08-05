@@ -16,13 +16,16 @@ import ConfirmationModal from "./ConfirmationModal.jsx";
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import Button from "@mui/material/Button";
 import {TiArrowForward} from "react-icons/ti";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos.js";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
 
 export default function TimeLog({
   timeLog,
   onCreate,
   onUpdate,
   onDelete,
-  groupByDescription
+  groupByDescription,
+  changeDate
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -57,12 +60,13 @@ export default function TimeLog({
     setTotalTime(timeLog.totalTime || "");
   }
 
-  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(startTime, endTime);
+  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(timeLog.startTime, timeLog.endTime);
 
   const updateTimeLog = async (body) => {
     if (!validateUpdateRequest()) {
       resetChanges();
-    } else if (isTimeLogInNextDay.startTime || isTimeLogInNextDay.endTime) {
+    } else if ((startTime && !startTime.isSame(timeLog.startTime) && isTimeLogInNextDay.startTime) ||
+      (endTime && !endTime.isSame(timeLog.endTime) && isTimeLogInNextDay.endTime)) {
       showAlertWhenEndTimeIsNextDay(body);
     } else {
       setIsEditing(false);
@@ -142,6 +146,9 @@ export default function TimeLog({
   })
   const {execute: handleDeleteTimeLog, isExecuting: isDeleteLoading} = useAsyncCall({
     fn: onDelete,
+  })
+  const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
+    fn: changeDate
   })
 
   useEffect(() => {
@@ -312,6 +319,37 @@ export default function TimeLog({
     </>;
   }
 
+  const getDateChanger = () => {
+    return (
+      <div className="mr-2">
+        <Tooltip title="move to previous day">
+          <Button
+            className="py-0 pl-1.5 pr-0 min-w-0"
+            size="small"
+            onClick={() => {
+              handleChangeDate({id: timeLog.id, isNext: false})
+            }}
+            disabled={isChangingDate}
+          >
+            <ArrowBackIosIcon fontSize="small" />
+          </Button>
+        </Tooltip>
+        <Tooltip title="move to next day">
+          <Button
+            className="py-0 pl-1.5 pr-0 min-w-0"
+            size="small"
+            onClick={() => {
+              handleChangeDate({id: timeLog.id, isNext: true})
+            }}
+            disabled={isChangingDate}
+          >
+            <ArrowForwardIosIcon fontSize="small" />
+          </Button>
+        </Tooltip>
+      </div>
+    )
+  }
+
   const statusConfig = {
     Done: {
       label: totalTime,
@@ -331,7 +369,9 @@ export default function TimeLog({
     },
     InProgress: {
       label: dateTimeService.getDurationOfProgressTimeLog(timeLog.startTime),
-      action: ((isHovered || isEditing) && dateTimeService.isSameDate(dayjs(timeLog.date), currentTime)) && (
+      action: ((isHovered || isEditing) && (
+        dateTimeService.isSameDate(dayjs(timeLog.date), currentTime) && dateTimeService.compareTimes(currentTime, startTime) > 0))
+      && (
         <Tooltip title="stop">
           <IconButton
             onClick={() => {
@@ -431,6 +471,7 @@ export default function TimeLog({
               </div>
             )}
 
+            {isHovered && !isEditing && getDateChanger()}
             {statusConfig[status] ? statusConfig[status].action : null}
             {(isHovered || isEditing) &&
               <>
