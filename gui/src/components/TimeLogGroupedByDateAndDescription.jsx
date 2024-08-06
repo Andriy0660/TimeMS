@@ -7,6 +7,8 @@ import dayjs from "dayjs";
 import NoLogs from "./NoLogs.jsx";
 
 export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription, changeDate}) {
+  const totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(timeLogs.data))
+
   const renderedTimeLogs = Object.keys(timeLogs.data)
     .sort((a, b) => dateTimeService.compareDates(a, b))
     .map(date => {
@@ -21,18 +23,6 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
               return result;
             }, [])
 
-            const totalTime = logsForDate[description].reduce((result, item) => {
-              if (item.status === "Done") {
-                result += dateTimeService.getTotalMinutes(item.totalTime);
-              } else if (item.status === "InProgress") {
-                const progressTime = dateTimeService.getDurationOfProgressTimeLog(item.startTime);
-                if (progressTime) {
-                  result += dateTimeService.getTotalMinutes(progressTime);
-                }
-              }
-              return result;
-            }, 0)
-            const label = `${Math.floor(totalTime / 60)}h ${totalTime % 60}m`;
             return (
               <div key={description}>
                 {logsForDate[description].map(timeLog => {
@@ -59,7 +49,7 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
                   />
                   {logsForDate[description].length > 1 &&
                     <Chip
-                      label={label}
+                      label={totalTimeLabel}
                       color="primary"
                       variant="outlined"
                       size="small"

@@ -64,14 +64,16 @@ export default function TimeLogPage() {
     let dataNotNull = data ? JSON.parse(JSON.stringify(data)) : [];
     dataNotNull = timeLogProcessingService.processTimeLogDateTime(dataNotNull);
     let groupedAndSortedData;
+    let totalTimeLabel;
     if (!groupByDescription) {
       groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date"])
-      setTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDate(groupedAndSortedData));
+      totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDate(groupedAndSortedData.data));
     } else {
       groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date", "description"])
-      setTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedAndSortedData));
+      totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedAndSortedData.data));
     }
     setTimeLogs(groupedAndSortedData)
+    setTotalTimeLabel(totalTimeLabel);
   }, [data, groupByDescription])
 
   const {mutateAsync: create} = useMutation({
