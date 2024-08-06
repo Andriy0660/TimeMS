@@ -40,7 +40,7 @@ export default function GroupDescription({description, ids, setGroupDescription}
   return (
     <div
       ref={descriptionFieldRef}
-      className={`text-justify whitespace-pre-wrap mx-4 ${isEditing ? "w-full" : "hover:bg-blue-100"}`}
+      className={`text-justify whitespace-pre-wrap mx-4 ${isEditing ? "w-full mt-2" : "hover:bg-blue-100"}`}
     >
       {isEditing ? (
         <div>

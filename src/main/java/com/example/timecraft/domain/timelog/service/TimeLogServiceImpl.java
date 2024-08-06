@@ -6,7 +6,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
+import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -35,24 +35,19 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final Clock clock;
 
   @Override
-  public TimeLogListResponse list(final String mode, final LocalDate date) {
-    final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date);
+  public TimeLogListResponse list(final String mode, final LocalDate date, final int offset) {
+    final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date, offset);
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(mapper::toListItem)
         .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
-        .sorted(
-            Comparator.comparing(
-                TimeLogListResponse.TimeLogDto::getStartTime,
-                Comparator.nullsLast(Comparator.naturalOrder())
-            ).thenComparing(TimeLogListResponse.TimeLogDto::getId))
         .toList();
     return new TimeLogListResponse(timeLogDtoList);
   }
 
-  private List<TimeLogEntity> getAllTimeLogEntitiesInMode(String mode, LocalDate date) {
+  private List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
     switch (mode) {
       case "Day" -> {
-        return repository.findAllByDateIs(date);
+        return repository.findAllInRange(date, date.plusDays(1), LocalTime.of(offset, 0));
       }
       case "Week" -> {
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
@@ -71,7 +66,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
   }
 
-  private String mapTotalTime(LocalTime startTime, LocalTime endTime) {
+  private String mapTotalTime(final LocalTime startTime, final LocalTime endTime) {
     if (startTime == null || endTime == null) {
       return null;
     }
@@ -152,7 +147,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   private TimeLogEntity getRaw(final long timeLogId) {
     return repository.findById(timeLogId)
-        .orElseThrow(() -> new NotFoundException("Log entry with such id does not exist"));
+        .orElseThrow(() -> new NotFoundException("Time log with such id does not exist"));
   }
 
   @Override
@@ -181,7 +176,15 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public void setGroupDescription(final TimeLogSetGroupDescrRequest request) {
-    List<TimeLogEntity> timeLogEntityList = repository.findAllById(request.getIds());
+    final List<TimeLogEntity> timeLogEntityList = repository.findAllById(request.getIds());
     timeLogEntityList.forEach(timeLogEntity -> timeLogEntity.setDescription(request.getDescription()));
+  }
+
+  @Override
+  public void changeDate(final long timeLogId, final TimeLogChangeDateRequest request) {
+    final TimeLogEntity timeLogEntity = getRaw(timeLogId);
+    final LocalDate newDate = request.getIsNext() ? timeLogEntity.getDate().plusDays(1) : timeLogEntity.getDate().minusDays(1);
+    timeLogEntity.setDate(newDate);
+    repository.save(timeLogEntity);
   }
 }

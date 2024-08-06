@@ -3,20 +3,22 @@ import TimeLog from "./TimeLog.jsx";
 import GroupDescription from "./GroupDescription.jsx";
 import {Chip} from "@mui/material";
 import Divider from "@mui/material/Divider";
+import dayjs from "dayjs";
+import NoLogs from "./NoLogs.jsx";
 
-export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription}) {
+export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription, changeDate}) {
   const getTotalMinutes = (timeString) => {
     const hoursMatch = parseInt(timeString.match(/(\d+)h/)[1], 10);
     const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
     return hoursMatch * 60 + minutesMatch;
   }
-  return Object.keys(timeLogs.data)
+  const renderedTimeLogs = Object.keys(timeLogs.data)
     .sort((a, b) => dateTimeService.compareDates(a, b))
     .map(date => {
       const logsForDate = timeLogs.data[date];
       return (
         <div key={date} className="mb-2 shadow-md bg-gray-50">
-          {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{date}</div>}
+          {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
           {Object.keys(logsForDate).map(description => {
 
             const ids = logsForDate[description].reduce((result, item) => {
@@ -48,6 +50,7 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
                         onUpdate={onUpdate}
                         onDelete={onDelete}
                         groupByDescription={true}
+                        changeDate={changeDate}
                       />
 
                     </div>
@@ -76,4 +79,6 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
         </div>
       );
     });
+  return Object.keys(timeLogs.data).length > 0 ? renderedTimeLogs :
+    <NoLogs />
 }

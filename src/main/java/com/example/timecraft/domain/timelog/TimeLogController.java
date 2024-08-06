@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -30,8 +31,8 @@ public class TimeLogController {
   private final TimeLogService timeLogService;
 
   @GetMapping
-  public TimeLogListResponse list(@RequestParam final String mode, final @RequestParam LocalDate date) {
-    return timeLogService.list(mode, date);
+  public TimeLogListResponse list(@RequestParam final String mode, @RequestParam final LocalDate date, @RequestParam final int offset) {
+    return timeLogService.list(mode, date, offset);
   }
 
   @PostMapping
@@ -39,24 +40,29 @@ public class TimeLogController {
     return timeLogService.create(request);
   }
 
-  @GetMapping("/{logEntryId}")
-  public TimeLogGetResponse get(@PathVariable final long logEntryId) {
-    return timeLogService.get(logEntryId);
+  @GetMapping("/{timeLogId}")
+  public TimeLogGetResponse get(@PathVariable final long timeLogId) {
+    return timeLogService.get(timeLogId);
   }
 
-  @PutMapping("/{logEntryId}")
-  public TimeLogUpdateResponse update(@PathVariable final long logEntryId, @RequestBody final TimeLogUpdateRequest request) {
-    return timeLogService.update(logEntryId, request);
+  @PutMapping("/{timeLogId}")
+  public TimeLogUpdateResponse update(@PathVariable final long timeLogId, @RequestBody final TimeLogUpdateRequest request) {
+    return timeLogService.update(timeLogId, request);
   }
 
-  @DeleteMapping("/{logEntryId}")
-  public void delete(@PathVariable final long logEntryId) {
-    timeLogService.delete(logEntryId);
+  @DeleteMapping("/{timeLogId}")
+  public void delete(@PathVariable final long timeLogId) {
+    timeLogService.delete(timeLogId);
   }
 
   @PatchMapping("/setGroupDescription")
   public void setGroupDescription(@RequestBody final TimeLogSetGroupDescrRequest request) {
     timeLogService.setGroupDescription(request);
+  }
+
+  @PatchMapping("/{timeLogId}/changeDate")
+  public void changeDate(@PathVariable final long timeLogId, @RequestBody final TimeLogChangeDateRequest request) {
+    timeLogService.changeDate(timeLogId, request);
   }
 
 }

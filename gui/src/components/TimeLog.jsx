@@ -1,4 +1,4 @@
-import {Chip, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
+import {Chip, Icon, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useMemo, useRef, useState} from "react";
@@ -14,13 +14,18 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import useAsyncCall from "../hooks/useAsyncCall.js";
+import Button from "@mui/material/Button";
+import {TiArrowForward} from "react-icons/ti";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos.js";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
 
 export default function TimeLog({
   timeLog,
   onCreate,
   onUpdate,
   onDelete,
-  groupByDescription
+  groupByDescription,
+  changeDate
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -36,14 +41,13 @@ export default function TimeLog({
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const [confirmUpdateFunction, setConfirmUpdateFunction] = useState(null);
-  const [showConfirmUpdateModal, setShowConfirmUpdateModal] = useState(false);
-
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
 
+  const updateTimerRef = useRef(null);
+
   const timeLogRef = useRef(null);
-  const {addAlert} = useAppContext();
+  const {addAlert, removeAlert, showAlertSeconds} = useAppContext();
   useEffect(() => {
     initializeState();
   }, [timeLog]);
@@ -56,14 +60,14 @@ export default function TimeLog({
     setTotalTime(timeLog.totalTime || "");
   }
 
+  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(timeLog.startTime, timeLog.endTime);
+
   const updateTimeLog = async (body) => {
-    const validation = validateUpdateRequest(body);
-    if (!validation.valid) {
-      validation.alerts.forEach(alert => addAlert(alert));
+    if (!validateUpdateRequest()) {
       resetChanges();
-    } else if (validation.requiresConfirmation) {
-      setConfirmUpdateFunction(() => () => handleUpdateTimeLog({...body, validated: true}))
-      setShowConfirmUpdateModal(true)
+    } else if ((startTime && !startTime.isSame(timeLog.startTime) && isTimeLogInNextDay.startTime) ||
+      (endTime && !endTime.isSame(timeLog.endTime) && isTimeLogInNextDay.endTime)) {
+      showAlertWhenEndTimeIsNextDay(body);
     } else {
       setIsEditing(false);
       await onUpdate({
@@ -72,6 +76,65 @@ export default function TimeLog({
         endTime: dateTimeService.getFormattedDateTime(body.endTime)
       });
     }
+  };
+
+  function showAlertWhenEndTimeIsNextDay(body) {
+    addAlert({
+      text: "You set the time for the next day",
+      type: "warning",
+      action: ({closeToast}) => (
+        <Button
+          onClick={() => {
+            handleCancelUpdate();
+            closeToast();
+          }}
+        >
+          Undo
+        </Button>
+      ),
+      id: timeLog.id
+    });
+
+    if (updateTimerRef.current) {
+      clearTimeout(updateTimerRef.current);
+    }
+    const timer = setTimeout(async () => {
+      if (updateTimerRef.current) {
+        removeAlert(timeLog.id)
+        setIsEditing(false);
+        await onUpdate({
+          ...body,
+          startTime: dateTimeService.getFormattedDateTime(body.startTime),
+          endTime: dateTimeService.getFormattedDateTime(body.endTime)
+        });
+        updateTimerRef.current = null;
+      }
+    }, showAlertSeconds + 1000);
+    updateTimerRef.current = timer;
+  }
+
+  const validateUpdateRequest = () => {
+    if (!isTicketFieldValid) {
+      addAlert({
+        text: "Invalid ticket number",
+        type: "error"
+      });
+      return false;
+    }
+    return true;
+  };
+  const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
+  const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
+
+  function resetChanges() {
+    initializeState();
+    setIsEditing(false);
+  }
+
+  const handleCancelUpdate = () => {
+    clearTimeout(updateTimerRef.current);
+    updateTimerRef.current = null;
+    resetChanges();
   };
 
   const {execute: handleCreateTimeLog, isExecuting: isCreateLoading} = useAsyncCall({
@@ -84,11 +147,9 @@ export default function TimeLog({
   const {execute: handleDeleteTimeLog, isExecuting: isDeleteLoading} = useAsyncCall({
     fn: onDelete,
   })
-
-  function resetChanges() {
-    initializeState();
-    setIsEditing(false);
-  }
+  const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
+    fn: changeDate
+  })
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
@@ -116,8 +177,8 @@ export default function TimeLog({
     return (
       (ticket || "") !== (timeLog.ticket || "") ||
       (description || "") !== (timeLog.description || "") ||
-      !dateTimeService.isSameDate(startTime, timeLog.startTime) ||
-      !dateTimeService.isSameDate(endTime, timeLog.endTime)
+      !dateTimeService.isSameDateTime(startTime, timeLog.startTime) ||
+      !dateTimeService.isSameDateTime(endTime, timeLog.endTime)
     );
   }, [ticket, description, startTime, endTime, timeLog]);
 
@@ -126,56 +187,6 @@ export default function TimeLog({
       timeLogRef.current.querySelector(`[name="${editedField}"]`).focus();
     }
   }, [isEditing, editedField]);
-
-  const shouldDisplayConfirmUpdateModal = startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0 &&
-    !dateTimeService.isSameDate(endTime, timeLog.endTime);
-  const validateUpdateRequest = (body) => {
-    if(body.validated) {
-      return {
-        valid: true,
-        requiresConfirmation: false
-      };
-    }
-    const startTime = body.startTime;
-    const endTime = body.endTime;
-    const alerts = [];
-
-    if (startTime && endTime && Math.abs(startTime.diff(endTime, "minute")) >= 1440) {
-      alerts.push({
-        text: "Time log can not last more than 24 hours. Set end time manually.",
-        type: "error"
-      });
-    }
-
-    if (!isTicketFieldValid) {
-      alerts.push({
-        text: "Invalid ticket number",
-        type: "error"
-      });
-    }
-    if (alerts.length === 0 && shouldDisplayConfirmUpdateModal) {
-      return {
-        valid: true,
-        requiresConfirmation: true
-      };
-    }
-
-    if (alerts.length > 0) {
-      return {
-        valid: false,
-        alerts
-      };
-    }
-
-    return {
-      valid: true,
-      requiresConfirmation: false
-    };
-  };
-
-
-  const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
-  const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
 
   function getEditableFields() {
     return <>
@@ -249,12 +260,19 @@ export default function TimeLog({
     return <>
       {(startTime || endTime) &&
         <div
-          className="mr-4 my-1 hover:bg-blue-100"
+          className="flex mr-4 my-1 hover:bg-blue-100"
           onClick={() => {
             setIsEditing(true);
             setEditedField("startTime");
           }}
         >
+          {startTime && isTimeLogInNextDay.startTime &&
+            <Tooltip className="flex items-center mr-1" title="next day">
+              <Icon fontSize="small">
+                <TiArrowForward />
+              </Icon>
+            </Tooltip>
+          }
           <Typography className={`text-sm ${startTime ? "font-bold" : "text-xs leading-6"}`}>
             {startTime ? dateTimeService.getFormattedTime(startTime) : "____"}
           </Typography>
@@ -264,13 +282,20 @@ export default function TimeLog({
         <>
           -
           <div
-            className="mx-4 my-1 hover:bg-blue-100"
+            className="flex mx-4 my-1 hover:bg-blue-100"
             onClick={() => {
               setIsEditing(true);
               setEditedField("endTime");
             }}
           >
-            <Typography className="font-bold text-sm">{dateTimeService.getFormattedTime(endTime)}</Typography>
+            {endTime && isTimeLogInNextDay.endTime > 0 &&
+              <Tooltip className="flex items-center" title="next day">
+                <Icon fontSize="small">
+                  <TiArrowForward/>
+                </Icon>
+              </Tooltip>
+            }
+            <Typography className="mx-1 font-bold text-sm">{dateTimeService.getFormattedTime(endTime)}</Typography>
           </div>
         </>
       )}
@@ -294,6 +319,37 @@ export default function TimeLog({
     </>;
   }
 
+  const getDateChanger = () => {
+    return (
+      <div className="mr-2">
+        <Tooltip title="move to previous day">
+          <Button
+            className="py-0 pl-1.5 pr-0 min-w-0"
+            size="small"
+            onClick={() => {
+              handleChangeDate({id: timeLog.id, isNext: false})
+            }}
+            disabled={isChangingDate}
+          >
+            <ArrowBackIosIcon fontSize="small" />
+          </Button>
+        </Tooltip>
+        <Tooltip title="move to next day">
+          <Button
+            className="py-0 pl-1.5 pr-0 min-w-0"
+            size="small"
+            onClick={() => {
+              handleChangeDate({id: timeLog.id, isNext: true})
+            }}
+            disabled={isChangingDate}
+          >
+            <ArrowForwardIosIcon fontSize="small" />
+          </Button>
+        </Tooltip>
+      </div>
+    )
+  }
+
   const statusConfig = {
     Done: {
       label: totalTime,
@@ -313,7 +369,9 @@ export default function TimeLog({
     },
     InProgress: {
       label: dateTimeService.getDurationOfProgressTimeLog(timeLog.startTime),
-      action: (isHovered || isEditing) && (
+      action: ((isHovered || isEditing) && (
+        dateTimeService.isSameDate(dayjs(timeLog.date), currentTime) && dateTimeService.compareTimes(currentTime, startTime) > 0))
+      && (
         <Tooltip title="stop">
           <IconButton
             onClick={() => {
@@ -336,7 +394,7 @@ export default function TimeLog({
     },
     Pending: {
       label: 'Pending',
-      action: (isHovered || isEditing) && (
+      action: ((isHovered || isEditing) && dateTimeService.isSameDate(dayjs(timeLog.date), currentTime)) && (
         <Tooltip title="start">
           <IconButton
             onClick={() => {
@@ -368,19 +426,6 @@ export default function TimeLog({
       <div className="flex justify-between">
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
-          <ConfirmationModal
-            open={showConfirmUpdateModal}
-            type="info"
-            actionText="OK"
-            onConfirm={confirmUpdateFunction}
-            onClose={() => {
-              setShowConfirmUpdateModal(false);
-              setIsHovered(false);
-            }}
-            onCancel={resetChanges}
-          >
-            Are you sure you want to set end of time to next day?
-          </ConfirmationModal>
 
           {statusConfig[status].label ? <Chip
             label={statusConfig[status].label}
@@ -426,6 +471,7 @@ export default function TimeLog({
               </div>
             )}
 
+            {isHovered && !isEditing && getDateChanger()}
             {statusConfig[status] ? statusConfig[status].action : null}
             {(isHovered || isEditing) &&
               <>

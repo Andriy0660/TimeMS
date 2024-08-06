@@ -15,6 +15,7 @@ import WeekPicker from "../components/WeekPicker.jsx";
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import {useNavigate} from "react-router-dom";
 import timeLogProcessingService from "../service/timeLogProcessingService.js";
+import {startHourOfDay} from "../config/timeConfig.js";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -22,6 +23,7 @@ export default function TimeLogPage() {
   const queryParams = new URLSearchParams(location.search);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs());
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
+  const offset = startHourOfDay;
   const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
 
   const queryClient = useQueryClient();
@@ -48,36 +50,24 @@ export default function TimeLogPage() {
     error: listAllError,
     isPlaceholderData
   } = useQuery({
-    queryKey: [timeLogApi.key, mode, date, groupByDescription],
+    queryKey: [timeLogApi.key, mode, date, offset],
     queryFn: () => {
-      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
+      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date), offset});
     },
     placeholderData: (prev) => prev,
     retryDelay: 300,
   });
 
   useEffect(() => {
-    const getStatus = ({totalTime, startTime}) => {
-      if (totalTime) {
-        return "Done";
-      } else if (startTime) {
-        return "InProgress";
-      } else return "Pending";
-    }
-    let dataNotNull = data ? data : [];
-    dataNotNull = dataNotNull.map(timeLog => {
-      const startTime = dateTimeService.buildStartTime(timeLog.date, timeLog.startTime);
-      const endTime = dateTimeService.buildEndTime(timeLog.date, timeLog.startTime, timeLog.endTime);
-      timeLog.startTime = startTime;
-      timeLog.endTime = endTime;
-      timeLog.status = getStatus(timeLog);
-      return timeLog;
-    })
+    let dataNotNull = data ? JSON.parse(JSON.stringify(data)) : [];
+    dataNotNull = timeLogProcessingService.processTimeLogDateTime(dataNotNull);
+    let groupedAndSortedData;
     if (!groupByDescription) {
-      setTimeLogs(timeLogProcessingService.group(dataNotNull, ["date"]))
+      groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date"])
     } else {
-      setTimeLogs(timeLogProcessingService.group(dataNotNull, ["date", "description"]))
+      groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date", "description"])
     }
+    setTimeLogs(groupedAndSortedData)
   }, [data, groupByDescription])
 
   const {mutateAsync: create} = useMutation({
@@ -165,6 +155,23 @@ export default function TimeLogPage() {
       console.error("Setting group description failed:", error);
     }
   });
+  const {mutateAsync: changeDate} = useMutation({
+    mutationFn: (body) => timeLogApi.changeDate(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries(timeLogs.key);
+      addAlert({
+        text: "You have successfully changed date",
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("Changing date failed:", error);
+    }
+  });
 
   useEffect(() => {
     if (listAllError) {
@@ -248,6 +255,7 @@ export default function TimeLogPage() {
             onUpdate={update}
             onDelete={deleteTimeLog}
             setGroupDescription={setGroupDescription}
+            changeDate={changeDate}
           />
         </div>
       </div>
