@@ -16,6 +16,7 @@ import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore
 import {useNavigate} from "react-router-dom";
 import timeLogProcessingService from "../service/timeLogProcessingService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
+import TotalTimeLabel from "../components/TotalTimeLabel.jsx";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -26,6 +27,7 @@ export default function TimeLogPage() {
   const offset = startHourOfDay;
   const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
 
+  const [totalTimeLabel, setTotalTimeLabel] = useState("")
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
 
@@ -64,8 +66,10 @@ export default function TimeLogPage() {
     let groupedAndSortedData;
     if (!groupByDescription) {
       groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date"])
+      setTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDate(groupedAndSortedData));
     } else {
       groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date", "description"])
+      setTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedAndSortedData));
     }
     setTimeLogs(groupedAndSortedData)
   }, [data, groupByDescription])
@@ -248,6 +252,7 @@ export default function TimeLogPage() {
 
               }
           </div>
+          <TotalTimeLabel label={totalTimeLabel} />
           <TimeLogList
             timeLogs={timeLogs}
             mode={mode}

@@ -7,11 +7,6 @@ import dayjs from "dayjs";
 import NoLogs from "./NoLogs.jsx";
 
 export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription, changeDate}) {
-  const getTotalMinutes = (timeString) => {
-    const hoursMatch = parseInt(timeString.match(/(\d+)h/)[1], 10);
-    const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
-    return hoursMatch * 60 + minutesMatch;
-  }
   const renderedTimeLogs = Object.keys(timeLogs.data)
     .sort((a, b) => dateTimeService.compareDates(a, b))
     .map(date => {
@@ -28,11 +23,11 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
 
             const totalTime = logsForDate[description].reduce((result, item) => {
               if (item.status === "Done") {
-                result += getTotalMinutes(item.totalTime);
+                result += dateTimeService.getTotalMinutes(item.totalTime);
               } else if (item.status === "InProgress") {
                 const progressTime = dateTimeService.getDurationOfProgressTimeLog(item.startTime);
                 if (progressTime) {
-                  result += getTotalMinutes(progressTime);
+                  result += dateTimeService.getTotalMinutes(progressTime);
                 }
               }
               return result;
