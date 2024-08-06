@@ -199,7 +199,7 @@ export default function TimeLogPage() {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div>
+      <div className="w-3/5 mx-auto">
         <TimeLogCreateBar
           onCreate={create}
           date={date}

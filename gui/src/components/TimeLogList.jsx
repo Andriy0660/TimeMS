@@ -20,7 +20,7 @@ export default function TimeLogList({
   })
   return (
     <div className="m-4 flex flex-col items-center">
-      <div className="w-3/5 overflow-x-auto">
+      <div className="w-full overflow-x-auto">
         {renderedTimeLogs}
       </div>
     </div>
