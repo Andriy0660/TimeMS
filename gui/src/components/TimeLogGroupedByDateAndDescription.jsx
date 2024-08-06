@@ -7,11 +7,6 @@ import dayjs from "dayjs";
 import NoLogs from "./NoLogs.jsx";
 
 export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription, changeDate}) {
-  const getTotalMinutes = (timeString) => {
-    const hoursMatch = parseInt(timeString.match(/(\d+)h/)[1], 10);
-    const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
-    return hoursMatch * 60 + minutesMatch;
-  }
   const renderedTimeLogs = Object.keys(timeLogs.data)
     .sort((a, b) => dateTimeService.compareDates(a, b))
     .map(date => {
@@ -20,24 +15,12 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
         <div key={date} className="mb-2 shadow-md bg-gray-50">
           {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
           {Object.keys(logsForDate).map(description => {
-
+            const totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeForTimeLogs(logsForDate[description]))
             const ids = logsForDate[description].reduce((result, item) => {
               result.push(item.id)
               return result;
             }, [])
 
-            const totalTime = logsForDate[description].reduce((result, item) => {
-              if (item.status === "Done") {
-                result += getTotalMinutes(item.totalTime);
-              } else if (item.status === "InProgress") {
-                const progressTime = dateTimeService.getDurationOfProgressTimeLog(item.startTime);
-                if (progressTime) {
-                  result += getTotalMinutes(progressTime);
-                }
-              }
-              return result;
-            }, 0)
-            const label = `${Math.floor(totalTime / 60)}h ${totalTime % 60}m`;
             return (
               <div key={description}>
                 {logsForDate[description].map(timeLog => {
@@ -64,7 +47,7 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
                   />
                   {logsForDate[description].length > 1 &&
                     <Chip
-                      label={label}
+                      label={totalTimeLabel}
                       color="primary"
                       variant="outlined"
                       size="small"

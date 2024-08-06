@@ -83,6 +83,45 @@ const dateTimeService = {
       endTime = endTime.add(1, "day");
     }
     return endTime
+  },
+  getTotalMinutes(timeString) {
+    const hoursMatch = parseInt(timeString.match(/(\d+)h/)[1], 10);
+    const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
+    return hoursMatch * 60 + minutesMatch;
+  },
+  getTotalTimeForTimeLogs(timelogs) {
+    let totalTime = 0;
+    totalTime += timelogs.reduce((result, item) => {
+      if (item.status === "Done") {
+        result += dateTimeService.getTotalMinutes(item.totalTime);
+      } else if (item.status === "InProgress") {
+        const progressTime = dateTimeService.getDurationOfProgressTimeLog(item.startTime);
+        if (progressTime) {
+          result += dateTimeService.getTotalMinutes(progressTime);
+        }
+      }
+      return result;
+    }, 0)
+    return totalTime;
+  },
+  getTotalTimeGroupedByDate(groupedByDate) {
+    let totalTime = 0;
+    Object.keys(groupedByDate).forEach(date => {
+      const logsForDate = groupedByDate[date];
+      totalTime += this.getTotalTimeForTimeLogs(logsForDate)
+    })
+    return totalTime;
+  },
+  getTotalTimeGroupedByDateAndDescription(groupedByDateAndDescription) {
+    let totalTime = 0;
+    Object.keys(groupedByDateAndDescription).forEach(date => {
+      const logsForDate = groupedByDateAndDescription[date];
+      totalTime += this.getTotalTimeGroupedByDate(logsForDate);
+    })
+    return totalTime;
+  },
+  getTotalTimeLabel(totalTime) {
+    return `${Math.floor(totalTime / 60)}h ${totalTime % 60}m`;
   }
 }
 export default dateTimeService;

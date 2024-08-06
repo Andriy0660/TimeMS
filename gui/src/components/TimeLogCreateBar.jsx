@@ -45,7 +45,7 @@ export default function TimeLogCreateBar({onCreate, date, canCreate}) {
   }
   return (
     <div className="m-4 flex justify-center">
-      <div className="p-2 flex items-center w-3/5 overflow-x-auto shadow-md bg-gray-50">
+      <div className="p-2 flex items-center w-full overflow-x-auto shadow-md bg-gray-50">
         <TextField
           className="w-full"
           label="Description"

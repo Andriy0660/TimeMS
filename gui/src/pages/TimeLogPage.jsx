@@ -16,6 +16,7 @@ import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore
 import {useNavigate} from "react-router-dom";
 import timeLogProcessingService from "../service/timeLogProcessingService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
+import TotalTimeLabel from "../components/TotalTimeLabel.jsx";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -26,6 +27,7 @@ export default function TimeLogPage() {
   const offset = startHourOfDay;
   const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
 
+  const [totalTimeLabel, setTotalTimeLabel] = useState("")
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
 
@@ -62,12 +64,16 @@ export default function TimeLogPage() {
     let dataNotNull = data ? JSON.parse(JSON.stringify(data)) : [];
     dataNotNull = timeLogProcessingService.processTimeLogDateTime(dataNotNull);
     let groupedAndSortedData;
+    let totalTimeLabel;
     if (!groupByDescription) {
       groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date"])
+      totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDate(groupedAndSortedData.data));
     } else {
       groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date", "description"])
+      totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedAndSortedData.data));
     }
     setTimeLogs(groupedAndSortedData)
+    setTotalTimeLabel(totalTimeLabel);
   }, [data, groupByDescription])
 
   const {mutateAsync: create} = useMutation({
@@ -199,7 +205,7 @@ export default function TimeLogPage() {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div>
+      <div className="w-3/5 mx-auto">
         <TimeLogCreateBar
           onCreate={create}
           date={date}
@@ -248,6 +254,7 @@ export default function TimeLogPage() {
 
               }
           </div>
+          <TotalTimeLabel label={totalTimeLabel} />
           <TimeLogList
             timeLogs={timeLogs}
             mode={mode}
