@@ -7,8 +7,6 @@ import dayjs from "dayjs";
 import NoLogs from "./NoLogs.jsx";
 
 export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription, changeDate}) {
-  const totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(timeLogs.data))
-
   const renderedTimeLogs = Object.keys(timeLogs.data)
     .sort((a, b) => dateTimeService.compareDates(a, b))
     .map(date => {
@@ -17,7 +15,7 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
         <div key={date} className="mb-2 shadow-md bg-gray-50">
           {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
           {Object.keys(logsForDate).map(description => {
-
+            const totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeForTimeLogs(logsForDate[description]))
             const ids = logsForDate[description].reduce((result, item) => {
               result.push(item.id)
               return result;

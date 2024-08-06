@@ -89,28 +89,33 @@ const dateTimeService = {
     const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
     return hoursMatch * 60 + minutesMatch;
   },
-  getTotalTimeGroupedByDate(timelogs) {
+  getTotalTimeForTimeLogs(timelogs) {
     let totalTime = 0;
-    Object.keys(timelogs).forEach(date => {
-      const logsForDate = timelogs[date];
-      totalTime += logsForDate.reduce((result, item) => {
-        if (item.status === "Done") {
-          result += dateTimeService.getTotalMinutes(item.totalTime);
-        } else if (item.status === "InProgress") {
-          const progressTime = dateTimeService.getDurationOfProgressTimeLog(item.startTime);
-          if (progressTime) {
-            result += dateTimeService.getTotalMinutes(progressTime);
-          }
+    totalTime += timelogs.reduce((result, item) => {
+      if (item.status === "Done") {
+        result += dateTimeService.getTotalMinutes(item.totalTime);
+      } else if (item.status === "InProgress") {
+        const progressTime = dateTimeService.getDurationOfProgressTimeLog(item.startTime);
+        if (progressTime) {
+          result += dateTimeService.getTotalMinutes(progressTime);
         }
-        return result;
-      }, 0)
+      }
+      return result;
+    }, 0)
+    return totalTime;
+  },
+  getTotalTimeGroupedByDate(groupedByDate) {
+    let totalTime = 0;
+    Object.keys(groupedByDate).forEach(date => {
+      const logsForDate = groupedByDate[date];
+      totalTime += this.getTotalTimeForTimeLogs(logsForDate)
     })
     return totalTime;
   },
-  getTotalTimeGroupedByDateAndDescription(timelogs) {
+  getTotalTimeGroupedByDateAndDescription(groupedByDateAndDescription) {
     let totalTime = 0;
-    Object.keys(timelogs).forEach(date => {
-      const logsForDate = timelogs[date];
+    Object.keys(groupedByDateAndDescription).forEach(date => {
+      const logsForDate = groupedByDateAndDescription[date];
       totalTime += this.getTotalTimeGroupedByDate(logsForDate);
     })
     return totalTime;
