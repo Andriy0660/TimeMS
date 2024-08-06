@@ -350,6 +350,7 @@ export default function TimeLog({
     )
   }
 
+  const progressTime = status === "InProgress" ? dateTimeService.getDurationOfProgressTimeLog(timeLog.startTime) : null;
   const statusConfig = {
     Done: {
       label: totalTime,
@@ -368,9 +369,8 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: dateTimeService.getDurationOfProgressTimeLog(timeLog.startTime),
-      action: ((isHovered || isEditing) && (
-        dateTimeService.isSameDate(dayjs(timeLog.date), currentTime) && dateTimeService.compareTimes(currentTime, startTime) > 0))
+      label: progressTime,
+      action: ((isHovered || isEditing) && progressTime)
       && (
         <Tooltip title="stop">
           <IconButton

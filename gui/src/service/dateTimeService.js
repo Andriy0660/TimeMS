@@ -45,8 +45,8 @@ const dateTimeService = {
   },
   getDurationOfProgressTimeLog: (startTime) => {
     const currentTime = dayjs();
-    const diffInMinutes = currentTime.diff(dayjs(startTime), "minute");
-    if(diffInMinutes >= 0 && diffInMinutes < 1440) {
+    const diffInMinutes = currentTime.diff(startTime, "minute");
+    if(currentTime.isAfter(startTime) && diffInMinutes < 1440) {
       return `${currentTime.diff(startTime, "hour")}h ${diffInMinutes % 60}m`;
     } else {
       return null;
