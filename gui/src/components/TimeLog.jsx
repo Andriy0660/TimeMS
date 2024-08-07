@@ -58,7 +58,7 @@ export default function TimeLog({
     setTotalTime(timeLog.totalTime || "");
   }
 
-  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(timeLog.startTime, timeLog.endTime);
+  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(startTime, endTime);
 
   const updateTimeLog = async (body) => {
     if (!isTicketFieldValid) {
@@ -69,8 +69,10 @@ export default function TimeLog({
       resetChanges();
     } else {
       setIsEditing(false);
+      const date = dateTimeService.getFormattedDate(isTimeLogInNextDay.startTime ? timeLog.date.add(1, "day") : timeLog.date);
       await onUpdate({
         ...body,
+        date,
         startTime: dateTimeService.getFormattedDateTime(body.startTime),
         endTime: dateTimeService.getFormattedDateTime(body.endTime)
       });
