@@ -2,15 +2,21 @@ import dayjs from "dayjs";
 import {startHourOfDay} from "../config/timeConfig.js";
 
 const dateTimeService = {
-  getFormattedTime: (time) => time?.format("HH:mm"),
-  getFormattedDate: (time) => time?.format("YYYY-MM-DD"),
-  getFormattedDateTime: (time) => time?.format("YYYY-MM-DDTHH:mm"),
-  isSameDate: (date1, date2) => {
+  getFormattedTime(time) {
+    return time?.format("HH:mm")
+  },
+  getFormattedDate(time) {
+    return time?.format("YYYY-MM-DD")
+  },
+  getFormattedDateTime(time) {
+    return time?.format("YYYY-MM-DDTHH:mm")
+  },
+  isSameDate(date1, date2) {
     if (!date1 && !date2) return true;
     if (!date1 || !date2) return false;
     return date1.isSame(date2, "date");
   },
-  isSameDateTime: (date1, date2) => {
+  isSameDateTime(date1, date2) {
     if (!date1 && !date2) return true;
     if (!date1 || !date2) return false;
     return date1.isSame(date2, "second");
@@ -27,7 +33,7 @@ const dateTimeService = {
   getStartOfDay() {
     return dayjs().startOf("day").add(startHourOfDay, "hour");
   },
-  compareDates: (date1, date2) => {
+  compareDates(date1, date2) {
     date1 = dayjs(date1);
     date2 = dayjs(date2);
     if(date1.isSame(date2)) {
@@ -43,7 +49,7 @@ const dateTimeService = {
     const t2 = time2.hour() * 60 + time2.minute();
     return t1 - t2;
   },
-  getDurationOfProgressTimeLog: (startTime) => {
+  getDurationOfProgressTimeLog(startTime) {
     const currentTime = dayjs();
     const diffInMinutes = currentTime.diff(startTime, "minute");
     if(currentTime.isAfter(startTime) && diffInMinutes < 1440) {
