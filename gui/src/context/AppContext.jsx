@@ -5,19 +5,15 @@ import 'react-toastify/dist/ReactToastify.css';
 const AppContext = createContext();
 
 export const AppProvider = ({children}) => {
-  const addAlert = ({type, text, action, id}) => {
-    return toast[type](text, {closeButton: action, toastId: id});
+  const addAlert = ({type, text}) => {
+    return toast[type](text);
   };
-  const removeAlert = (id) => {
-    return toast.dismiss(id);
-  };
-  const showAlertSeconds = 5000;
 
   return (
     <>
       <ToastContainer
         position="bottom-left"
-        autoClose={showAlertSeconds}
+        autoClose={5000}
         limit={3}
         hideProgressBar={false}
         newestOnTop={false}
@@ -30,9 +26,7 @@ export const AppProvider = ({children}) => {
         transition: Bounce
       />
       <AppContext.Provider value={{
-        addAlert,
-        removeAlert,
-        showAlertSeconds
+        addAlert
       }}>
         {children}
       </AppContext.Provider>

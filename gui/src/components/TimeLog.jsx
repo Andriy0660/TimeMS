@@ -44,10 +44,8 @@ export default function TimeLog({
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
 
-  const updateTimerRef = useRef(null);
-
   const timeLogRef = useRef(null);
-  const {addAlert, removeAlert, showAlertSeconds} = useAppContext();
+  const {addAlert} = useAppContext();
   useEffect(() => {
     initializeState();
   }, [timeLog]);
@@ -60,69 +58,27 @@ export default function TimeLog({
     setTotalTime(timeLog.totalTime || "");
   }
 
-  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(timeLog.startTime, timeLog.endTime);
+  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(startTime, endTime);
 
   const updateTimeLog = async (body) => {
-    if (!validateUpdateRequest()) {
+    if (!isTicketFieldValid) {
+      addAlert({
+        text: "Invalid ticket number",
+        type: "error"
+      });
       resetChanges();
-    } else if ((startTime && !startTime.isSame(timeLog.startTime) && isTimeLogInNextDay.startTime) ||
-      (endTime && !endTime.isSame(timeLog.endTime) && isTimeLogInNextDay.endTime)) {
-      showAlertWhenEndTimeIsNextDay(body);
     } else {
       setIsEditing(false);
+      const date = dateTimeService.getFormattedDate(isTimeLogInNextDay.startTime ? timeLog.date.add(1, "day") : timeLog.date);
       await onUpdate({
         ...body,
+        date,
         startTime: dateTimeService.getFormattedDateTime(body.startTime),
         endTime: dateTimeService.getFormattedDateTime(body.endTime)
       });
     }
   };
 
-  function showAlertWhenEndTimeIsNextDay(body) {
-    addAlert({
-      text: "You set the time for the next day",
-      type: "warning",
-      action: ({closeToast}) => (
-        <Button
-          onClick={() => {
-            handleCancelUpdate();
-            closeToast();
-          }}
-        >
-          Undo
-        </Button>
-      ),
-      id: timeLog.id
-    });
-
-    if (updateTimerRef.current) {
-      clearTimeout(updateTimerRef.current);
-    }
-    const timer = setTimeout(async () => {
-      if (updateTimerRef.current) {
-        removeAlert(timeLog.id)
-        setIsEditing(false);
-        await onUpdate({
-          ...body,
-          startTime: dateTimeService.getFormattedDateTime(body.startTime),
-          endTime: dateTimeService.getFormattedDateTime(body.endTime)
-        });
-        updateTimerRef.current = null;
-      }
-    }, showAlertSeconds + 1000);
-    updateTimerRef.current = timer;
-  }
-
-  const validateUpdateRequest = () => {
-    if (!isTicketFieldValid) {
-      addAlert({
-        text: "Invalid ticket number",
-        type: "error"
-      });
-      return false;
-    }
-    return true;
-  };
   const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
   const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
 
@@ -130,12 +86,6 @@ export default function TimeLog({
     initializeState();
     setIsEditing(false);
   }
-
-  const handleCancelUpdate = () => {
-    clearTimeout(updateTimerRef.current);
-    updateTimerRef.current = null;
-    resetChanges();
-  };
 
   const {execute: handleCreateTimeLog, isExecuting: isCreateLoading} = useAsyncCall({
     fn: onCreate,
@@ -350,6 +300,7 @@ export default function TimeLog({
     )
   }
 
+  const progressTime = status === "InProgress" ? dateTimeService.getDurationOfProgressTimeLog(timeLog.startTime) : null;
   const statusConfig = {
     Done: {
       label: totalTime,
@@ -368,9 +319,8 @@ export default function TimeLog({
       ),
     },
     InProgress: {
-      label: dateTimeService.getDurationOfProgressTimeLog(timeLog.startTime),
-      action: ((isHovered || isEditing) && (
-        dateTimeService.isSameDate(dayjs(timeLog.date), currentTime) && dateTimeService.compareTimes(currentTime, startTime) > 0))
+      label: progressTime,
+      action: ((isHovered || isEditing) && progressTime)
       && (
         <Tooltip title="stop">
           <IconButton
