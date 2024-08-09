@@ -1,0 +1,16 @@
+.progress-bar {
+    position: relative;
+    margin-top: 10px;
+    width: 95%;
+    height: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 9999px;
+    background-color: #e0e0e0;
+    overflow: hidden;
+}
+
+.progress-segment {
+    position: absolute;
+    height: 100%;
+}
