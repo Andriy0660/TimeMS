@@ -61,8 +61,7 @@ export default function TimeLogPage() {
   });
 
   useEffect(() => {
-    let dataNotNull = data ? JSON.parse(JSON.stringify(data)) : [];
-    dataNotNull = timeLogProcessingService.processTimeLogDateTime(dataNotNull);
+    let dataNotNull = timeLogProcessingService.processTimeLogDateTime(data);
     let groupedAndSortedData;
     let totalTimeLabel;
     if (!groupByDescription) {
