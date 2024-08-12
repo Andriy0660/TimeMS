@@ -4,7 +4,7 @@ import BackspaceOutlinedIcon from "@mui/icons-material/BackspaceOutlined.js";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined.js";
 import useAsyncCall from "../hooks/useAsyncCall.js";
 
-export default function GroupDescription({description, ids, setGroupDescription}) {
+export default function Description({description, ids, setGroupDescription, className}) {
   const [isEditing, setIsEditing] = useState(false);
   const [descriptionField, setDescriptionField] = useState(description)
   const descriptionFieldRef = useRef(null);
@@ -40,7 +40,7 @@ export default function GroupDescription({description, ids, setGroupDescription}
   return (
     <div
       ref={descriptionFieldRef}
-      className={`text-justify whitespace-pre-wrap mx-4 ${isEditing ? "w-full mt-2" : "hover:bg-blue-100"}`}
+      className={`${className} text-justify whitespace-pre-wrap ${isEditing ? "w-full mt-2" : "hover:bg-blue-100"}`}
     >
       {isEditing ? (
         <div>
@@ -74,6 +74,7 @@ export default function GroupDescription({description, ids, setGroupDescription}
               <IconButton
                 onClick={() => handleSetGroupDescription({ids, description: descriptionField})}
                 color="success"
+                disabled={!isModified}
               >
                 <SaveOutlinedIcon fontSize="small" />
               </IconButton>
@@ -83,7 +84,8 @@ export default function GroupDescription({description, ids, setGroupDescription}
         </div>
       ) : (
         <div
-          onClick={() => {
+          onMouseDown={(event) => {
+            event.preventDefault()
             setIsEditing(true);
           }}
           className="text-justify whitespace-pre-wrap">{description}</div>
