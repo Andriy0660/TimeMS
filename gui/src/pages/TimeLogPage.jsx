@@ -80,7 +80,7 @@ export default function TimeLogPage() {
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => timeLogApi.create(body),
     onSuccess: async (body) => {
-      queryClient.invalidateQueries(timeLogs.key);
+      queryClient.invalidateQueries(timeLogApi.key);
       if (body.conflicted) {
         addAlert({
           text: "Time log is created with time conflicts with other time logs",
@@ -105,7 +105,7 @@ export default function TimeLogPage() {
   const {mutateAsync: update} = useMutation({
     mutationFn: (body) => timeLogApi.update(body),
     onSuccess: async (body) => {
-      queryClient.invalidateQueries(timeLogs.key);
+      queryClient.invalidateQueries(timeLogApi.key);
       if (body.conflicted) {
         addAlert({
           text: "Time log is updated with time conflicts with other time logs",
@@ -119,7 +119,7 @@ export default function TimeLogPage() {
       }
     },
     onError: async (error, body) => {
-      queryClient.invalidateQueries(timeLogs.key);
+      queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
         text: error.displayMessage,
         type: "error"
@@ -131,7 +131,7 @@ export default function TimeLogPage() {
   const {mutateAsync: deleteTimeLog} = useMutation({
     mutationFn: (id) => timeLogApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(timeLogs.key);
+      queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
         text: "You have successfully deleted time log",
         type: "success"
@@ -148,7 +148,7 @@ export default function TimeLogPage() {
   const {mutateAsync: setGroupDescription} = useMutation({
     mutationFn: (body) => timeLogApi.setGroupDescription(body),
     onSuccess: () => {
-      queryClient.invalidateQueries(timeLogs.key);
+      queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
         text: "You have successfully set description",
         type: "success"
@@ -165,7 +165,7 @@ export default function TimeLogPage() {
   const {mutateAsync: changeDate} = useMutation({
     mutationFn: (body) => timeLogApi.changeDate(body),
     onSuccess: () => {
-      queryClient.invalidateQueries(timeLogs.key);
+      queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
         text: "You have successfully changed date",
         type: "success"
