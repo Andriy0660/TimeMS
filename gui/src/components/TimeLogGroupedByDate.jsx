@@ -4,33 +4,39 @@ import Divider from "@mui/material/Divider";
 import dayjs from "dayjs";
 import NoLogs from "./NoLogs.jsx";
 
-export default function TimeLogGroupedByDate({timeLogs, mode, onCreate, onUpdate, onDelete, changeDate, hoveredTimeLogIds}) {
-  const renderedTimeLogs = Object.keys(timeLogs.data)
-    .sort((a, b) => dateTimeService.compareDates(a, b))
-    .map(date => {
-      const logsForDate = timeLogs.data[date];
-      return (
-        <div key={date} className="mb-2 shadow-md bg-gray-50">
-          {mode !== "Day" && <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
-          {logsForDate.map((timeLog) => {
+export default function TimeLogGroupedByDate({
+  date,
+  logsForDate,
+  renderInner,
+  mode,
+  onCreate,
+  onUpdate,
+  onDelete,
+  changeDate,
+  hoveredTimeLogIds,
+  setGroupDescription
+}) {
 
-            return (
-              <div key={timeLog.id}>
-                <TimeLog
-                  timeLog={timeLog}
-                  onCreate={onCreate}
-                  onUpdate={onUpdate}
-                  onDelete={onDelete}
-                  changeDate={changeDate}
-                  hovered={hoveredTimeLogIds.includes(timeLog.id)}
-                />
-                <Divider />
-              </div>
-            )
-          })}
-        </div>
-      );
-    });
-  return Object.keys(timeLogs.data).length > 0 ? renderedTimeLogs :
+  return logsForDate.length > 0 ? (
+      <div className="mb-2 shadow-md bg-gray-50">
+        {mode !== "Day" &&
+          <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
+        {renderInner ? logsForDate.map(({key, items}) => renderInner(key, items)) : logsForDate.map((timeLog) =>
+          <div key={timeLog.id}>
+            <TimeLog
+              timeLog={timeLog}
+              onCreate={onCreate}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              changeDate={changeDate}
+              setGroupDescription={setGroupDescription}
+              hovered={hoveredTimeLogIds.includes(timeLog.id)}
+            />
+            <Divider />
+          </div>
+        )}
+      </div>
+    )
+    :
     <NoLogs />
 }

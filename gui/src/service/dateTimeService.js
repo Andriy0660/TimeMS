@@ -112,16 +112,14 @@ const dateTimeService = {
   },
   getTotalTimeGroupedByDate(groupedByDate) {
     let totalTime = 0;
-    Object.keys(groupedByDate).forEach(date => {
-      const logsForDate = groupedByDate[date];
+    groupedByDate.forEach(({items: logsForDate}) => {
       totalTime += this.getTotalTimeForTimeLogs(logsForDate)
     })
     return totalTime;
   },
   getTotalTimeGroupedByDateAndDescription(groupedByDateAndDescription) {
     let totalTime = 0;
-    Object.keys(groupedByDateAndDescription).forEach(date => {
-      const logsForDate = groupedByDateAndDescription[date];
+    groupedByDateAndDescription.forEach(({items: logsForDate}) => {
       totalTime += this.getTotalTimeGroupedByDate(logsForDate);
     })
     return totalTime;
