@@ -29,6 +29,7 @@ import timeLogProcessingService from "../service/timeLogProcessingService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import TotalTimeLabel from "../components/TotalTimeLabel.jsx";
 import DayProgressBar from "../components/DayProgressBar.jsx";
+import ClearIcon from '@mui/icons-material/Clear';
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -285,6 +286,7 @@ export default function TimeLogPage() {
 
             <FormControl className="mx-2">
               <Select
+                size="small"
                 multiple
                 value={selectedTickets}
                 onChange={(event) => setSelectedTickets(event.target.value)}
@@ -295,12 +297,15 @@ export default function TimeLogPage() {
               >
                 {filterTickets.map((ticket) => (
                   <MenuItem key={ticket} value={ticket}>
-                    <Checkbox checked={selectedTickets.indexOf(ticket) > -1} />
+                    <Checkbox size="small" checked={selectedTickets.indexOf(ticket) > -1} />
                     <ListItemText primary={ticket} />
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
+            <IconButton className="mr-2" onClick={() => setSelectedTickets([])}>
+              <ClearIcon/>
+            </IconButton>
 
               {modeDatePickerConfig[mode]}
               {mode !== "All" &&
