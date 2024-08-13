@@ -67,7 +67,8 @@ const timeLogProcessingService = {
 
   processData(data, selectedTickets) {
     const filteredData = this.filterByTickets(data, selectedTickets);
-    return this.buildTimeLogDateTime(filteredData);
+    const dataWithBuildedTime = this.buildTimeLogDateTime(filteredData);
+    return this.markAsConflicted(dataWithBuildedTime);
   },
 
   filterByTickets(timeLogs, tickets) {
@@ -108,6 +109,29 @@ const timeLogProcessingService = {
         status: getStatus(timeLog)
       };
     });
+  },
+
+  markAsConflicted(data) {
+    let markedData = data ? Array.from(data) : [];
+    for(let i = 0; i < data.length; i++) {
+      const startTime1 = markedData[i].startTime;
+      const endTime1 = markedData[i].endTime;
+      if(!startTime1 || !endTime1) {
+        continue;
+      }
+      for (let j = 0; j < markedData.length; j++) {
+        const startTime2 = markedData[j].startTime;
+        const endTime2 = markedData[j].endTime;
+        if (!startTime2 || !endTime2) {
+          continue;
+        }
+        if(i !== j && startTime1.isBefore(endTime2) && endTime1.isAfter(startTime2)) {
+          markedData[i].isConflicted = true;
+          markedData[j].isConflicted = true;
+        }
+      }
+    }
+    return markedData;
   },
 
   extractTickets(timeLogs) {

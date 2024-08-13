@@ -40,7 +40,6 @@ public class TimeLogServiceImpl implements TimeLogService {
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(mapper::toListItem)
         .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
-        .peek(timeLogDto -> timeLogDto.setConflicted(isConflictedWithOthersTimeLogs(timeLogDto.getId(), timeLogDto.getStartTime(), timeLogDto.getEndTime(), timeLogDto.getDate())))
         .toList();
     return new TimeLogListResponse(timeLogDtoList);
   }

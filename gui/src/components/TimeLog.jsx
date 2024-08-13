@@ -387,7 +387,7 @@ export default function TimeLog({
             size="small"
             className="shadow-md mr-2"
           /> : null}
-          {timeLog.conflicted && (
+          {timeLog.isConflicted && (
             <Tooltip title="conflicted">
               <JoinFullIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
