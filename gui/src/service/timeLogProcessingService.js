@@ -65,7 +65,27 @@ const timeLogProcessingService = {
     return formatData(groupedData);
   },
 
-  processTimeLogDateTime(data) {
+  processData(data, selectedTickets) {
+    const filteredData = this.filterByTickets(data, selectedTickets);
+    return this.buildTimeLogDateTime(filteredData);
+  },
+
+  filterByTickets(timeLogs, tickets) {
+    if (tickets.length === 0) {
+      return timeLogs;
+    } else {
+      let filtered = timeLogs.filter(timeLog => tickets.some(ticket => timeLog.ticket?.startsWith(ticket)));
+      if (tickets.includes("Without ticket")) {
+        filtered = filtered.concat(this.getAllWithoutTicket(timeLogs))
+      }
+      return filtered
+    }
+  },
+  getAllWithoutTicket(timeLogs) {
+    return timeLogs.filter(timeLog => timeLog.ticket === null);
+  },
+
+  buildTimeLogDateTime(data) {
     let dataNotNull = data ? Array.from(data) : [];
 
     const getStatus = ({totalTime, startTime}) => {
@@ -88,7 +108,12 @@ const timeLogProcessingService = {
         status: getStatus(timeLog)
       };
     });
-  }
+  },
+
+  extractTickets(timeLogs) {
+    const prefixes = timeLogs?.filter(timeLog => timeLog.ticket).map(timeLog => timeLog.ticket.split('-')[0]);
+    return [...new Set(prefixes)];
+  },
 };
 
 export default timeLogProcessingService;

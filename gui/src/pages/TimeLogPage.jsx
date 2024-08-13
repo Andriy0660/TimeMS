@@ -4,9 +4,20 @@ import {LocalizationProvider} from "@mui/x-date-pickers";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress, FormControlLabel, IconButton, MenuItem, Select, Switch, Tooltip} from "@mui/material";
+import {
+  Checkbox,
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  IconButton,
+  ListItemText,
+  MenuItem,
+  Select,
+  Switch,
+  Tooltip
+} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import dayjs from "dayjs";
 import dateTimeService from "../service/dateTimeService.js";
 import DayPicker from "../components/DayPicker.jsx";
@@ -18,6 +29,7 @@ import timeLogProcessingService from "../service/timeLogProcessingService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import TotalTimeLabel from "../components/TotalTimeLabel.jsx";
 import DayProgressBar from "../components/DayProgressBar.jsx";
+import ClearIcon from '@mui/icons-material/Clear';
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -28,6 +40,8 @@ export default function TimeLogPage() {
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
   const offset = startHourOfDay;
   const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
+  const [filterTickets, setFilterTickets] = useState([""])
+  const [selectedTickets, setSelectedTickets] = useState([]);
 
   const [totalTimeLabel, setTotalTimeLabel] = useState("")
   const queryClient = useQueryClient();
@@ -61,21 +75,49 @@ export default function TimeLogPage() {
     placeholderData: (prev) => prev,
     retryDelay: 300,
   });
-
+  const processedDataRef = useRef(null);
   useEffect(() => {
-    let dataNotNull = timeLogProcessingService.processTimeLogDateTime(data);
-    let groupedAndSortedData;
-    let totalTimeLabel;
-    if (!groupByDescription) {
-      groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date"])
-      totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDate(groupedAndSortedData.data));
-    } else {
-      groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date", "description"])
-      totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedAndSortedData.data));
+    const processedData = timeLogProcessingService.processData(data, selectedTickets);
+    processedDataRef.current = processedData;
+
+    const filterTickets = getFilterTickets(data);
+    updateSelectedTicketsIfNeeded(filterTickets);
+
+    const groupedData = groupAndSortData(processedData, groupByDescription);
+    const label = calculateTotalTimeLabel(groupedData, groupByDescription);
+    setTimeLogs(groupedData)
+    setTotalTimeLabel(label);
+  }, [data, groupByDescription, selectedTickets])
+
+  function getFilterTickets(data) {
+    const filterTickets = timeLogProcessingService.extractTickets(data);
+    filterTickets.push("Without ticket");
+    setFilterTickets(filterTickets);
+    return filterTickets;
+  }
+
+  function updateSelectedTicketsIfNeeded(filterTickets) {
+    const updatedTickets = selectedTickets.filter(ticket => filterTickets.includes(ticket));
+    if (selectedTickets.toString() !== updatedTickets.toString()) {
+      setSelectedTickets(updatedTickets);
     }
-    setTimeLogs(groupedAndSortedData)
-    setTotalTimeLabel(totalTimeLabel);
-  }, [data, groupByDescription])
+  }
+
+  function groupAndSortData(data, groupByDescription) {
+    if (groupByDescription) {
+      return timeLogProcessingService.group(data, ["date", "description"]);
+    } else {
+      return timeLogProcessingService.group(data, ["date"]);
+    }
+  }
+
+  function calculateTotalTimeLabel(groupedData, groupByDescription) {
+    if (groupByDescription) {
+      return dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedData.data));
+    } else {
+      return dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDate(groupedData.data));
+    }
+  }
 
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => timeLogApi.create(body),
@@ -241,6 +283,30 @@ export default function TimeLogPage() {
               <MenuItem value="Month">Month</MenuItem>
               <MenuItem value="All">All</MenuItem>
             </Select>
+
+            <FormControl className="mx-2">
+              <Select
+                size="small"
+                multiple
+                value={selectedTickets}
+                onChange={(event) => setSelectedTickets(event.target.value)}
+                renderValue={(selected) => (
+                  selected.length > 0 ? selected.join(", ") : <em>Select tickets</em>
+                )}
+                displayEmpty
+              >
+                {filterTickets.map((ticket) => (
+                  <MenuItem key={ticket} value={ticket}>
+                    <Checkbox size="small" checked={selectedTickets.indexOf(ticket) > -1} />
+                    <ListItemText primary={ticket} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <IconButton className="mr-2" onClick={() => setSelectedTickets([])}>
+              <ClearIcon/>
+            </IconButton>
+
               {modeDatePickerConfig[mode]}
               {mode !== "All" &&
                 <Tooltip title="reset">
@@ -256,7 +322,7 @@ export default function TimeLogPage() {
               }
           </div>
           <TotalTimeLabel label={totalTimeLabel} />
-          {mode === "Day" && <DayProgressBar data={data} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}/>}
+          {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}/>}
 
           <TimeLogList
             timeLogs={timeLogs}
