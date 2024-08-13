@@ -17,7 +17,7 @@ import {
   Tooltip
 } from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import dayjs from "dayjs";
 import dateTimeService from "../service/dateTimeService.js";
 import DayPicker from "../components/DayPicker.jsx";
@@ -74,24 +74,18 @@ export default function TimeLogPage() {
     placeholderData: (prev) => prev,
     retryDelay: 300,
   });
-
+  const processedDataRef = useRef(null);
   useEffect(() => {
     const processedData = timeLogProcessingService.processData(data, selectedTickets);
+    processedDataRef.current = processedData;
 
     const filterTickets = getFilterTickets(data);
     updateSelectedTicketsIfNeeded(filterTickets);
 
-    let groupedAndSortedData;
-    let totalTimeLabel;
-    if (!groupByDescription) {
-      groupedAndSortedData = timeLogProcessingService.group(processedData, ["date"])
-      totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDate(groupedAndSortedData.data));
-    } else {
-      groupedAndSortedData = timeLogProcessingService.group(processedData, ["date", "description"])
-      totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedAndSortedData.data));
-    }
-    setTimeLogs(groupedAndSortedData)
-    setTotalTimeLabel(totalTimeLabel);
+    const groupedData = groupAndSortData(processedData, groupByDescription);
+    const label = calculateTotalTimeLabel(groupedData, groupByDescription);
+    setTimeLogs(groupedData)
+    setTotalTimeLabel(label);
   }, [data, groupByDescription, selectedTickets])
 
   function getFilterTickets(data) {
@@ -108,6 +102,21 @@ export default function TimeLogPage() {
     }
   }
 
+  function groupAndSortData(data, groupByDescription) {
+    if (groupByDescription) {
+      return timeLogProcessingService.group(data, ["date", "description"]);
+    } else {
+      return timeLogProcessingService.group(data, ["date"]);
+    }
+  }
+
+  function calculateTotalTimeLabel(groupedData, groupByDescription) {
+    if (groupByDescription) {
+      return dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedData.data));
+    } else {
+      return dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDate(groupedData.data));
+    }
+  }
 
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => timeLogApi.create(body),
@@ -308,7 +317,7 @@ export default function TimeLogPage() {
               }
           </div>
           <TotalTimeLabel label={totalTimeLabel} />
-          {mode === "Day" && <DayProgressBar data={data} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}/>}
+          {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}/>}
 
           <TimeLogList
             timeLogs={timeLogs}

@@ -2,18 +2,15 @@ import dayjs from 'dayjs';
 import '../styles/ProgressBar.css';
 import dateTimeService from "../service/dateTimeService.js";
 import minMax from "dayjs/plugin/minMax";
-import timeLogProcessingService from "../service/timeLogProcessingService.js";
 
 dayjs.extend(minMax);
 
-const DayProgressBar = ({data, date, setHoveredTimeLogIds}) => {
+const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
   const start = dayjs(date, "YYYY-MM-DD")
     .set("hour", dateTimeService.getStartOfDay().get("hour"))
     .set("minute", 0);
   const end = start.add(1, "day");
   const minutesInDay = 1440;
-
-  let timeLogs = timeLogProcessingService.processTimeLogDateTime(data);
 
   function createIntervals() {
     const intervals = [];
