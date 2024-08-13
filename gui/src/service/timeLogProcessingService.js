@@ -51,6 +51,8 @@ const timeLogProcessingService = {
     return data.sort((a, b) => getDiffInMinutes(a.startTime) - getDiffInMinutes(b.startTime));
   },
   processTimeLogDateTime(data) {
+    let dataNotNull = data ? Array.from(data) : [];
+
     const getStatus = ({totalTime, startTime}) => {
       if (totalTime) {
         return "Done";
@@ -59,13 +61,18 @@ const timeLogProcessingService = {
       } else return "Pending";
     }
 
-    return data.map(timeLog => {
-      timeLog.date = dateTimeService.buildDate(timeLog.date, timeLog.startTime);
-      timeLog.startTime = dateTimeService.buildStartTime(timeLog.date, timeLog.startTime);
-      timeLog.endTime = dateTimeService.buildEndTime(timeLog.date, timeLog.startTime, timeLog.endTime);
-      timeLog.status = getStatus(timeLog);
-      return timeLog;
-    })
+    return dataNotNull.map(timeLog => {
+      const date = dateTimeService.buildDate(timeLog.date, timeLog.startTime);
+      const startTime = dateTimeService.buildStartTime(date, timeLog.startTime);
+      const endTime = dateTimeService.buildEndTime(date, startTime, timeLog.endTime);
+      return {
+        ...timeLog,
+        date,
+        startTime,
+        endTime,
+        status: getStatus(timeLog)
+      };
+    });
   }
 };
 

@@ -17,9 +17,11 @@ import {useNavigate} from "react-router-dom";
 import timeLogProcessingService from "../service/timeLogProcessingService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import TotalTimeLabel from "../components/TotalTimeLabel.jsx";
+import DayProgressBar from "../components/DayProgressBar.jsx";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
+  const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
 
   const queryParams = new URLSearchParams(location.search);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs());
@@ -61,8 +63,7 @@ export default function TimeLogPage() {
   });
 
   useEffect(() => {
-    let dataNotNull = data ? JSON.parse(JSON.stringify(data)) : [];
-    dataNotNull = timeLogProcessingService.processTimeLogDateTime(dataNotNull);
+    let dataNotNull = timeLogProcessingService.processTimeLogDateTime(data);
     let groupedAndSortedData;
     let totalTimeLabel;
     if (!groupByDescription) {
@@ -255,6 +256,8 @@ export default function TimeLogPage() {
               }
           </div>
           <TotalTimeLabel label={totalTimeLabel} />
+          {mode === "Day" && <DayProgressBar data={data} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}/>}
+
           <TimeLogList
             timeLogs={timeLogs}
             mode={mode}
@@ -263,6 +266,7 @@ export default function TimeLogPage() {
             onDelete={deleteTimeLog}
             setGroupDescription={setGroupDescription}
             changeDate={changeDate}
+            hoveredTimeLogIds={hoveredTimeLogIds}
           />
         </div>
       </div>

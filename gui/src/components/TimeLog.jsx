@@ -25,7 +25,8 @@ export default function TimeLog({
   onUpdate,
   onDelete,
   groupByDescription,
-  changeDate
+  changeDate,
+  hovered
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -368,7 +369,7 @@ export default function TimeLog({
 
   return (
     <div
-      className={`py-1 px-4  ${status === "InProgress" ? "bg-blue-50" : ""}`}
+      className={`py-1 px-4  ${status === "InProgress" ? "bg-blue-50" : ""} ${hovered ? "bg-blue-100" : ""}`}
       ref={timeLogRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

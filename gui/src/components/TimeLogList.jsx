@@ -7,7 +7,8 @@ export default function TimeLogList({
   onUpdate,
   onDelete,
   setGroupDescription,
-  changeDate
+  changeDate,
+  hoveredTimeLogIds
 }) {
   const renderedTimeLogs = timeLogRenderingService.render({
     timeLogs,
@@ -16,7 +17,8 @@ export default function TimeLogList({
     onUpdate,
     onDelete,
     setGroupDescription,
-    changeDate
+    changeDate,
+    hoveredTimeLogIds
   })
   return (
     <div className="m-4 flex flex-col items-center">

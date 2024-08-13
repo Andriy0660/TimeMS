@@ -6,7 +6,16 @@ import Divider from "@mui/material/Divider";
 import dayjs from "dayjs";
 import NoLogs from "./NoLogs.jsx";
 
-export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCreate, onUpdate, onDelete, setGroupDescription, changeDate}) {
+export default function TimeLogGroupedByDateAndDescription({
+  timeLogs,
+  mode,
+  onCreate,
+  onUpdate,
+  onDelete,
+  setGroupDescription,
+  changeDate,
+  hoveredTimeLogIds
+}) {
   const renderedTimeLogs = Object.keys(timeLogs.data)
     .sort((a, b) => dateTimeService.compareDates(a, b))
     .map(date => {
@@ -34,7 +43,7 @@ export default function TimeLogGroupedByDateAndDescription({timeLogs, mode, onCr
                         onDelete={onDelete}
                         groupByDescription={true}
                         changeDate={changeDate}
-                      />
+                        hovered={hoveredTimeLogIds.includes(timeLog.id)}                      />
 
                     </div>
                   );
