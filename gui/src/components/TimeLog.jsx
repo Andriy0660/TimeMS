@@ -18,6 +18,7 @@ import Button from "@mui/material/Button";
 import {TiArrowForward} from "react-icons/ti";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos.js";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
+import Description from "./Description.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -26,7 +27,8 @@ export default function TimeLog({
   onDelete,
   groupByDescription,
   changeDate,
-  hovered
+  hovered,
+  setGroupDescription
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -118,7 +120,6 @@ export default function TimeLog({
           ticket,
           startTime,
           endTime,
-          description
         });
       }
     }
@@ -127,11 +128,10 @@ export default function TimeLog({
   const isModified = useMemo(() => {
     return (
       (ticket || "") !== (timeLog.ticket || "") ||
-      (description || "") !== (timeLog.description || "") ||
       !dateTimeService.isSameDateTime(startTime, timeLog.startTime) ||
       !dateTimeService.isSameDateTime(endTime, timeLog.endTime)
     );
-  }, [ticket, description, startTime, endTime, timeLog]);
+  }, [ticket, startTime, endTime, timeLog]);
 
   useEffect(() => {
     if (isEditing && editedField) {
@@ -331,7 +331,6 @@ export default function TimeLog({
                 ticket,
                 startTime,
                 endTime: currentTime,
-                description,
               });
             }}
             variant="outlined"
@@ -353,7 +352,6 @@ export default function TimeLog({
                 id: timeLog.id,
                 ticket,
                 startTime: currentTime,
-                description,
               });
             }}
             variant="outlined"
@@ -370,11 +368,10 @@ export default function TimeLog({
   return (
     <div
       className={`py-1 px-4  ${status === "InProgress" ? "bg-blue-50" : ""} ${hovered ? "bg-blue-100" : ""}`}
-      ref={timeLogRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex justify-between">
+      <div ref={timeLogRef} className="flex justify-between">
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
 
@@ -407,7 +404,6 @@ export default function TimeLog({
                           ticket,
                           startTime,
                           endTime,
-                          description
                         });
 
                       }}
@@ -468,33 +464,7 @@ export default function TimeLog({
         </div>
       </div>
 
-      {!groupByDescription && <div
-        className={`mt-1 ${isEditing ? "" : "hover:bg-blue-100"}`}
-        onClick={() => {
-          setIsEditing(true);
-          setEditedField("description");
-        }}
-      >
-        {isEditing ? (
-          <TextField
-            name="description"
-            className="w-full"
-            label="Description"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            size="small"
-            autoComplete="off"
-            multiline
-            onFocus={(e) => {
-              const value = e.target.value
-              e.target.setSelectionRange(value.length, value.length);
-            }}
-          />
-        ) : (
-          <div className="text-justify whitespace-pre-wrap">{description}</div>
-        )}
-      </div>
-      }
+      {!groupByDescription && <Description description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription}/>}
       {(isCreateLoading || isUpdateLoading || isDeleteLoading) && <LinearProgress />}
     </div>
   );

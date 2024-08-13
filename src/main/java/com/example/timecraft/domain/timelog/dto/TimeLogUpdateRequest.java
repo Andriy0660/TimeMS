@@ -15,5 +15,4 @@ public class TimeLogUpdateRequest {
   private String ticket;
   private LocalTime startTime;
   private LocalTime endTime;
-  private String description;
 }

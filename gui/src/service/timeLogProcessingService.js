@@ -7,7 +7,7 @@ const timeLogProcessingService = {
       res = this.groupBy(res, groupBy);
     })
     return {
-      data: res,
+      data: this.formatGroupedData(res),
       groupOrder
     };
   },
@@ -16,20 +16,20 @@ const timeLogProcessingService = {
   },
   groupNested(data, key) {
     if (!Array.isArray(data)) {
+      const groupedData = {};
       Object.keys(data).forEach(groupKey => {
-        data[groupKey] = this.groupNested(data[groupKey], key);
+        groupedData[groupKey] = this.groupNested(data[groupKey], key);
       });
-      return data;
+      return groupedData;
     } else {
       return this.groupList(data, key);
     }
   },
   groupList(data, key) {
-    let groupKey;
     const groupedData = data.reduce((result, item) => {
-      groupKey = item[key];
+      const groupKey = item[key];
       if (!result[groupKey]) {
-        result[groupKey] = []
+        result[groupKey] = [];
       }
       result[groupKey].push(item);
       return result;
@@ -37,7 +37,7 @@ const timeLogProcessingService = {
     Object.keys(groupedData).forEach(groupKey => {
       groupedData[groupKey] = this.sortTimeLogs(groupedData[groupKey]);
     });
-    return groupedData
+    return groupedData;
   },
   sortTimeLogs(data) {
     const getDiffInMinutes = (time) => {
@@ -50,6 +50,21 @@ const timeLogProcessingService = {
     }
     return data.sort((a, b) => getDiffInMinutes(a.startTime) - getDiffInMinutes(b.startTime));
   },
+
+  formatGroupedData(groupedData) {
+    const formatData = (data) => {
+      return Object.keys(data).map(key => {
+        const item = {
+          key,
+          items: Array.isArray(data[key]) ? data[key] : formatData(data[key])
+        };
+        return item;
+      });
+    };
+
+    return formatData(groupedData);
+  },
+
   processTimeLogDateTime(data) {
     let dataNotNull = data ? Array.from(data) : [];
 
