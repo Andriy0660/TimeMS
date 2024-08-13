@@ -4,7 +4,18 @@ import {LocalizationProvider} from "@mui/x-date-pickers";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress, FormControlLabel, IconButton, MenuItem, Select, Switch, Tooltip} from "@mui/material";
+import {
+  Checkbox,
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  IconButton,
+  ListItemText,
+  MenuItem,
+  Select,
+  Switch,
+  Tooltip
+} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useState} from "react";
 import dayjs from "dayjs";
@@ -28,6 +39,8 @@ export default function TimeLogPage() {
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
   const offset = startHourOfDay;
   const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
+  const [filterTickets, setFilterTickets] = useState([""])
+  const [selectedTickets, setSelectedTickets] = useState([]);
 
   const [totalTimeLabel, setTotalTimeLabel] = useState("")
   const queryClient = useQueryClient();
@@ -63,19 +76,38 @@ export default function TimeLogPage() {
   });
 
   useEffect(() => {
-    let dataNotNull = timeLogProcessingService.processTimeLogDateTime(data);
+    const processedData = timeLogProcessingService.processData(data, selectedTickets);
+
+    const filterTickets = getFilterTickets(data);
+    updateSelectedTicketsIfNeeded(filterTickets);
+
     let groupedAndSortedData;
     let totalTimeLabel;
     if (!groupByDescription) {
-      groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date"])
+      groupedAndSortedData = timeLogProcessingService.group(processedData, ["date"])
       totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDate(groupedAndSortedData.data));
     } else {
-      groupedAndSortedData = timeLogProcessingService.group(dataNotNull, ["date", "description"])
+      groupedAndSortedData = timeLogProcessingService.group(processedData, ["date", "description"])
       totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedAndSortedData.data));
     }
     setTimeLogs(groupedAndSortedData)
     setTotalTimeLabel(totalTimeLabel);
-  }, [data, groupByDescription])
+  }, [data, groupByDescription, selectedTickets])
+
+  function getFilterTickets(data) {
+    const filterTickets = timeLogProcessingService.extractTickets(data);
+    filterTickets.push("Without ticket");
+    setFilterTickets(filterTickets);
+    return filterTickets;
+  }
+
+  function updateSelectedTicketsIfNeeded(filterTickets) {
+    const updatedTickets = selectedTickets.filter(ticket => filterTickets.includes(ticket));
+    if (selectedTickets.toString() !== updatedTickets.toString()) {
+      setSelectedTickets(updatedTickets);
+    }
+  }
+
 
   const {mutateAsync: create} = useMutation({
     mutationFn: (body) => timeLogApi.create(body),
@@ -241,6 +273,26 @@ export default function TimeLogPage() {
               <MenuItem value="Month">Month</MenuItem>
               <MenuItem value="All">All</MenuItem>
             </Select>
+
+            <FormControl className="mx-2">
+              <Select
+                multiple
+                value={selectedTickets}
+                onChange={(event) => setSelectedTickets(event.target.value)}
+                renderValue={(selected) => (
+                  selected.length > 0 ? selected.join(", ") : <em>Select tickets</em>
+                )}
+                displayEmpty
+              >
+                {filterTickets.map((ticket) => (
+                  <MenuItem key={ticket} value={ticket}>
+                    <Checkbox checked={selectedTickets.indexOf(ticket) > -1} />
+                    <ListItemText primary={ticket} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
               {modeDatePickerConfig[mode]}
               {mode !== "All" &&
                 <Tooltip title="reset">
