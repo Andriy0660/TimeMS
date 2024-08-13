@@ -26,6 +26,7 @@ public class TimeLogListResponse {
     private LocalTime endTime;
     private String description;
     private String totalTime;
+    private boolean isConflicted;
   }
 }
 

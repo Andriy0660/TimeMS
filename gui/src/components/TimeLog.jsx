@@ -18,7 +18,9 @@ import Button from "@mui/material/Button";
 import {TiArrowForward} from "react-icons/ti";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos.js";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
+import JoinFullIcon from '@mui/icons-material/JoinFull';
 import Description from "./Description.jsx";
+import {deepOrange} from "@mui/material/colors";
 
 export default function TimeLog({
   timeLog,
@@ -385,7 +387,11 @@ export default function TimeLog({
             size="small"
             className="shadow-md mr-2"
           /> : null}
-
+          {timeLog.conflicted && (
+            <Tooltip title="conflicted">
+              <JoinFullIcon sx={{color: deepOrange[200]}} className="text-red" />
+            </Tooltip>
+          )}
         </div>
 
         <div className="flex items-center">
