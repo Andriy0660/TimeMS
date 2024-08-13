@@ -73,16 +73,18 @@ export default function TimeLog({
     } else {
       setIsEditing(false);
       const date = dateTimeService.getFormattedDate(isTimeLogInNextDay.startTime ? timeLog.date.add(1, "day") : timeLog.date);
+      const ticket = body.ticket ? body.ticket.toUpperCase() : null;
       await onUpdate({
         ...body,
         date,
+        ticket,
         startTime: dateTimeService.getFormattedDateTime(body.startTime),
         endTime: dateTimeService.getFormattedDateTime(body.endTime)
       });
     }
   };
 
-  const jiraIssuePattern = /^[A-Z]{2,}-\d+/;
+  const jiraIssuePattern = /^[A-Za-z]{2,}-\d+/;
   const isTicketFieldValid = ticket ? ticket?.match(jiraIssuePattern) : true;
 
   function resetChanges() {
@@ -167,6 +169,7 @@ export default function TimeLog({
           value={ticket}
           onChange={(event) => setTicket(event.target.value)}
           autoComplete="off"
+          inputProps={{style: {textTransform: "uppercase"}}}
         />
       </div>
     </>;
