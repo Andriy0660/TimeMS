@@ -70,11 +70,16 @@ public class TimeLogServiceImpl implements TimeLogService {
     if (startTime == null || endTime == null) {
       return null;
     }
+    Duration duration = getDurationBetweenStartAndEndTime(startTime, endTime);
+    return formatDuration(duration);
+  }
+
+  private Duration getDurationBetweenStartAndEndTime(final LocalTime startTime, final LocalTime endTime) {
     Duration duration = Duration.between(startTime, endTime);
     if (endTime.isBefore(startTime)) {
       duration = duration.plusDays(1);
     }
-    return DurationService.formatDuration(duration);
+    return duration;
   }
 
   @Override
