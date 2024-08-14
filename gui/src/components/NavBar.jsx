@@ -21,6 +21,13 @@ export default function NavBar() {
           </Link>
         </ListItem>
         <ListItem disablePadding>
+          <Link to="/app/weekview" className="text-inherit no-underline w-full">
+            <ListItemButton>
+              <ListItemText primary="Week View" />
+            </ListItemButton>
+          </Link>
+        </ListItem>
+        <ListItem disablePadding>
           <Link to="/app/info" className="text-inherit no-underline w-full">
             <ListItemButton>
               <ListItemText primary="Info" />
