@@ -5,8 +5,11 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +20,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
@@ -25,6 +29,8 @@ import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import lombok.RequiredArgsConstructor;
+
+import static com.example.timecraft.domain.timelog.service.DurationService.formatDuration;
 
 @Service
 @RequiredArgsConstructor
@@ -153,6 +159,39 @@ public class TimeLogServiceImpl implements TimeLogService {
     TimeLogGetResponse response = mapper.toGetResponse(timeLogEntity);
     response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
     return response;
+  }
+
+  @Override
+  public TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date, final int offset) {
+    LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+
+    final LocalTime startOfDay = LocalTime.of(offset, 0);
+    List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek, startOfDay);
+    List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
+
+    LocalDate currentDay = startOfWeek;
+    while (!currentDay.isAfter(endOfWeek)) {
+      Duration totalDuration = Duration.ZERO;
+      for (TimeLogEntity entity : entities) {
+        if (entity.getStartTime() == null || entity.getEndTime() == null) {
+          continue;
+        }
+        if ((entity.getDate().isEqual(currentDay) && !entity.getStartTime().isBefore(startOfDay)) ||
+            (entity.getDate().minusDays(1).equals(currentDay) && entity.getStartTime().isBefore(startOfDay))) {
+          totalDuration = totalDuration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime()));
+        }
+      }
+
+      dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
+          .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
+          .date(currentDay)
+          .duration(formatDuration(totalDuration))
+          .build());
+      currentDay = currentDay.plusDays(1);
+    }
+
+    return new TimeLogHoursForWeekResponse(dayInfoList);
   }
 
   private TimeLogEntity getRaw(final long timeLogId) {
