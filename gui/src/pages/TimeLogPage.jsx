@@ -75,7 +75,7 @@ export default function TimeLogPage() {
     placeholderData: (prev) => prev,
     retryDelay: 300,
   });
-  const processedDataRef = useRef(null);
+  const processedDataRef = useRef([]);
   useEffect(() => {
     const processedData = timeLogProcessingService.processData(data, selectedTickets);
     processedDataRef.current = processedData;
@@ -233,7 +233,7 @@ export default function TimeLogPage() {
 
   if (isListing) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="absolute inset-1/2">
         <CircularProgress />
       </div>
     );
