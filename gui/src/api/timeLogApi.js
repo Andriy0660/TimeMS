@@ -12,7 +12,6 @@ const timeLogApi = {
   getHoursForWeek: async (body) => {
     const params = new URLSearchParams({...body});
     const {data} = await axios.get(`/${key}/hoursForWeek`, {params, baseMsg: "Error while getting hours for week"});
-    console.log(data)
     return data.items;
   },
 
