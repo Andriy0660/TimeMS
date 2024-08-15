@@ -90,16 +90,17 @@ public class TimeLogServiceImpl implements TimeLogService {
 
     timeLogEntity = repository.save(timeLogEntity);
     TimeLogCreateResponse response = mapper.toCreateResponse(timeLogEntity);
-    if (isConflictedWithOthersTimeLogs(timeLogEntity, request.getStartTime(), null)) {
+    if (isConflictedWithOthersTimeLogs(timeLogEntity.getId(), timeLogEntity.getStartTime(), timeLogEntity.getEndTime(), timeLogEntity.getDate())) {
       response.setConflicted(true);
     }
     return response;
   }
 
-  private boolean isConflictedWithOthersTimeLogs(final TimeLogEntity timeLogEntity, final LocalTime startTime, final LocalTime endTime) {
-    final List<TimeLogEntity> timeLogEntities = repository.findAllByDateIs(timeLogEntity.getDate());
+  private boolean isConflictedWithOthersTimeLogs(final Long id, final LocalTime startTime, final LocalTime endTime,
+                                                 final LocalDate date) {
+    final List<TimeLogEntity> timeLogEntities = repository.findAllByDateIs(date);
     return timeLogEntities.stream().anyMatch(timeLog ->
-        !timeLog.getId().equals(timeLogEntity.getId()) &&
+        !timeLog.getId().equals(id) &&
             areIntervalsOverlapping(startTime, endTime, timeLog.getStartTime(), timeLog.getEndTime())
     );
   }
@@ -118,9 +119,13 @@ public class TimeLogServiceImpl implements TimeLogService {
       return false;
     }
     if (border2.isBefore(border1)) {
-      return  ((!target.isBefore(border1) && !target.isAfter(LocalTime.MAX))
-          || (!target.isBefore(LocalTime.MIN) && !target.isAfter(border2)));
-
+      if(target.isBefore(border1)) {
+        return false;
+      }
+      else {
+        return  (!target.isBefore(border1) && !target.isAfter(LocalTime.MAX))
+            || (!target.isBefore(LocalTime.MIN) && !target.isAfter(border2));
+      }
     } else {
       return !target.isBefore(border1) && !target.isAfter(border2);
     }
@@ -162,7 +167,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
     TimeLogUpdateResponse response = mapper.toUpdateResponse(timeLogEntity);
     response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
-    if (isConflictedWithOthersTimeLogs(timeLogEntity, timeLogEntity.getStartTime(), timeLogEntity.getEndTime())) {
+    if (isConflictedWithOthersTimeLogs(timeLogEntity.getId(), timeLogEntity.getStartTime(), timeLogEntity.getEndTime(), timeLogEntity.getDate())) {
       response.setConflicted(true);
     }
     return response;
