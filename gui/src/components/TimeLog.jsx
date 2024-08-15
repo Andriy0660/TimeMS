@@ -18,7 +18,7 @@ import Button from "@mui/material/Button";
 import {TiArrowForward} from "react-icons/ti";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos.js";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
-import JoinFullIcon from '@mui/icons-material/JoinFull';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Description from "./Description.jsx";
 import {deepOrange} from "@mui/material/colors";
 
@@ -372,7 +372,7 @@ export default function TimeLog({
 
   return (
     <div
-      className={`py-1 px-4  ${status === "InProgress" ? "bg-blue-50" : ""} ${hovered ? "bg-blue-100" : ""}`}
+      className={`px-4  ${status === "InProgress" ? "bg-blue-50" : ""} ${hovered ? "bg-blue-100" : ""}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -389,7 +389,7 @@ export default function TimeLog({
           /> : null}
           {timeLog.isConflicted && (
             <Tooltip title="conflicted">
-              <JoinFullIcon sx={{color: deepOrange[200]}} className="text-red" />
+              <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
           )}
         </div>
@@ -473,7 +473,7 @@ export default function TimeLog({
         </div>
       </div>
 
-      {!groupByDescription && <Description description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription}/>}
+      {!groupByDescription && <Description className="mb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription}/>}
       {(isCreateLoading || isUpdateLoading || isDeleteLoading) && <LinearProgress />}
     </div>
   );
