@@ -10,6 +10,9 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -168,31 +171,72 @@ public class TimeLogServiceImpl implements TimeLogService {
     LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
     final LocalTime startOfDay = LocalTime.of(offset, 0);
-    List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek, startOfDay);
-    List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
+    List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startOfDay);
 
+    List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = getDayInfoList(entities, startOfWeek, endOfWeek, startOfDay);
+
+    return new TimeLogHoursForWeekResponse(dayInfoList);
+  }
+
+  private List<TimeLogHoursForWeekResponse.DayInfo> getDayInfoList(final List<TimeLogEntity> entities, final LocalDate startOfWeek,
+                                                                   final LocalDate endOfWeek, final LocalTime startOfDay) {
+    Set<String> tickets = getTicketsForWeek(entities);
+
+    List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
     LocalDate currentDay = startOfWeek;
     while (!currentDay.isAfter(endOfWeek)) {
-      Duration totalDuration = Duration.ZERO;
+      List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = getTicketDurationsForDay(entities, startOfDay, tickets, currentDay);
+      dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
+          .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
+          .date(currentDay)
+          .ticketDurations(ticketDurations)
+          .build());
+
+      currentDay = currentDay.plusDays(1);
+    }
+    return dayInfoList;
+  }
+
+  private Set<String> getTicketsForWeek(final List<TimeLogEntity> entities) {
+    Set<String> tickets = entities.stream()
+        .map(TimeLogEntity::getTicket)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    tickets.add("Without Ticket");
+    return tickets;
+  }
+
+  private List<TimeLogHoursForWeekResponse.TicketDuration> getTicketDurationsForDay(
+      final List<TimeLogEntity> entities,
+      final LocalTime startOfDay,
+      final Set<String> tickets,
+      final LocalDate currentDay) {
+    List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = new ArrayList<>();
+    Duration totalForDay = Duration.ZERO;
+
+    for (String ticket : tickets) {
+      Duration totalForTicket = Duration.ZERO;
+
       for (TimeLogEntity entity : entities) {
         if (entity.getStartTime() == null || entity.getEndTime() == null) {
           continue;
         }
         if ((entity.getDate().isEqual(currentDay) && !entity.getStartTime().isBefore(startOfDay)) ||
             (entity.getDate().minusDays(1).equals(currentDay) && entity.getStartTime().isBefore(startOfDay))) {
-          totalDuration = totalDuration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime()));
+
+          String currentTicket = entity.getTicket() != null ? entity.getTicket() : "Without Ticket";
+          if (currentTicket.equals(ticket)) {
+            Duration duration = getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime());
+            totalForTicket = totalForTicket.plus(duration);
+            totalForDay = totalForDay.plus(duration);
+          }
         }
       }
 
-      dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
-          .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
-          .date(currentDay)
-          .duration(formatDuration(totalDuration))
-          .build());
-      currentDay = currentDay.plusDays(1);
+      ticketDurations.add(new TimeLogHoursForWeekResponse.TicketDuration(ticket, formatDuration(totalForTicket)));
     }
-
-    return new TimeLogHoursForWeekResponse(dayInfoList);
+    ticketDurations.add(new TimeLogHoursForWeekResponse.TicketDuration("Total", formatDuration(totalForDay)));
+    return ticketDurations;
   }
 
   private TimeLogEntity getRaw(final long timeLogId) {
