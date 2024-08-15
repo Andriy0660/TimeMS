@@ -51,19 +51,20 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   private List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
+    final LocalTime startTime = LocalTime.of(offset, 0);
     switch (mode) {
       case "Day" -> {
-        return repository.findAllInRange(date, date.plusDays(1), LocalTime.of(offset, 0));
+        return repository.findAllInRange(date, date.plusDays(1), startTime);
       }
       case "Week" -> {
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        return repository.findAllByDateBetween(startOfWeek, endOfWeek);
+        return repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startTime);
       }
       case "Month" -> {
         LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
-        return repository.findAllByDateBetween(startOfMonth, endOfMonth);
+        return repository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startTime);
       }
       case "All" -> {
         return repository.findAll();
