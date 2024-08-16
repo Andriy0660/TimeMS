@@ -6,8 +6,6 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import dayjs from "dayjs";
 import WeekPicker from "../components/WeekPicker.jsx";
-import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
-import {LocalizationProvider} from "@mui/x-date-pickers";
 import dateTimeService from "../service/dateTimeService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
@@ -76,56 +74,54 @@ export default function WeekPage() {
 
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div>
-        <WeekPicker className="mt-4" date={date} setDate={setDate} isPlaceholderData={isPlaceholderData} />
-        <TableContainer className="flex mx-auto my-6 w-2/3">
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <CustomTableCell><></>
+    <div>
+      <WeekPicker className="mt-4" date={date} setDate={setDate} isPlaceholderData={isPlaceholderData} />
+      <TableContainer className="flex mx-auto my-6 w-2/3">
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <CustomTableCell><></>
+              </CustomTableCell>
+              {data.map(dayInfo => (
+                <CustomTableCell
+                  key={dayInfo.date}
+                  isHover
+                  onClick={() => handleClick(dayInfo.date)}
+                >
+                  {dayInfo.dayName}
                 </CustomTableCell>
-                {data.map(dayInfo => (
-                  <CustomTableCell
-                    key={dayInfo.date}
-                    isHover
-                    onClick={() => handleClick(dayInfo.date)}
-                  >
-                    {dayInfo.dayName}
-                  </CustomTableCell>
-                ))}
-                <CustomTableCell isBold>Total</CustomTableCell>
+              ))}
+              <CustomTableCell isBold>Total</CustomTableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data[0].ticketDurations.map(({ticket}) => (
+              <TableRow key={ticket}>
+                <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
+                {data.map(dayInfo => {
+                  const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
+                  return (
+                    <CustomTableCell
+                      key={`${dayInfo.date}-${ticket}`}
+                      isBold={ticket === "Total"}
+                      isHover={ticket === "Total"}
+                      onClick={() => {
+                        if (ticket === "Total") {
+                          handleClick(dayInfo.date);
+                        }
+                      }}
+                    >
+                      {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
+                    </CustomTableCell>
+                  );
+                })}
+                <CustomTableCell isBold>{getTotalTimeForTicket(ticket)}</CustomTableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {data[0].ticketDurations.map(({ticket}) => (
-                <TableRow key={ticket}>
-                  <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
-                  {data.map(dayInfo => {
-                    const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
-                    return (
-                      <CustomTableCell
-                        key={`${dayInfo.date}-${ticket}`}
-                        isBold={ticket === "Total"}
-                        isHover={ticket === "Total"}
-                        onClick={() => {
-                          if (ticket === "Total") {
-                            handleClick(dayInfo.date);
-                          }
-                        }}
-                      >
-                        {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
-                      </CustomTableCell>
-                    );
-                  })}
-                  <CustomTableCell isBold>{getTotalTimeForTicket(ticket)}</CustomTableCell>
-                </TableRow>
-              ))
-              }
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
-    </LocalizationProvider>
+            ))
+            }
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div>
   )
 }

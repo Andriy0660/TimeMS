@@ -1,6 +1,4 @@
 import TimeLogList from "../components/TimeLogList.jsx";
-import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
-import {LocalizationProvider} from "@mui/x-date-pickers";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
@@ -246,95 +244,93 @@ export default function TimeLogPage() {
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div className="w-3/5 mx-auto">
-        <TimeLogCreateBar
-          onCreate={create}
-          date={date}
-          canCreate={mode === "Day"}
-        />
-        <div className="flex flex-col">
-          <div className="flex justify-center">
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={groupByDescription}
-                  onChange={() => setGroupByDescription((event.target.checked))}
-                />
-              }
-              label="Group"
-              labelPlacement="start"
-              className="mx-2"
-            />
-            <Select
-              className="mx-2"
-              size="small"
-              inputProps={{"aria-label": "Without label"}}
-              value={mode}
-              onChange={(event) => {
-                setDate(dayjs());
-                setMode(event.target.value);
-              }}
-              autoWidth
-            >
-              <MenuItem value="Day">Day</MenuItem>
-              <MenuItem value="Week">Week</MenuItem>
-              <MenuItem value="Month">Month</MenuItem>
-              <MenuItem value="All">All</MenuItem>
-            </Select>
-
-            <FormControl className="mx-2">
-              <Select
-                size="small"
-                multiple
-                value={selectedTickets}
-                onChange={(event) => setSelectedTickets(event.target.value)}
-                renderValue={(selected) => (
-                  selected.length > 0 ? selected.join(", ") : <em>Select tickets</em>
-                )}
-                displayEmpty
-              >
-                {filterTickets.map((ticket) => (
-                  <MenuItem key={ticket} value={ticket}>
-                    <Checkbox size="small" checked={selectedTickets.indexOf(ticket) > -1} />
-                    <ListItemText primary={ticket} />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <IconButton className="mr-2" onClick={() => setSelectedTickets([])}>
-              <ClearIcon/>
-            </IconButton>
-
-              {modeDatePickerConfig[mode]}
-              {mode !== "All" &&
-                <Tooltip title="reset">
-                  <IconButton
-                    onClick={() => setDate(dayjs())}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    <SettingsBackupRestoreIcon />
-                  </IconButton>
-                </Tooltip>
-
-              }
-          </div>
-          <TotalTimeLabel label={totalTimeLabel} />
-          {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}/>}
-
-          <TimeLogList
-            timeLogs={timeLogs}
-            mode={mode}
-            onCreate={create}
-            onUpdate={update}
-            onDelete={deleteTimeLog}
-            setGroupDescription={setGroupDescription}
-            changeDate={changeDate}
-            hoveredTimeLogIds={hoveredTimeLogIds}
+    <div className="w-3/5 mx-auto">
+      <TimeLogCreateBar
+        onCreate={create}
+        date={date}
+        canCreate={mode === "Day"}
+      />
+      <div className="flex flex-col">
+        <div className="flex justify-center">
+          <FormControlLabel
+            control={
+              <Switch
+                checked={groupByDescription}
+                onChange={() => setGroupByDescription((event.target.checked))}
+              />
+            }
+            label="Group"
+            labelPlacement="start"
+            className="mx-2"
           />
+          <Select
+            className="mx-2"
+            size="small"
+            inputProps={{"aria-label": "Without label"}}
+            value={mode}
+            onChange={(event) => {
+              setDate(dayjs());
+              setMode(event.target.value);
+            }}
+            autoWidth
+          >
+            <MenuItem value="Day">Day</MenuItem>
+            <MenuItem value="Week">Week</MenuItem>
+            <MenuItem value="Month">Month</MenuItem>
+            <MenuItem value="All">All</MenuItem>
+          </Select>
+
+          <FormControl className="mx-2">
+            <Select
+              size="small"
+              multiple
+              value={selectedTickets}
+              onChange={(event) => setSelectedTickets(event.target.value)}
+              renderValue={(selected) => (
+                selected.length > 0 ? selected.join(", ") : <em>Select tickets</em>
+              )}
+              displayEmpty
+            >
+              {filterTickets.map((ticket) => (
+                <MenuItem key={ticket} value={ticket}>
+                  <Checkbox size="small" checked={selectedTickets.indexOf(ticket) > -1} />
+                  <ListItemText primary={ticket} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <IconButton className="mr-2" onClick={() => setSelectedTickets([])}>
+            <ClearIcon />
+          </IconButton>
+
+          {modeDatePickerConfig[mode]}
+          {mode !== "All" &&
+            <Tooltip title="reset">
+              <IconButton
+                onClick={() => setDate(dayjs())}
+                variant="outlined"
+                color="primary"
+              >
+                <SettingsBackupRestoreIcon />
+              </IconButton>
+            </Tooltip>
+
+          }
         </div>
+        <TotalTimeLabel label={totalTimeLabel} />
+        {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds} />}
+
+        <TimeLogList
+          timeLogs={timeLogs}
+          mode={mode}
+          onCreate={create}
+          onUpdate={update}
+          onDelete={deleteTimeLog}
+          setGroupDescription={setGroupDescription}
+          changeDate={changeDate}
+          hoveredTimeLogIds={hoveredTimeLogIds}
+        />
       </div>
-    </LocalizationProvider>
+    </div>
   )
 }
