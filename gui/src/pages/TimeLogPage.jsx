@@ -239,7 +239,11 @@ export default function TimeLogPage() {
   const modeDatePickerConfig = {
     Day: <DayPicker date={date} setDate={setDate} isPlaceholderData={isPlaceholderData}/>,
     Week: <WeekPicker date={date} setDate={setDate} isPlaceholderData={isPlaceholderData}/>,
-    Month: <MonthPicker date={date} setDate={setDate} isPlaceholderData={isPlaceholderData}/>,
+    Month: <MonthPicker
+      date={date}
+      toPrev={() => setDate(date.subtract(1, "month"))}
+      toNext={() => setDate(date.add(1, "month"))}
+      isPlaceholderData={isPlaceholderData}/>,
     All: null,
   };
 
