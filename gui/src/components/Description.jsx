@@ -24,7 +24,7 @@ export default function Description({description, ids, setGroupDescription, clas
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [descriptionFieldRef.current, descriptionField]);
+  }, [descriptionFieldRef.current, description, descriptionField]);
 
   function handleClickOutside(event) {
     if (descriptionFieldRef.current && !descriptionFieldRef.current.contains(event.target)) {
