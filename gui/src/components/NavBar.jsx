@@ -28,6 +28,13 @@ export default function NavBar() {
           </Link>
         </ListItem>
         <ListItem disablePadding>
+          <Link to="/app/monthview" className="text-inherit no-underline w-full">
+            <ListItemButton>
+              <ListItemText primary="Month View" />
+            </ListItemButton>
+          </Link>
+        </ListItem>
+        <ListItem disablePadding>
           <Link to="/app/info" className="text-inherit no-underline w-full">
             <ListItemButton>
               <ListItemText primary="Info" />
