@@ -2,7 +2,6 @@ import dateTimeService from "../service/dateTimeService.js";
 import TimeLog from "./TimeLog.jsx";
 import Divider from "@mui/material/Divider";
 import dayjs from "dayjs";
-import NoLogs from "./NoLogs.jsx";
 
 export default function TimeLogGroupedByDate({
   date,
@@ -17,26 +16,24 @@ export default function TimeLogGroupedByDate({
   setGroupDescription
 }) {
 
-  return logsForDate.length > 0 ? (
-      <div className="mb-2 shadow-md bg-gray-50">
-        {mode !== "Day" &&
-          <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
-        {renderInner ? logsForDate.map(({key, items}) => renderInner(key, items)) : logsForDate.map((timeLog) =>
-          <div key={timeLog.id}>
-            <TimeLog
-              timeLog={timeLog}
-              onCreate={onCreate}
-              onUpdate={onUpdate}
-              onDelete={onDelete}
-              changeDate={changeDate}
-              setGroupDescription={setGroupDescription}
-              hovered={hoveredTimeLogIds.includes(timeLog.id)}
-            />
-            <Divider />
-          </div>
-        )}
-      </div>
-    )
-    :
-    <NoLogs />
+  return (
+    <div className="mb-2 shadow-md bg-gray-50">
+      {mode !== "Day" &&
+        <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
+      {renderInner ? logsForDate.map(({key, items}) => renderInner(key, items)) : logsForDate.map((timeLog) =>
+        <div key={timeLog.id}>
+          <TimeLog
+            timeLog={timeLog}
+            onCreate={onCreate}
+            onUpdate={onUpdate}
+            onDelete={onDelete}
+            changeDate={changeDate}
+            setGroupDescription={setGroupDescription}
+            hovered={hoveredTimeLogIds.includes(timeLog.id)}
+          />
+          <Divider />
+        </div>
+      )}
+    </div>
+  )
 }
