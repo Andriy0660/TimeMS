@@ -73,6 +73,7 @@ export default function MonthPage() {
           setDate(date.subtract(1, "month"));
         }}
         classNames="my-2"
+        isLoading={isPlaceholderData}
       />
       <FullCalendar
         initialEvents={INITIAL_EVENTS}

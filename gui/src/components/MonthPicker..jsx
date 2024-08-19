@@ -3,12 +3,12 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Button from "@mui/material/Button";
 import {MobileDatePicker} from "@mui/x-date-pickers";
 
-export default function MonthPicker({date, toNext, toPrev, isPlaceholderData, classNames}) {
+export default function MonthPicker({date, toNext, toPrev, isLoading, classNames}) {
   return (
     <div className={`flex items-center justify-center ${classNames}`}>
       <Button
         onClick={toPrev}
-        disabled={isPlaceholderData}
+        disabled={isLoading}
       >
         <ArrowBackIosIcon />
       </Button>
@@ -17,11 +17,10 @@ export default function MonthPicker({date, toNext, toPrev, isPlaceholderData, cl
         slotProps={{textField: {size: "small"}}}
         className="w-40"
         value={date}
-        onChange={(newValue) => setDate(newValue)}
       />
       <Button
         onClick={toNext}
-        disabled={isPlaceholderData}
+        disabled={isLoading}
       >
         <ArrowForwardIosIcon />
       </Button>
