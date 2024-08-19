@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
@@ -23,6 +24,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
@@ -237,6 +239,40 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
     ticketDurations.add(new TimeLogHoursForWeekResponse.TicketDuration("Total", formatDuration(totalForDay)));
     return ticketDurations;
+  }
+
+  @Override
+  public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date, final int offset) {
+    LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
+    LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
+    final LocalTime startOfDay = LocalTime.of(offset, 0);
+
+    List<TimeLogEntity> entities = repository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startOfDay);
+    List<TimeLogHoursForMonthResponse.DayInfo> dayInfoList = new ArrayList<>();
+    LocalDate currentDay = startOfMonth;
+    while (!currentDay.isAfter(endOfMonth)) {
+      dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
+          .start(LocalDateTime.of(currentDay, LocalTime.MIN))
+          .title(getDurationForDay(entities, currentDay, startOfDay))
+          .build());
+
+      currentDay = currentDay.plusDays(1);
+    }
+    return new TimeLogHoursForMonthResponse(dayInfoList);
+  }
+
+  private String getDurationForDay(final List<TimeLogEntity> entities, final LocalDate date, final LocalTime startOfDay) {
+    Duration duration = Duration.ZERO;
+    for (TimeLogEntity entity : entities) {
+      if (entity.getStartTime() == null || entity.getEndTime() == null) {
+        continue;
+      }
+      if ((entity.getDate().isEqual(date) && !entity.getStartTime().isBefore(startOfDay)) ||
+          (entity.getDate().minusDays(1).equals(date) && entity.getStartTime().isBefore(startOfDay))) {
+        duration = duration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime()));
+      }
+    }
+    return formatDuration(duration);
   }
 
   private TimeLogEntity getRaw(final long timeLogId) {

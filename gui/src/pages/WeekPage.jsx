@@ -1,4 +1,3 @@
-import {useEffect} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
@@ -12,23 +11,16 @@ import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import {CircularProgress} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
-import {useNavigate} from "react-router-dom";
 import CustomTableCell from "../components/CustomTableCell.jsx";
-
+import useDateInUrl from "../hooks/useDateInUrl.js";
+import {useNavigate} from "react-router-dom";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
   const {date, setDate, addAlert} = useAppContext();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (date && !dayjs().isSame(date, "day")) {
-      params.set("date", dateTimeService.getFormattedDateTime(date));
-    }
-    navigate({search: params.toString()});
-  }, [date]);
+  useDateInUrl(date);
 
   const {
     data,

@@ -17,6 +17,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
@@ -49,6 +50,11 @@ public class TimeLogController {
   @GetMapping("/hoursForWeek")
   public TimeLogHoursForWeekResponse getHoursForWeek(@RequestParam final LocalDate date, @RequestParam final int offset) {
     return timeLogService.getHoursForWeek(date, offset);
+  }
+
+  @GetMapping("/hoursForMonth")
+  public TimeLogHoursForMonthResponse getHoursForMonth(@RequestParam final LocalDate date, @RequestParam final int offset) {
+    return timeLogService.getHoursForMonth(date, offset);
   }
 
   @PutMapping("/{timeLogId}")
