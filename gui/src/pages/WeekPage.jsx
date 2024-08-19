@@ -67,7 +67,12 @@ export default function WeekPage() {
 
   return (
     <div>
-      <WeekPicker className="mt-4" date={date} setDate={setDate} isPlaceholderData={isPlaceholderData} />
+      <WeekPicker
+        className="mt-4"
+        date={date}
+        toPrev={() => setDate(date.subtract(1, "week"))}
+        toNext={() => setDate(date.add(1, "week"))}
+        isLoading={isPlaceholderData} />
       <TableContainer className="flex mx-auto my-6 w-2/3">
         <Table size="small">
           <TableHead>
