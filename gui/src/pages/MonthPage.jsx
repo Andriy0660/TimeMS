@@ -1,7 +1,7 @@
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from "@fullcalendar/interaction"
-import {useEffect, useRef, useState} from "react";
+import {useState} from "react";
 import MonthPicker from "../components/MonthPicker..jsx";
 import dayjs from "dayjs";
 import useAppContext from "../context/useAppContext.js";
@@ -9,28 +9,18 @@ import dateTimeService from "../service/dateTimeService.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import {startHourOfDay} from "../config/timeConfig.js";
-import {CircularProgress} from "@mui/material";
 import useDateInUrl from "../hooks/useDateInUrl.js";
 import {useNavigate} from "react-router-dom";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
-  const calendarRef = useRef(null);
   const [calendarApi, setCalendarApi] = useState(null);
-  const [calendarKey, setCalendarKey] = useState(Date.now());
 
   const {date, setDate, addAlert} = useAppContext();
   const navigate = useNavigate();
   useDateInUrl(date);
 
-  useEffect(() => {
-    if (calendarRef.current) {
-      const api = calendarRef.current.getApi();
-      setCalendarApi(api);
-    }
-  }, [calendarRef.current]);
-
-  const {data, isPending, isPlaceholderData} = useQuery({
+  const {data} = useQuery({
     queryKey: [timeLogApi.key, date, offset],
     queryFn: () => timeLogApi.getHoursForMonth({date: dateTimeService.getFormattedDate(date), offset}),
     onError: async (error) => {
@@ -40,17 +30,14 @@ export default function MonthPage() {
       });
       console.error("Getting hours for month failed:", error);
     },
-    placeholderData: (prev) => prev,
+    initialData: () => [],
     retryDelay: 300,
   });
-
-  useEffect(() => {
-    if (calendarApi && data) {
-      calendarApi.removeAllEvents();
-      calendarApi.addEventSource(data);
-      setCalendarKey(Date.now());
+  const handleCalendarRef = (calendar) => {
+    if (calendar) {
+      setCalendarApi(calendar.getApi());
     }
-  }, [data]);
+  };
 
   const handleClick = (date) => {
     setDate(dayjs(date));
@@ -68,34 +55,24 @@ export default function MonthPage() {
     );
   }
 
-  if (isPending) {
-    return (
-      <div className="absolute inset-1/2">
-        <CircularProgress />
-      </div>
-    );
-  }
-
   return (
     <div className="w-2/3 mx-auto">
       <MonthPicker
         date={date}
         toNext={() => {
           setDate(date.add(1, "month"));
-          calendarApi?.next();
+          calendarApi.next();
         }}
         toPrev={() => {
           setDate(date.subtract(1, "month"));
-          calendarApi?.prev();
+          calendarApi.prev();
         }}
         classNames="my-2"
-        isLoading={isPlaceholderData}
       />
       <FullCalendar
-        key={calendarKey}
         initialDate={new Date(date)}
         events={data}
-        ref={calendarRef}
+        ref={handleCalendarRef}
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         fixedWeekCount={false}
