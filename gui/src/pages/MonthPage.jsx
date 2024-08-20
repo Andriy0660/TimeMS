@@ -48,18 +48,25 @@ export default function MonthPage() {
 
   return (
     <div className="w-2/3 mx-auto">
-      <MonthPicker
-        date={date}
-        toNext={() => {
-          setDate(date.add(1, "month"));
-          calendarApi.next();
-        }}
-        toPrev={() => {
-          setDate(date.subtract(1, "month"));
-          calendarApi.prev();
-        }}
-        classNames="my-2"
-      />
+      <div className="flex items-center">
+        <div className="w-1/3">
+          Month: 160h
+        </div>
+        <div className="min-w-1/3">
+          <MonthPicker
+            date={date}
+            toNext={() => {
+              setDate(date.add(1, "month"));
+              calendarApi.next();
+            }}
+            toPrev={() => {
+              setDate(date.subtract(1, "month"));
+              calendarApi.prev();
+            }}
+            classNames="my-2"
+          />
+        </div>
+      </div>
       <FullCalendar
         initialDate={new Date(date)}
         events={data}
