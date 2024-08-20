@@ -173,25 +173,22 @@ public class TimeLogServiceImpl implements TimeLogService {
     LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
     final LocalTime startOfDay = LocalTime.of(offset, 0);
-    List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startOfDay);
+    final List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startOfDay);
 
-    List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = getDayInfoList(entities, startOfWeek, endOfWeek, startOfDay);
-
-    return new TimeLogHoursForWeekResponse(dayInfoList);
+    return new TimeLogHoursForWeekResponse(getDayInfoList(entities, startOfWeek, endOfWeek, startOfDay));
   }
 
   private List<TimeLogHoursForWeekResponse.DayInfo> getDayInfoList(final List<TimeLogEntity> entities, final LocalDate startOfWeek,
                                                                    final LocalDate endOfWeek, final LocalTime startOfDay) {
-    Set<String> tickets = getTicketsForWeek(entities);
+    final Set<String> tickets = getTicketsForWeek(entities);
 
-    List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
+    final List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
     LocalDate currentDay = startOfWeek;
     while (!currentDay.isAfter(endOfWeek)) {
-      List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = getTicketDurationsForDay(entities, startOfDay, tickets, currentDay);
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
           .date(currentDay)
-          .ticketDurations(ticketDurations)
+          .ticketDurations(getTicketDurationsForDay(entities, startOfDay, tickets, currentDay))
           .build());
 
       currentDay = currentDay.plusDays(1);
@@ -200,7 +197,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   private Set<String> getTicketsForWeek(final List<TimeLogEntity> entities) {
-    Set<String> tickets = entities.stream()
+    final Set<String> tickets = entities.stream()
         .map(TimeLogEntity::getTicket)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
@@ -213,7 +210,7 @@ public class TimeLogServiceImpl implements TimeLogService {
       final LocalTime startOfDay,
       final Set<String> tickets,
       final LocalDate currentDay) {
-    List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = new ArrayList<>();
+    final List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = new ArrayList<>();
     Duration totalForDay = Duration.ZERO;
 
     for (String ticket : tickets) {
@@ -243,11 +240,11 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date, final int offset) {
-    LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
-    LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
+    final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
+    final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
     final LocalTime startOfDay = LocalTime.of(offset, 0);
 
-    List<TimeLogEntity> entities = repository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startOfDay);
+    final List<TimeLogEntity> entities = repository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startOfDay);
     List<TimeLogHoursForMonthResponse.DayInfo> dayInfoList = new ArrayList<>();
     LocalDate currentDay = startOfMonth;
     while (!currentDay.isAfter(endOfMonth)) {
