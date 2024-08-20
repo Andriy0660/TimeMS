@@ -245,20 +245,23 @@ public class TimeLogServiceImpl implements TimeLogService {
     final LocalTime startOfDay = LocalTime.of(offset, 0);
 
     final List<TimeLogEntity> entities = repository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startOfDay);
-    List<TimeLogHoursForMonthResponse.DayInfo> dayInfoList = new ArrayList<>();
+    final List<TimeLogHoursForMonthResponse.DayInfo> dayInfoList = new ArrayList<>();
+    Duration totalDuration = Duration.ZERO;
     LocalDate currentDay = startOfMonth;
     while (!currentDay.isAfter(endOfMonth)) {
+      final Duration durationForDay = getDurationForDay(entities, currentDay, startOfDay);
+      totalDuration = totalDuration.plus(durationForDay);
       dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
           .start(LocalDateTime.of(currentDay, LocalTime.MIN))
-          .title(getDurationForDay(entities, currentDay, startOfDay))
+          .title(formatDuration(durationForDay))
           .build());
 
       currentDay = currentDay.plusDays(1);
     }
-    return new TimeLogHoursForMonthResponse(dayInfoList);
+    return new TimeLogHoursForMonthResponse(formatDuration(totalDuration), dayInfoList);
   }
 
-  private String getDurationForDay(final List<TimeLogEntity> entities, final LocalDate date, final LocalTime startOfDay) {
+  private Duration getDurationForDay(final List<TimeLogEntity> entities, final LocalDate date, final LocalTime startOfDay) {
     Duration duration = Duration.ZERO;
     for (TimeLogEntity entity : entities) {
       if (entity.getStartTime() == null || entity.getEndTime() == null) {
@@ -269,7 +272,7 @@ public class TimeLogServiceImpl implements TimeLogService {
         duration = duration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime()));
       }
     }
-    return formatDuration(duration);
+    return duration;
   }
 
   private TimeLogEntity getRaw(final long timeLogId) {

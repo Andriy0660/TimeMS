@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 public class TimeLogHoursForMonthResponse {
+  private String totalHours;
   private List<DayInfo> items;
 
   @Data

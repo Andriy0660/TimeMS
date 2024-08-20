@@ -18,7 +18,7 @@ const timeLogApi = {
   getHoursForMonth: async (body) => {
     const params = new URLSearchParams({...body});
     const {data} = await axios.get(`/${key}/hoursForMonth`, {params, baseMsg: "Error while getting hours for month"});
-    return data.items;
+    return data;
   },
 
   create: async (body) => {

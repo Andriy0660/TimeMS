@@ -49,8 +49,8 @@ export default function MonthPage() {
   return (
     <div className="w-2/3 mx-auto">
       <div className="flex items-center">
-        <div className="w-1/3">
-          Month: 160h
+        <div className="w-1/3 font-medium">
+          Month: {data.totalHours}
         </div>
         <div className="min-w-1/3">
           <MonthPicker
@@ -69,7 +69,7 @@ export default function MonthPage() {
       </div>
       <FullCalendar
         initialDate={new Date(date)}
-        events={data}
+        events={data.items}
         ref={handleCalendarRef}
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -85,7 +85,7 @@ export default function MonthPage() {
           }
         }}
         eventContent={(eventInfo) =>
-          <MonthPageDuration title={eventInfo.event.title} handleClickDate={() => handleClickDate(date)} />}
+          <MonthPageDuration title={eventInfo.event.title} handleClickDate={() => handleClickDate(eventInfo.event.start)} />}
         eventClassNames={() => ["bg-transparent"]}
       />
     </div>
