@@ -27,7 +27,7 @@ export default function WeekPage() {
     isPending,
     isPlaceholderData,
   } = useQuery({
-    queryKey: [timeLogApi.key, date, offset],
+    queryKey: [timeLogApi.key, "week", date, offset],
     queryFn: () => {
       return timeLogApi.getHoursForWeek({date: dateTimeService.getFormattedDate(date), offset});
     },
@@ -92,7 +92,7 @@ export default function WeekPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data[0].ticketDurations.map(({ticket}) => (
+            {data[0]?.ticketDurations.map(({ticket}) => (
               <TableRow key={ticket}>
                 <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
                 {data.map(dayInfo => {

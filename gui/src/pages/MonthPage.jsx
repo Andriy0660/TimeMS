@@ -22,7 +22,7 @@ export default function MonthPage() {
   useDateInUrl(date);
 
   const {data} = useQuery({
-    queryKey: [timeLogApi.key, date, offset],
+    queryKey: [timeLogApi.key, "month", date, offset],
     queryFn: () => timeLogApi.getHoursForMonth({date: dateTimeService.getFormattedDate(date), offset}),
     onError: async (error) => {
       addAlert({

@@ -7,6 +7,7 @@ import updateLocale from 'dayjs/plugin/updateLocale'
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import Button from "@mui/material/Button";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
+import useAppContext from "../context/useAppContext.js";
 
 dayjs.extend(updateLocale)
 dayjs.updateLocale("en", {
@@ -62,6 +63,7 @@ function Day({day, selectedDay, hoveredDay, ...other}) {
 }
 
 export default function WeekPicker({date, toPrev, toNext, isLoading, className}) {
+  const {setDate} = useAppContext();
   const [hoveredDay, setHoveredDay] = React.useState(null);
 
   const startOfWeekDate = date.startOf('week')
@@ -77,6 +79,7 @@ export default function WeekPicker({date, toPrev, toNext, isLoading, className})
       </Button>
       <DatePicker
         className="w-44"
+        onChange={(newValue) => setDate(newValue)}
         label={`${startOfWeekDate.format("DD/MM/YYYY")} - ${endOfWeekDate.format("DD/MM/YYYY")}`}
         value={date.startOf("week")}
         showDaysOutsideCurrentMonth
