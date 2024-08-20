@@ -11,6 +11,7 @@ import timeLogApi from "../api/timeLogApi.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import useDateInUrl from "../hooks/useDateInUrl.js";
 import {useNavigate} from "react-router-dom";
+import MonthPageDuration from "../components/MonthPageDuration.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -33,27 +34,17 @@ export default function MonthPage() {
     initialData: () => [],
     retryDelay: 300,
   });
+
   const handleCalendarRef = (calendar) => {
     if (calendar) {
       setCalendarApi(calendar.getApi());
     }
   };
 
-  const handleClick = (date) => {
+  const handleClickDate = (date) => {
     setDate(dayjs(date));
     navigate(`/app/timelog`);
   };
-
-  function renderEventContent(eventInfo) {
-    return (
-      <div
-        onClick={() => handleClick(eventInfo.event.start)}
-        className="flex justify-center w-full bg-transparent text-black text-lg font-medium hover:bg-blue-50 hover:cursor-pointer"
-      >
-        {eventInfo.event.title !== "0h 0m" ? eventInfo.event.title : ""}
-      </div>
-    );
-  }
 
   return (
     <div className="w-2/3 mx-auto">
@@ -86,10 +77,9 @@ export default function MonthPage() {
             return ["bg-white"];
           }
         }}
-        eventContent={renderEventContent}
-        eventClassNames={() => {
-          return ["bg-transparent"];
-        }}
+        eventContent={(eventInfo) =>
+          <MonthPageDuration title={eventInfo.event.title} handleClickDate={() => handleClickDate(date)} />}
+        eventClassNames={() => ["bg-transparent"]}
       />
     </div>
   );
