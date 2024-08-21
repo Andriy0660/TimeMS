@@ -1,4 +1,5 @@
 import dateTimeService from "./dateTimeService.js";
+import dayjs from "dayjs";
 
 const timeLogProcessingService = {
   group(data, groupOrder) {
@@ -45,8 +46,8 @@ const timeLogProcessingService = {
         return Number.MAX_SAFE_INTEGER;
       }
       const startOfDay = dateTimeService.getStartOfDay();
-      return dateTimeService.compareTimes(time, startOfDay) < 0 ? time.add(1, "day").diff(startOfDay, "minutes")
-        : time.diff(startOfDay, "minutes");
+      return dateTimeService.compareTimes(dayjs(time), startOfDay) < 0 ? dayjs(time).add(1, "day").diff(startOfDay, "minutes")
+        : dayjs(time).diff(startOfDay, "minutes");
     }
     return data.sort((a, b) => getDiffInMinutes(a.startTime) - getDiffInMinutes(b.startTime));
   },
