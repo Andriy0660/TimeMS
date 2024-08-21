@@ -28,6 +28,8 @@ import {startHourOfDay} from "../config/timeConfig.js";
 import TotalTimeLabel from "../components/TotalTimeLabel.jsx";
 import DayProgressBar from "../components/DayProgressBar.jsx";
 import ClearIcon from '@mui/icons-material/Clear';
+import fileService from "../service/fileService.js";
+import Button from "@mui/material/Button";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -219,6 +221,18 @@ export default function TimeLogPage() {
     }
   });
 
+  const saveFile = async () => {
+    const formattedText = fileService.convertToTxt(processedDataRef.current);
+    const blob = new Blob([formattedText], {type: "text/plain"});
+    const a = document.createElement('a');
+    a.download = `${dateTimeService.getFormattedDate(date)}-${mode}`
+    a.href = URL.createObjectURL(blob);
+    a.addEventListener("click", (e) => {
+      setTimeout(() => URL.revokeObjectURL(a.href), 30 * 1000);
+    });
+    a.click();
+  };
+
   useEffect(() => {
     if (listAllError) {
       addAlert({
@@ -328,7 +342,17 @@ export default function TimeLogPage() {
 
           }
         </div>
-        <TotalTimeLabel label={totalTimeLabel} />
+        <div className="flex justify-between items-center">
+          <TotalTimeLabel label={totalTimeLabel} />
+          <Button
+            className="mr-4 mt-6"
+            variant="outlined"
+            onClick={saveFile}
+          >
+            Export
+          </Button>
+
+        </div>
         {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds} />}
 
         <TimeLogList
