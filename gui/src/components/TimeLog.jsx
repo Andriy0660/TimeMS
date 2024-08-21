@@ -306,7 +306,8 @@ export default function TimeLog({
     )
   }
 
-  const progressTime = status === "InProgress" ? dateTimeService.getDurationOfProgressTimeLog(timeLog.startTime) : null;
+  const progressTime = status === "InProgress" ? dateTimeService.formatDuration(
+    dateTimeService.getDurationInMinutes(timeLog.startTime, null)) : null;
   const statusConfig = {
     Done: {
       label: totalTime,

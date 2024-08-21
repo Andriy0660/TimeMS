@@ -110,9 +110,9 @@ export default function TimeLogPage() {
 
   function calculateTotalTimeLabel(groupedData, groupByDescription) {
     if (groupByDescription) {
-      return dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedData.data));
+      return dateTimeService.formatDuration(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedData.data));
     } else {
-      return dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeGroupedByDate(groupedData.data));
+      return dateTimeService.formatDuration(dateTimeService.getTotalTimeGroupedByDate(groupedData.data));
     }
   }
 
@@ -281,7 +281,6 @@ export default function TimeLogPage() {
             inputProps={{"aria-label": "Without label"}}
             value={mode}
             onChange={(event) => {
-              setDate(dayjs());
               setMode(event.target.value);
             }}
             autoWidth

@@ -49,15 +49,6 @@ const dateTimeService = {
     const t2 = time2.hour() * 60 + time2.minute();
     return t1 - t2;
   },
-  getDurationOfProgressTimeLog(startTime) {
-    const currentTime = dayjs();
-    const diffInMinutes = currentTime.diff(startTime, "minute");
-    if(currentTime.isAfter(startTime) && diffInMinutes < 1440) {
-      return `${currentTime.diff(startTime, "hour")}h ${diffInMinutes % 60}m`;
-    } else {
-      return null;
-    }
-  },
   buildDate(date, startTime) {
     date = dayjs(date);
     if (startTime && this.compareTimes(dayjs(startTime, "HH:mm"), dayjs().startOf("day")) > 0 &&
@@ -90,21 +81,13 @@ const dateTimeService = {
     }
     return endTime
   },
-  getTotalMinutes(timeString) {
-    const hoursMatch = parseInt(timeString.match(/(\d+)h/)[1], 10);
-    const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
-    return hoursMatch * 60 + minutesMatch;
-  },
   getTotalTimeForTimeLogs(timelogs) {
     let totalTime = 0;
     totalTime += timelogs.reduce((result, item) => {
       if (item.status === "Done") {
-        result += dateTimeService.getTotalMinutes(item.totalTime);
+        result += dateTimeService.parseMinutes(item.totalTime);
       } else if (item.status === "InProgress") {
-        const progressTime = dateTimeService.getDurationOfProgressTimeLog(item.startTime);
-        if (progressTime) {
-          result += dateTimeService.getTotalMinutes(progressTime);
-        }
+        result += dateTimeService.getDurationInMinutes(item.startTime, null) || 0;
       }
       return result;
     }, 0)
@@ -124,8 +107,29 @@ const dateTimeService = {
     })
     return totalTime;
   },
-  getTotalTimeLabel(totalTime) {
-    return `${Math.floor(totalTime / 60)}h ${totalTime % 60}m`;
-  }
+  formatDuration(totalMinutes) {
+    if(totalMinutes === null) return null;
+    return `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+  },
+  parseMinutes(timeString) {
+    const hoursMatch = parseInt(timeString.match(/(\d+)h/)[1], 10);
+    const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
+    return hoursMatch * 60 + minutesMatch;
+  },
+  getDurationInMinutes(startTime, endTime) {
+    if (!startTime) return null;
+
+    const calculateDuration = (end) => {
+      if (end.isBefore(startTime)) return null;
+      const minutes = end.diff(startTime, "minute");
+      return minutes < 1440 ? minutes : null;
+    }
+
+    if (!endTime) {
+      const currentTime = dayjs();
+      return calculateDuration(currentTime);
+    }
+    return calculateDuration(endTime);
+  },
 }
 export default dateTimeService;

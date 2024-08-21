@@ -14,7 +14,7 @@ export default function TimeLogGroupedByDescription({
   changeDate,
   hoveredTimeLogIds
 }) {
-  const totalTimeLabel = dateTimeService.getTotalTimeLabel(dateTimeService.getTotalTimeForTimeLogs(logsForDescription))
+  const totalTimeLabel = dateTimeService.formatDuration(dateTimeService.getTotalTimeForTimeLogs(logsForDescription))
 
   const ids = logsForDescription.reduce((result, item) => {
     result.push(item.id)
