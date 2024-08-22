@@ -143,6 +143,25 @@ export default function TimeLogPage() {
     }
   });
 
+  const {mutateAsync: merge} = useMutation({
+    mutationFn: (body) => timeLogApi.merge(body),
+    onSuccess: async (body) => {
+      queryClient.invalidateQueries(timeLogApi.key);
+      addAlert({
+        text: "Imported successfully",
+        type: "success"
+      });
+
+    },
+    onError: async (error, body) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      })
+      console.error("Importing failed:", error);
+    }
+  });
+
   const {mutateAsync: update} = useMutation({
     mutationFn: (body) => timeLogApi.update(body),
     onSuccess: async (body) => {
