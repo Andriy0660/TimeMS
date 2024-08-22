@@ -1,4 +1,3 @@
-import {useEffect} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
@@ -6,38 +5,29 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import dayjs from "dayjs";
 import WeekPicker from "../components/WeekPicker.jsx";
-import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
-import {LocalizationProvider} from "@mui/x-date-pickers";
 import dateTimeService from "../service/dateTimeService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import {CircularProgress} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
-import {useNavigate} from "react-router-dom";
 import CustomTableCell from "../components/CustomTableCell.jsx";
-
+import useDateInUrl from "../hooks/useDateInUrl.js";
+import {useNavigate} from "react-router-dom";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
   const {date, setDate, addAlert} = useAppContext();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (date && !dayjs().isSame(date, "day")) {
-      params.set("date", dateTimeService.getFormattedDateTime(date));
-    }
-    navigate({search: params.toString()});
-  }, [date]);
+  useDateInUrl(date);
 
   const {
     data,
     isPending,
     isPlaceholderData,
   } = useQuery({
-    queryKey: [timeLogApi.key, date, offset],
+    queryKey: [timeLogApi.key, "week", date, offset],
     queryFn: () => {
       return timeLogApi.getHoursForWeek({date: dateTimeService.getFormattedDate(date), offset});
     },
@@ -76,56 +66,59 @@ export default function WeekPage() {
 
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div>
-        <WeekPicker className="mt-4" date={date} setDate={setDate} isPlaceholderData={isPlaceholderData} />
-        <TableContainer className="flex mx-auto my-6 w-2/3">
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <CustomTableCell><></>
+    <div>
+      <WeekPicker
+        className="mt-4"
+        date={date}
+        toPrev={() => setDate(date.subtract(1, "week"))}
+        toNext={() => setDate(date.add(1, "week"))}
+        isLoading={isPlaceholderData} />
+      <TableContainer className="flex mx-auto my-6 w-2/3">
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <CustomTableCell><></>
+              </CustomTableCell>
+              {data.map(dayInfo => (
+                <CustomTableCell
+                  key={dayInfo.date}
+                  isHover
+                  onClick={() => handleClick(dayInfo.date)}
+                >
+                  {dayInfo.dayName}
                 </CustomTableCell>
-                {data.map(dayInfo => (
-                  <CustomTableCell
-                    key={dayInfo.date}
-                    isHover
-                    onClick={() => handleClick(dayInfo.date)}
-                  >
-                    {dayInfo.dayName}
-                  </CustomTableCell>
-                ))}
-                <CustomTableCell isBold>Total</CustomTableCell>
+              ))}
+              <CustomTableCell isBold>Total</CustomTableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data[0]?.ticketDurations.map(({ticket}) => (
+              <TableRow key={ticket}>
+                <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
+                {data.map(dayInfo => {
+                  const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
+                  return (
+                    <CustomTableCell
+                      key={`${dayInfo.date}-${ticket}`}
+                      isBold={ticket === "Total"}
+                      isHover={ticket === "Total"}
+                      onClick={() => {
+                        if (ticket === "Total") {
+                          handleClick(dayInfo.date);
+                        }
+                      }}
+                    >
+                      {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
+                    </CustomTableCell>
+                  );
+                })}
+                <CustomTableCell isBold>{getTotalTimeForTicket(ticket)}</CustomTableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {data[0].ticketDurations.map(({ticket}) => (
-                <TableRow key={ticket}>
-                  <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
-                  {data.map(dayInfo => {
-                    const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
-                    return (
-                      <CustomTableCell
-                        key={`${dayInfo.date}-${ticket}`}
-                        isBold={ticket === "Total"}
-                        isHover={ticket === "Total"}
-                        onClick={() => {
-                          if (ticket === "Total") {
-                            handleClick(dayInfo.date);
-                          }
-                        }}
-                      >
-                        {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
-                      </CustomTableCell>
-                    );
-                  })}
-                  <CustomTableCell isBold>{getTotalTimeForTicket(ticket)}</CustomTableCell>
-                </TableRow>
-              ))
-              }
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
-    </LocalizationProvider>
+            ))
+            }
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div>
   )
 }

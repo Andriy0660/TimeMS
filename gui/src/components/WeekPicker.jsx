@@ -7,6 +7,7 @@ import updateLocale from 'dayjs/plugin/updateLocale'
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import Button from "@mui/material/Button";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
+import useAppContext from "../context/useAppContext.js";
 
 dayjs.extend(updateLocale)
 dayjs.updateLocale("en", {
@@ -61,7 +62,8 @@ function Day({day, selectedDay, hoveredDay, ...other}) {
   );
 }
 
-export default function WeekPicker({date, setDate, isPlaceholderData, className}) {
+export default function WeekPicker({date, toPrev, toNext, isLoading, className}) {
+  const {setDate} = useAppContext();
   const [hoveredDay, setHoveredDay] = React.useState(null);
 
   const startOfWeekDate = date.startOf('week')
@@ -70,18 +72,16 @@ export default function WeekPicker({date, setDate, isPlaceholderData, className}
   return (
     <div className={`flex items-center justify-center ${className}`}>
       <Button
-        onClick={() => {
-          setDate(date.subtract(1, "week"))
-        }}
-        disabled={isPlaceholderData}
+        onClick={toPrev}
+        disabled={isLoading}
       >
         <ArrowBackIosIcon />
       </Button>
       <DatePicker
         className="w-44"
+        onChange={(newValue) => setDate(newValue)}
         label={`${startOfWeekDate.format("DD/MM/YYYY")} - ${endOfWeekDate.format("DD/MM/YYYY")}`}
         value={date.startOf("week")}
-        onChange={(newValue) => setDate(newValue)}
         showDaysOutsideCurrentMonth
         slots={{day: Day}}
         slotProps={{
@@ -96,10 +96,8 @@ export default function WeekPicker({date, setDate, isPlaceholderData, className}
         format="DD/MM/YYYY"
       />
       <Button
-        onClick={() => {
-          setDate(date.add(1, "week"))
-        }}
-        disabled={isPlaceholderData}
+        onClick={toNext}
+        disabled={isLoading}
       >
         <ArrowForwardIosIcon />
       </Button>

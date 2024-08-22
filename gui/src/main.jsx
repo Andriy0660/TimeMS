@@ -5,6 +5,8 @@ import {createTheme, CssBaseline, StyledEngineProvider, ThemeProvider} from "@mu
 import './index.css'
 import {AppProvider} from "./context/AppContext.jsx";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {LocalizationProvider} from "@mui/x-date-pickers";
 
 const rootElement = document.getElementById("root");
 
@@ -43,7 +45,9 @@ root.render(
         <CssBaseline>
           <QueryClientProvider client={queryClient}>
             <AppProvider>
-              <App />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <App />
+              </LocalizationProvider>
             </AppProvider>
           </QueryClientProvider>
         </CssBaseline>

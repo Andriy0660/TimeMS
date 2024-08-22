@@ -15,6 +15,12 @@ const timeLogApi = {
     return data.items;
   },
 
+  getHoursForMonth: async (body) => {
+    const params = new URLSearchParams({...body});
+    const {data} = await axios.get(`/${key}/hoursForMonth`, {params, baseMsg: "Error while getting hours for month"});
+    return data;
+  },
+
   create: async (body) => {
     const {data} = await axios.post(`/${key}`, {...body}, {baseMsg: "Error while creating time log"});
     return data;

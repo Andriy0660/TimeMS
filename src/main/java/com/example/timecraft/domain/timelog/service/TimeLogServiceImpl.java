@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
@@ -23,6 +24,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
@@ -171,25 +173,22 @@ public class TimeLogServiceImpl implements TimeLogService {
     LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
     final LocalTime startOfDay = LocalTime.of(offset, 0);
-    List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startOfDay);
+    final List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startOfDay);
 
-    List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = getDayInfoList(entities, startOfWeek, endOfWeek, startOfDay);
-
-    return new TimeLogHoursForWeekResponse(dayInfoList);
+    return new TimeLogHoursForWeekResponse(getDayInfoList(entities, startOfWeek, endOfWeek, startOfDay));
   }
 
   private List<TimeLogHoursForWeekResponse.DayInfo> getDayInfoList(final List<TimeLogEntity> entities, final LocalDate startOfWeek,
                                                                    final LocalDate endOfWeek, final LocalTime startOfDay) {
-    Set<String> tickets = getTicketsForWeek(entities);
+    final Set<String> tickets = getTicketsForWeek(entities);
 
-    List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
+    final List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
     LocalDate currentDay = startOfWeek;
     while (!currentDay.isAfter(endOfWeek)) {
-      List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = getTicketDurationsForDay(entities, startOfDay, tickets, currentDay);
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
           .date(currentDay)
-          .ticketDurations(ticketDurations)
+          .ticketDurations(getTicketDurationsForDay(entities, startOfDay, tickets, currentDay))
           .build());
 
       currentDay = currentDay.plusDays(1);
@@ -198,7 +197,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   private Set<String> getTicketsForWeek(final List<TimeLogEntity> entities) {
-    Set<String> tickets = entities.stream()
+    final Set<String> tickets = entities.stream()
         .map(TimeLogEntity::getTicket)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
@@ -211,7 +210,7 @@ public class TimeLogServiceImpl implements TimeLogService {
       final LocalTime startOfDay,
       final Set<String> tickets,
       final LocalDate currentDay) {
-    List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = new ArrayList<>();
+    final List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = new ArrayList<>();
     Duration totalForDay = Duration.ZERO;
 
     for (String ticket : tickets) {
@@ -237,6 +236,43 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
     ticketDurations.add(new TimeLogHoursForWeekResponse.TicketDuration("Total", formatDuration(totalForDay)));
     return ticketDurations;
+  }
+
+  @Override
+  public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date, final int offset) {
+    final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
+    final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
+    final LocalTime startOfDay = LocalTime.of(offset, 0);
+
+    final List<TimeLogEntity> entities = repository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startOfDay);
+    final List<TimeLogHoursForMonthResponse.DayInfo> dayInfoList = new ArrayList<>();
+    Duration totalDuration = Duration.ZERO;
+    LocalDate currentDay = startOfMonth;
+    while (!currentDay.isAfter(endOfMonth)) {
+      final Duration durationForDay = getDurationForDay(entities, currentDay, startOfDay);
+      totalDuration = totalDuration.plus(durationForDay);
+      dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
+          .start(LocalDateTime.of(currentDay, LocalTime.MIN))
+          .title(formatDuration(durationForDay))
+          .build());
+
+      currentDay = currentDay.plusDays(1);
+    }
+    return new TimeLogHoursForMonthResponse(formatDuration(totalDuration), dayInfoList);
+  }
+
+  private Duration getDurationForDay(final List<TimeLogEntity> entities, final LocalDate date, final LocalTime startOfDay) {
+    Duration duration = Duration.ZERO;
+    for (TimeLogEntity entity : entities) {
+      if (entity.getStartTime() == null || entity.getEndTime() == null) {
+        continue;
+      }
+      if ((entity.getDate().isEqual(date) && !entity.getStartTime().isBefore(startOfDay)) ||
+          (entity.getDate().minusDays(1).equals(date) && entity.getStartTime().isBefore(startOfDay))) {
+        duration = duration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime()));
+      }
+    }
+    return duration;
   }
 
   private TimeLogEntity getRaw(final long timeLogId) {
