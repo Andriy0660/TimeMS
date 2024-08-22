@@ -50,10 +50,10 @@ export default function WeekPage() {
   const getTotalTimeForTicket = (ticket) => {
     const totalTime = data.reduce((result, {ticketDurations}) => {
       const ticketDuration = ticketDurations.find(td => td.ticket === ticket);
-      result += dateTimeService.getTotalMinutes(ticketDuration.duration)
+      result += dateTimeService.parseMinutes(ticketDuration.duration)
       return result;
     }, 0)
-    return dateTimeService.getTotalTimeLabel(totalTime);
+    return dateTimeService.formatDuration(totalTime);
   }
 
   if (isPending) {
