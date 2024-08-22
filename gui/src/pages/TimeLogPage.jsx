@@ -36,7 +36,7 @@ export default function TimeLogPage() {
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
 
   const queryParams = new URLSearchParams(location.search);
-  const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs());
+  const {date, setDate, addAlert} = useAppContext();
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
   const offset = startHourOfDay;
   const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
@@ -45,7 +45,6 @@ export default function TimeLogPage() {
 
   const [totalTimeLabel, setTotalTimeLabel] = useState("")
   const queryClient = useQueryClient();
-  const {addAlert} = useAppContext();
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -75,7 +74,7 @@ export default function TimeLogPage() {
     placeholderData: (prev) => prev,
     retryDelay: 300,
   });
-  const processedDataRef = useRef(null);
+  const processedDataRef = useRef([]);
   useEffect(() => {
     const processedData = timeLogProcessingService.processData(data, selectedTickets);
     processedDataRef.current = processedData;
@@ -233,7 +232,7 @@ export default function TimeLogPage() {
 
   if (isListing) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="absolute inset-1/2">
         <CircularProgress />
       </div>
     );

@@ -2,6 +2,7 @@ import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom";
 import InfoPage from "./pages/InfoPage.jsx";
 import TimeLogPage from "./pages/TimeLogPage.jsx";
 import Root from "./Root.jsx";
+import WeekPage from "./pages/WeekPage.jsx";
 function App() {
   const router = createBrowserRouter([
     {
@@ -19,6 +20,10 @@ function App() {
         {
           path: "/app/timelog",
           element: <TimeLogPage />,
+        },
+        {
+          path: "/app/weekview",
+          element: <WeekPage />,
         },
         {
           path: "/app/info",

@@ -61,14 +61,14 @@ function Day({day, selectedDay, hoveredDay, ...other}) {
   );
 }
 
-export default function WeekPicker({date, setDate, isPlaceholderData}) {
+export default function WeekPicker({date, setDate, isPlaceholderData, className}) {
   const [hoveredDay, setHoveredDay] = React.useState(null);
 
   const startOfWeekDate = date.startOf('week')
   const endOfWeekDate = date.endOf('week')
 
   return (
-    <div className="flex items-center justify-center">
+    <div className={`flex items-center justify-center ${className}`}>
       <Button
         onClick={() => {
           setDate(date.subtract(1, "week"))

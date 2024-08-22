@@ -1,6 +1,7 @@
 import TimeLogGroupedByDate from "../components/TimeLogGroupedByDate.jsx";
 import TimeLogGroupedByDescription from "../components/TimeLogGroupedByDescription.jsx";
 import dateTimeService from "./dateTimeService.js";
+import {CircularProgress} from "@mui/material";
 
 const timeLogRenderingService = {
   render({timeLogs, ...props}) {
@@ -22,6 +23,12 @@ const timeLogRenderingService = {
             <TimeLogGroupedByDate {...props} date={date} logsForDate={logsForDate} renderInner={this.renderDescriptionGroup(props)} />
           </div>
         ))
+      case undefined :
+        return (
+          <div className="absolute inset-1/2">
+            <CircularProgress />
+          </div>
+        );
       default :
         console.error("No matching render function found for timeLogs:", timeLogs);
         return null;

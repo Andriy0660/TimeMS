@@ -1,0 +1,131 @@
+import {useEffect} from 'react';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import dayjs from "dayjs";
+import WeekPicker from "../components/WeekPicker.jsx";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {LocalizationProvider} from "@mui/x-date-pickers";
+import dateTimeService from "../service/dateTimeService.js";
+import {startHourOfDay} from "../config/timeConfig.js";
+import {useQuery} from "@tanstack/react-query";
+import timeLogApi from "../api/timeLogApi.js";
+import {CircularProgress} from "@mui/material";
+import useAppContext from "../context/useAppContext.js";
+import {useNavigate} from "react-router-dom";
+import CustomTableCell from "../components/CustomTableCell.jsx";
+
+
+export default function WeekPage() {
+  const offset = startHourOfDay;
+
+  const {date, setDate, addAlert} = useAppContext();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (date && !dayjs().isSame(date, "day")) {
+      params.set("date", dateTimeService.getFormattedDateTime(date));
+    }
+    navigate({search: params.toString()});
+  }, [date]);
+
+  const {
+    data,
+    isPending,
+    isPlaceholderData,
+  } = useQuery({
+    queryKey: [timeLogApi.key, date, offset],
+    queryFn: () => {
+      return timeLogApi.getHoursForWeek({date: dateTimeService.getFormattedDate(date), offset});
+    },
+    onError: async (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      })
+      console.error("Getting hours for week failed:", error);
+    },
+    placeholderData: (prev) => prev,
+    retryDelay: 300,
+  });
+
+  const handleClick = (date) => {
+    setDate(dayjs(date))
+    navigate(`/app/timelog`)
+  }
+
+  const getTotalTimeForTicket = (ticket) => {
+    const totalTime = data.reduce((result, {ticketDurations}) => {
+      const ticketDuration = ticketDurations.find(td => td.ticket === ticket);
+      result += dateTimeService.getTotalMinutes(ticketDuration.duration)
+      return result;
+    }, 0)
+    return dateTimeService.getTotalTimeLabel(totalTime);
+  }
+
+  if (isPending) {
+    return (
+      <div className="absolute inset-1/2">
+        <CircularProgress />
+      </div>
+    );
+  }
+
+
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <div>
+        <WeekPicker className="mt-4" date={date} setDate={setDate} isPlaceholderData={isPlaceholderData} />
+        <TableContainer className="flex mx-auto my-6 w-2/3">
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <CustomTableCell><></>
+                </CustomTableCell>
+                {data.map(dayInfo => (
+                  <CustomTableCell
+                    key={dayInfo.date}
+                    isHover
+                    onClick={() => handleClick(dayInfo.date)}
+                  >
+                    {dayInfo.dayName}
+                  </CustomTableCell>
+                ))}
+                <CustomTableCell isBold>Total</CustomTableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data[0].ticketDurations.map(({ticket}) => (
+                <TableRow key={ticket}>
+                  <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
+                  {data.map(dayInfo => {
+                    const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
+                    return (
+                      <CustomTableCell
+                        key={`${dayInfo.date}-${ticket}`}
+                        isBold={ticket === "Total"}
+                        isHover={ticket === "Total"}
+                        onClick={() => {
+                          if (ticket === "Total") {
+                            handleClick(dayInfo.date);
+                          }
+                        }}
+                      >
+                        {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
+                      </CustomTableCell>
+                    );
+                  })}
+                  <CustomTableCell isBold>{getTotalTimeForTicket(ticket)}</CustomTableCell>
+                </TableRow>
+              ))
+              }
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
+    </LocalizationProvider>
+  )
+}

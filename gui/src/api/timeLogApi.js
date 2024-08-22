@@ -9,6 +9,12 @@ const timeLogApi = {
     return data.items;
   },
 
+  getHoursForWeek: async (body) => {
+    const params = new URLSearchParams({...body});
+    const {data} = await axios.get(`/${key}/hoursForWeek`, {params, baseMsg: "Error while getting hours for week"});
+    return data.items;
+  },
+
   create: async (body) => {
     const {data} = await axios.post(`/${key}`, {...body}, {baseMsg: "Error while creating time log"});
     return data;

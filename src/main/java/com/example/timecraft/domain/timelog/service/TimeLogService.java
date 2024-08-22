@@ -6,6 +6,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
@@ -17,6 +18,7 @@ public interface TimeLogService {
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 
   TimeLogGetResponse get(final long timeLogId);
+  TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date, final int offset);
 
   TimeLogUpdateResponse update(final long timeLogId, final TimeLogUpdateRequest request);
 
