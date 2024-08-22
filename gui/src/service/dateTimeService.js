@@ -3,13 +3,13 @@ import {startHourOfDay} from "../config/timeConfig.js";
 
 const dateTimeService = {
   getFormattedTime(time) {
-    return time?.format("HH:mm")
+    return time && time.isValid() ? time.format("HH:mm") : null;
   },
   getFormattedDate(time) {
-    return time?.format("YYYY-MM-DD")
+    return time && time.isValid() ? time.format("YYYY-MM-DD") : null;
   },
   getFormattedDateTime(time) {
-    return time?.format("YYYY-MM-DDTHH:mm")
+    return time && time.isValid() ? time.format("YYYY-MM-DDTHH:mm") : null;
   },
   isSameDate(date1, date2) {
     if (!date1 && !date2) return true;
@@ -28,7 +28,7 @@ const dateTimeService = {
     }
   },
   isNextDay(dateTime) {
-    return dateTime ? this.compareTimes(dateTime, this.getStartOfDay()) < 0 && this.compareTimes(dateTime, dayjs().startOf("day")) > 0 : false;
+    return dateTime && dateTime.isValid() ? this.compareTimes(dateTime, this.getStartOfDay()) < 0 && this.compareTimes(dateTime, dayjs().startOf("day")) > 0 : false;
   },
   getStartOfDay() {
     return dayjs().startOf("day").add(startHourOfDay, "hour");
