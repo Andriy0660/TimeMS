@@ -39,37 +39,89 @@ const fileService = {
   },
 
   parseTimeLogs(content) {
+    const igorFormatRegex = /[+-]\s+(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*).*\[(.+)\] (.*)/;
+    const andriiFormatRegex = /(.*?) -\s*(?:(.*)\(.*\) - )?(.*)?/;
+
     const lines = content.split('\n');
     const parsedData = [];
     let currentDate = null;
 
     lines.forEach((line, index) => {
-      if (dayjs(line, "ddd DD.MM.YYYY").isValid()) {
-        currentDate = dayjs(line, "ddd DD.MM.YYYY");
+      if (line.trim().length === 0) return;
+
+      const date = this.getDate(line);
+      if (date) {
+        currentDate = date;
       } else {
-        const logMatch = line.match(/^[+-]\s+(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*)(.*)\[(.+)\] (.*)$/);
-        if (logMatch && currentDate) {
-          const startTime = logMatch[1] !== "**:**" ? logMatch[1] : null;
-          const endTime = logMatch[2] !== "**:**" ? logMatch[2] : null;
-          const ticket = logMatch[4] !== "???" ? logMatch[4] : null;
-          const description = logMatch[5] || null;
-          if (startTime && dateTimeService.isNextDay(dayjs(startTime, "HH:mm"))) {
-            currentDate = currentDate.add(1, "day");
-          }
-          parsedData.push({
-            date: dateTimeService.getFormattedDate(currentDate),
-            startTime: startTime,
-            endTime: endTime,
-            ticket: ticket,
-            description: description
-          });
-        } else {
+        if (!currentDate || (!igorFormatRegex.test(line) && !andriiFormatRegex.test(line))) {
           throw new Error("Invalid format at line " + (index + 1));
+        }
+        if (igorFormatRegex.test(line)) {
+          parsedData.push(this.getTimeLogFromIgorFormat(currentDate, line.match(igorFormatRegex)));
+        } else {
+          parsedData.push(this.getTimeLogFromAndriiFormat(currentDate, line.match(andriiFormatRegex)));
         }
       }
     });
 
     return parsedData;
+  },
+
+  getDate(line) {
+    const getIgorDate = (line) => dayjs(line, "ddd DD.MM.YYYY");
+    const getAndriiDate = (line) => dayjs(line.replace(/-/g, ''), "DD.MM.YYYY");
+
+    const igorDate = getIgorDate(line);
+    if (igorDate.isValid()) {
+      return igorDate;
+    }
+
+    const andriiDate = getAndriiDate(line);
+    if (andriiDate.isValid()) {
+      return andriiDate;
+    }
+
+    return null;
+  },
+
+  getTimeLogFromIgorFormat(currentDate, logMatch) {
+    const startTime = dayjs(logMatch[1] !== "**:**" ? logMatch[1] : null, "HH:mm");
+    const endTime = dayjs(logMatch[2] !== "**:**" ? logMatch[2] : null, "HH:mm");
+    const ticket = logMatch[3] !== "???" ? logMatch[3] : null;
+    const description = logMatch[4] || null;
+    let date = currentDate;
+    if (dateTimeService.isNextDay(startTime)) {
+      date = date.add(1, "day");
+    }
+    return {
+      date: dateTimeService.getFormattedDate(date),
+      startTime: dateTimeService.getFormattedTime(startTime),
+      endTime: dateTimeService.getFormattedTime(endTime),
+      ticket, description
+    }
+  },
+
+  getTimeLogFromAndriiFormat(currentDate, logMatch) {
+    const startTime = this.parseAndriiTime(logMatch[1]);
+    const endTime = this.parseAndriiTime(logMatch[2]);
+    const description = logMatch[3] || null;
+    let date = currentDate;
+    if (dateTimeService.isNextDay(startTime)) {
+      date = date.add(1, "day");
+    }
+    return {
+      date: dateTimeService.getFormattedDate(date),
+      startTime: dateTimeService.getFormattedTime(startTime),
+      endTime: dateTimeService.getFormattedTime(endTime),
+      description
+    }
+  },
+  parseAndriiTime(timeString) {
+    if (!timeString) return null;
+    if (!timeString.includes(".")) {
+      timeString += ".00";
+    }
+    return dayjs(timeString, "H:m");
   }
 }
 export default fileService;
