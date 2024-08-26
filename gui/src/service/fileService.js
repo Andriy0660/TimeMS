@@ -2,6 +2,7 @@ import timeLogProcessingService from "./timeLogProcessingService.js";
 import dateTimeService from "./dateTimeService.js";
 import dayjs from "dayjs";
 
+
 const fileService = {
   convertToTxt(data) {
     const groupedData = timeLogProcessingService.group(data, ["date"]).data;
@@ -39,89 +40,104 @@ const fileService = {
   },
 
   parseTimeLogs(content) {
-    const igorFormatRegex = /[+-]\s+(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*).*\[(.+)\] (.*)/;
-    const andriiFormatRegex = /(.*?) -\s*(?:(.*)\(.*\) - )?(.*)?/;
-
     const lines = content.split('\n');
     const parsedData = [];
     let currentDate = null;
-
     lines.forEach((line, index) => {
       if (line.trim().length === 0) return;
 
-      const date = this.getDate(line);
+      const date = parsers.reduce((date, parser) => date || parser.getDate(line), null);
       if (date) {
         currentDate = date;
       } else {
-        if (!currentDate || (!igorFormatRegex.test(line) && !andriiFormatRegex.test(line))) {
+        const parser = parsers.find(p => p.isValid(line));
+        if (!parser) {
+          console.log(line);
           throw new Error("Invalid format at line " + (index + 1));
         }
-        if (igorFormatRegex.test(line)) {
-          parsedData.push(this.getTimeLogFromIgorFormat(currentDate, line.match(igorFormatRegex)));
-        } else {
-          parsedData.push(this.getTimeLogFromAndriiFormat(currentDate, line.match(andriiFormatRegex)));
-        }
+        parsedData.push(parser.parse(currentDate, line.match(parser.regex)));
       }
     });
 
     return parsedData;
   },
 
-  getDate(line) {
-    const getIgorDate = (line) => dayjs(line, "ddd DD.MM.YYYY");
-    const getAndriiDate = (line) => dayjs(line.replace(/-/g, ''), "DD.MM.YYYY");
+}
 
-    const igorDate = getIgorDate(line);
-    if (igorDate.isValid()) {
-      return igorDate;
-    }
-
-    const andriiDate = getAndriiDate(line);
-    if (andriiDate.isValid()) {
-      return andriiDate;
-    }
-
-    return null;
+const parsers = [
+  {
+    isValid: isValidIgorFormat,
+    parse: parseIgorFormat,
+    getDate: getIgorDate,
+    regex: /[+-]\s+(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*).*\[(.+)\] (.*)/
   },
+  {
+    isValid: isValidAndriiFormat,
+    parse: parseAndriiFormat,
+    getDate: getAndriiDate,
+    regex: /(.*?) -\s*(?:(.*)\(.*\) - )?(.*)?/
+  }
+];
 
-  getTimeLogFromIgorFormat(currentDate, logMatch) {
-    const startTime = dayjs(logMatch[1] !== "**:**" ? logMatch[1] : null, "HH:mm");
-    const endTime = dayjs(logMatch[2] !== "**:**" ? logMatch[2] : null, "HH:mm");
-    const ticket = logMatch[3] !== "???" ? logMatch[3] : null;
-    const description = logMatch[4] || null;
-    let date = currentDate;
-    if (dateTimeService.isNextDay(startTime)) {
-      date = date.add(1, "day");
-    }
-    return {
-      date: dateTimeService.getFormattedDate(date),
-      startTime: dateTimeService.getFormattedTime(startTime),
-      endTime: dateTimeService.getFormattedTime(endTime),
-      ticket, description
-    }
-  },
-
-  getTimeLogFromAndriiFormat(currentDate, logMatch) {
-    const startTime = this.parseAndriiTime(logMatch[1]);
-    const endTime = this.parseAndriiTime(logMatch[2]);
-    const description = logMatch[3] || null;
-    let date = currentDate;
-    if (dateTimeService.isNextDay(startTime)) {
-      date = date.add(1, "day");
-    }
-    return {
-      date: dateTimeService.getFormattedDate(date),
-      startTime: dateTimeService.getFormattedTime(startTime),
-      endTime: dateTimeService.getFormattedTime(endTime),
-      description
-    }
-  },
-  parseAndriiTime(timeString) {
-    if (!timeString) return null;
-    if (!timeString.includes(".")) {
-      timeString += ".00";
-    }
-    return dayjs(timeString, "H:m");
+function parseIgorFormat(currentDate, match) {
+  const startTime = dayjs(match[1] !== "**:**" ? match[1] : null, "HH:mm");
+  const endTime = dayjs(match[2] !== "**:**" ? match[2] : null, "HH:mm");
+  const ticket = match[3] !== "???" ? match[3] : null;
+  const description = match[4] || null;
+  let date = currentDate;
+  if (dateTimeService.isNextDay(startTime)) {
+    date = date.add(1, "day");
+  }
+  return {
+    date: dateTimeService.getFormattedDate(date),
+    startTime: dateTimeService.getFormattedTime(startTime),
+    endTime: dateTimeService.getFormattedTime(endTime),
+    ticket, description
   }
 }
+
+function isValidIgorFormat(line) {
+  const regex = /[+-]\s+(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*).*\[(.+)\] (.*)/;
+  return regex.test(line);
+}
+
+function getIgorDate(line) {
+  const date = dayjs(line, "ddd DD.MM.YYYY");
+  return date.isValid() ? date : null;
+}
+
+function parseAndriiFormat(currentDate, match) {
+  const startTime = parseAndriiTime(match[1]);
+  const endTime = parseAndriiTime(match[2]);
+  const description = match[3] || null;
+  let date = currentDate;
+  if (dateTimeService.isNextDay(startTime)) {
+    date = date.add(1, "day");
+  }
+  return {
+    date: dateTimeService.getFormattedDate(date),
+    startTime: dateTimeService.getFormattedTime(startTime),
+    endTime: dateTimeService.getFormattedTime(endTime),
+    description
+  }
+}
+
+function parseAndriiTime(timeString) {
+  if (!timeString) return null;
+  if (!timeString.includes(".")) {
+    timeString += ".00";
+  }
+  return dayjs(timeString, "H:m");
+}
+
+function isValidAndriiFormat(line) {
+  const regex = /(.*?) -\s*(?:(.*)\(.*\) - )?(.*)?/;
+  return regex.test(line);
+}
+
+function getAndriiDate(line) {
+  const date = dayjs(line.replace(/-/g, ''), "DD.MM.YYYY");
+  return date.isValid() ? date : null;
+}
+
 export default fileService;
