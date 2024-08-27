@@ -48,6 +48,9 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogListResponse list(final String mode, final LocalDate date, final int offset) {
+    if(offset < 0 || offset > 23) {
+      throw new BadRequestException("Offset must be between 0 and 23");
+    }
     final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date, offset);
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(mapper::toListItem)
