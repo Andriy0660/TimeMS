@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.example.timecraft.config.TestPostgresContainerConfiguration;
+import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
@@ -26,13 +29,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.createTimeLogEntity;
 import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.getSize;
 import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.matchTimeLog;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static java.time.temporal.TemporalAdjusters.firstDayOfNextMonth;
 import static java.time.temporal.TemporalAdjusters.next;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -225,8 +229,68 @@ class TimeLogApiTest {
         .andExpect(jsonPath("$.items", not(matchTimeLog(cloneForCompare))))
         .andExpect(jsonPath("$.items", matchTimeLog(request)));
 
-    assertTrue(timeLog2.getStartTime() != null);
+    mvc.perform(get("/time-logs/{id}", timeLog2.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.endTime").exists());
   }
+
+  @Test
+  void shouldUpdateWhenConflicted() throws Exception {
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(12, 0, 0));
+    timeLog1 = timeLogRepository.save(timeLog1);
+    timeLog2 = timeLogRepository.save(timeLog2);
+    TimeLogUpdateRequest request = new TimeLogUpdateRequest(timeLog2.getDate(), timeLog2.getTicket(), timeLog1.getStartTime(), timeLog2.getEndTime());
+
+    mvc.perform(put("/time-logs/{id}", timeLog2.getId())
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.conflicted").value(true));
+  }
+
+  @Test
+  void shouldSetGroupDescriptionForOneTimeLog() throws Exception {
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    timeLog1 = timeLogRepository.save(timeLog1);
+    TimeLogSetGroupDescrRequest request = new TimeLogSetGroupDescrRequest(List.of(timeLog1.getId()), "New description");
+
+    mvc.perform(patch("/time-logs/setGroupDescription")
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    mvc.perform(get("/time-logs/{id}", timeLog1.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.description").value(request.getDescription()));
+  }
+
+  @Test
+  void shouldSetGroupDescriptionForManyTimeLogs() throws Exception {
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(11, 0, 0));
+    timeLog1 = timeLogRepository.save(timeLog1);
+    timeLog2 = timeLogRepository.save(timeLog2);
+    TimeLogSetGroupDescrRequest request = new TimeLogSetGroupDescrRequest(List.of(timeLog1.getId(), timeLog2.getId()), "New description");
+
+    mvc.perform(patch("/time-logs/setGroupDescription")
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    mvc.perform(get("/time-logs/{id}", timeLog1.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.description").value(request.getDescription()));
+
+    mvc.perform(get("/time-logs/{id}", timeLog2.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.description").value(request.getDescription()));
+  }
+
 
   @Test
   void shouldDeleteTimeLog() throws Exception {
@@ -249,6 +313,40 @@ class TimeLogApiTest {
 
     int newSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
     assertEquals(initialSize - 1, newSize);
+  }
+
+  @Test
+  void shouldChangeDateToNextDay() throws Exception {
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    timeLog1 = timeLogRepository.save(timeLog1);
+    TimeLogChangeDateRequest request = new TimeLogChangeDateRequest(true);
+
+    mvc.perform(patch("/time-logs/{timeLogId}/changeDate", timeLog1.getId())
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    mvc.perform(get("/time-logs/{id}", timeLog1.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.date").value(LocalDate.now().plusDays(1).format(ISO_LOCAL_DATE)));
+  }
+
+  @Test
+  void shouldChangeDateToPrevDay() throws Exception {
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    timeLog1 = timeLogRepository.save(timeLog1);
+    TimeLogChangeDateRequest request = new TimeLogChangeDateRequest(false);
+
+    mvc.perform(patch("/time-logs/{timeLogId}/changeDate", timeLog1.getId())
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    mvc.perform(get("/time-logs/{id}", timeLog1.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.date").value(LocalDate.now().minusDays(1).format(ISO_LOCAL_DATE)));
   }
 
   @Test
