@@ -4,6 +4,9 @@ import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.hamcrest.Matcher;
 import org.springframework.http.MediaType;
@@ -22,19 +25,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class TimeLogApiTestUtils {
   public static Matcher<?> matchTimeLog(final Object toCheck) {
     try {
-      String ticket = getValue(toCheck, "getTicket", String.class);
-      LocalDate date = getValue(toCheck, "getDate", LocalDate.class);
-      LocalTime startTime = getValue(toCheck, "getStartTime", LocalTime.class);
-      LocalTime endTime = getValue(toCheck, "getEndTime", LocalTime.class);
-      String description = getValue(toCheck, "getDescription", String.class);
+      List<Matcher<? super Map<String, String>>> matchers = new ArrayList<>();
 
-      return hasItem(allOf(
-          hasEntry("ticket", ticket),
-          hasEntry("date", date != null ? date.toString() : null),
-          hasEntry("startTime", startTime != null ? startTime.format(DateTimeFormatter.ISO_TIME) : null),
-          hasEntry("endTime", endTime != null ? endTime.format(DateTimeFormatter.ISO_TIME) : null),
-          hasEntry("description", description)
-      ));
+      String ticket = getValue(toCheck, "getTicket", String.class);
+      if (ticket != null) matchers.add(hasEntry("ticket", ticket));
+
+      LocalDate date = getValue(toCheck, "getDate", LocalDate.class);
+      if (date != null) matchers.add(hasEntry("date", date.toString()));
+
+      LocalTime startTime = getValue(toCheck, "getStartTime", LocalTime.class);
+      if (startTime != null) matchers.add(hasEntry("startTime", startTime.format(DateTimeFormatter.ISO_TIME)));
+
+      LocalTime endTime = getValue(toCheck, "getEndTime", LocalTime.class);
+      if (endTime != null) matchers.add(hasEntry("endTime", endTime.format(DateTimeFormatter.ISO_TIME)));
+
+      String description = getValue(toCheck, "getDescription", String.class);
+      if (description != null) matchers.add(hasEntry("description", description));
+
+      return hasItem(allOf(matchers));
     } catch (Exception e) {
       throw new RuntimeException("Error matching entity", e);
     }
@@ -56,7 +64,17 @@ public class TimeLogApiTestUtils {
         .description("Description " + (int) (Math.random() * 10))
         .date(date)
         .startTime(startTime)
-        .endTime(startTime.plusHours(1))
+        .endTime(startTime != null ? startTime.plusHours(1) : null)
+        .build();
+  }
+
+  public static TimeLogEntity createTimeLogEntity(final LocalDate date, final LocalTime startTime, final LocalTime endTime) {
+    return TimeLogEntity.builder()
+        .ticket("TMC-" + (int) (Math.random() * 1000))
+        .description("Description " + (int) (Math.random() * 10))
+        .date(date)
+        .startTime(startTime)
+        .endTime(endTime)
         .build();
   }
 

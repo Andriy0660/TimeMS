@@ -18,6 +18,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.example.timecraft.config.TestPostgresContainerConfiguration;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,9 +30,11 @@ import static java.time.temporal.TemporalAdjusters.firstDayOfNextMonth;
 import static java.time.temporal.TemporalAdjusters.next;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -190,6 +193,39 @@ class TimeLogApiTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.detail").value("Time log with such id does not exist"));
+  }
+
+  @Test
+  void shouldUpdateTimeLog() throws Exception {
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(11, 0, 0), null);
+    TimeLogEntity cloneForCompare = TimeLogEntity.builder()
+        .date(timeLog1.getDate())
+        .startTime(timeLog1.getStartTime())
+        .endTime(timeLog1.getEndTime())
+        .ticket(timeLog1.getTicket())
+        .description(timeLog1.getDescription())
+        .build();
+    timeLog1 = timeLogRepository.save(timeLog1);
+    timeLog2 = timeLogRepository.save(timeLog2);
+    TimeLogUpdateRequest request = new TimeLogUpdateRequest(timeLog1.getDate(), "NEW-1", timeLog1.getStartTime(), null);
+
+    mvc.perform(put("/time-logs/{id}", timeLog1.getId())
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.ticket").value(request.getTicket()));
+
+    mvc.perform(get("/time-logs")
+            .param("mode", "Day")
+            .param("date", LocalDate.now(clock).toString())
+            .param("offset", "3")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", not(matchTimeLog(cloneForCompare))))
+        .andExpect(jsonPath("$.items", matchTimeLog(request)));
+
+    assertTrue(timeLog2.getStartTime() != null);
   }
 
   @Test
