@@ -1,5 +1,6 @@
 package com.example.timecraft.domain.timelog.utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -13,7 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.jayway.jsonpath.JsonPath;
 
 import static org.hamcrest.Matchers.allOf;
@@ -58,24 +58,63 @@ public class TimeLogApiTestUtils {
     }
   }
 
-  public static TimeLogEntity createTimeLogEntity(final LocalDate date, final LocalTime startTime) {
-    return TimeLogEntity.builder()
-        .ticket("TMC-" + (int) (Math.random() * 1000))
-        .description("Description " + (int) (Math.random() * 10))
-        .date(date)
-        .startTime(startTime)
-        .endTime(startTime != null ? startTime.plusHours(1) : null)
-        .build();
+  public static <B, T> T cloneTimeLogObject(B builder, Object toClone) {
+    try {
+      Method ticketMethod = builder.getClass().getMethod("ticket", String.class);
+      ticketMethod.invoke(builder, getValue(toClone, "getTicket", String.class));
+
+      Method descriptionMethod = builder.getClass().getMethod("description", String.class);
+      descriptionMethod.invoke(builder, getValue(toClone, "getDescription", String.class));
+
+      Method dateMethod = builder.getClass().getMethod("date", LocalDate.class);
+      dateMethod.invoke(builder, getValue(toClone, "getDate", LocalDate.class));
+
+      Method startTimeMethod = builder.getClass().getMethod("startTime", LocalTime.class);
+      startTimeMethod.invoke(builder, getValue(toClone, "getStartTime", LocalTime.class));
+
+      Method endTimeMethod = builder.getClass().getMethod("endTime", LocalTime.class);
+      endTimeMethod.invoke(builder, getValue(toClone, "getEndTime", LocalTime.class));
+
+      Method buildMethod = builder.getClass().getMethod("build");
+      return (T) buildMethod.invoke(builder);
+
+    } catch (Exception e) {
+      throw new RuntimeException("Error while cloning object", e);
+    }
   }
 
-  public static TimeLogEntity createTimeLogEntity(final LocalDate date, final LocalTime startTime, final LocalTime endTime) {
-    return TimeLogEntity.builder()
-        .ticket("TMC-" + (int) (Math.random() * 1000))
-        .description("Description " + (int) (Math.random() * 10))
-        .date(date)
-        .startTime(startTime)
-        .endTime(endTime)
-        .build();
+  public static <T, B> T createTimeLogObject(B builder, final LocalDate date, final LocalTime startTime, final LocalTime endTime)
+      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    T timeLogObject = createTimeLogObject(builder, date, startTime);
+    Method endTimeMethod = builder.getClass().getMethod("endTime", LocalTime.class);
+    endTimeMethod.invoke(builder, endTime);
+    return timeLogObject;
+  }
+
+
+  public static <T, B> T createTimeLogObject(B builder, final LocalDate date, final LocalTime startTime) {
+    try {
+      Method ticketMethod = builder.getClass().getMethod("ticket", String.class);
+      ticketMethod.invoke(builder, "TMC-" + (int) (Math.random() * 1000));
+
+      Method descriptionMethod = builder.getClass().getMethod("description", String.class);
+      descriptionMethod.invoke(builder, "Description " + (int) (Math.random() * 10));
+
+      Method dateMethod = builder.getClass().getMethod("date", LocalDate.class);
+      dateMethod.invoke(builder, date);
+
+      Method startTimeMethod = builder.getClass().getMethod("startTime", LocalTime.class);
+      startTimeMethod.invoke(builder, startTime);
+
+      Method endTimeMethod = builder.getClass().getMethod("endTime", LocalTime.class);
+      endTimeMethod.invoke(builder, startTime != null ? startTime.plusHours(1) : null);
+
+      Method buildMethod = builder.getClass().getMethod("build");
+      return (T) buildMethod.invoke(builder);
+
+    } catch (Exception e) {
+      throw new RuntimeException("Error while creating object", e);
+    }
   }
 
   public static int getSize(final MockMvc mvc, final String mode, final LocalDate date, final int offset) throws Exception {
