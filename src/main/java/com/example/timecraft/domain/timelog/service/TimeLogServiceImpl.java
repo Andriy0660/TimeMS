@@ -27,6 +27,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogMergeRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -111,6 +112,31 @@ public class TimeLogServiceImpl implements TimeLogService {
       response.setConflicted(true);
     }
     return response;
+  }
+
+  @Override
+  public void merge(final TimeLogMergeRequest request) {
+    List<TimeLogMergeRequest.TimeLogDateGroup> timeLogDateGroups = request.getDateGroups();
+    for(TimeLogMergeRequest.TimeLogDateGroup timeLogDateGroup : timeLogDateGroups) {
+      List<TimeLogEntity> timeLogEntityList = repository.findAllByDateIs(timeLogDateGroup.getKey());
+      for(TimeLogMergeRequest.TimeLogDto timeLogDto : timeLogDateGroup.getItems()) {
+        if(timeLogEntityList.stream().noneMatch(timeLogEntity -> isSameTimeLog(timeLogEntity, timeLogDto))) {
+          TimeLogEntity timeLogEntity = mapper.fromMergeRequest(timeLogDto);
+          if (timeLogEntity.getStartTime() != null) {
+            stopOtherTimeLogs(null);
+          }
+          repository.save(timeLogEntity);
+        }
+      }
+    }
+  }
+
+  private boolean isSameTimeLog(TimeLogEntity timeLogEntity, TimeLogMergeRequest.TimeLogDto timeLogDto) {
+    return Objects.equals(timeLogEntity.getTicket(), timeLogDto.getTicket())
+        && Objects.equals(timeLogEntity.getStartTime(), timeLogDto.getStartTime())
+        && Objects.equals(timeLogEntity.getEndTime(), timeLogDto.getEndTime())
+        && Objects.equals(timeLogEntity.getDate(), timeLogDto.getDate())
+        && Objects.equals(timeLogEntity.getDescription(), timeLogDto.getDescription());
   }
 
   private boolean isConflictedWithOthersTimeLogs(final Long id, final LocalTime startTime, final LocalTime endTime,

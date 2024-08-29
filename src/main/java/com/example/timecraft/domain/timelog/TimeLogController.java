@@ -20,6 +20,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogMergeRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -40,6 +41,11 @@ public class TimeLogController {
   @PostMapping
   public TimeLogCreateResponse create(@RequestBody final TimeLogCreateRequest request) {
     return timeLogService.create(request);
+  }
+
+  @PostMapping("/merge")
+  public void merge(@RequestBody final TimeLogMergeRequest request) {
+    timeLogService.merge(request);
   }
 
   @GetMapping("/{timeLogId}")

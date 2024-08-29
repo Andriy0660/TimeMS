@@ -30,6 +30,7 @@ import DayProgressBar from "../components/DayProgressBar.jsx";
 import ClearIcon from '@mui/icons-material/Clear';
 import fileService from "../service/fileService.js";
 import Button from "@mui/material/Button";
+import ImportButton from "../components/ImportButton.jsx";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -140,6 +141,25 @@ export default function TimeLogPage() {
         type: "error"
       })
       console.error("Creating time log failed:", error);
+    }
+  });
+
+  const {mutateAsync: merge} = useMutation({
+    mutationFn: (body) => timeLogApi.merge(body),
+    onSuccess: async (body) => {
+      queryClient.invalidateQueries(timeLogApi.key);
+      addAlert({
+        text: "Imported successfully",
+        type: "success"
+      });
+
+    },
+    onError: async (error, body) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      })
+      console.error("Importing failed:", error);
     }
   });
 
@@ -344,13 +364,16 @@ export default function TimeLogPage() {
         </div>
         <div className="flex justify-between items-center">
           <TotalTimeLabel label={totalTimeLabel} />
-          <Button
-            className="mr-4 mt-6"
-            variant="outlined"
-            onClick={saveFile}
-          >
-            Export
-          </Button>
+          <div className="mt-8">
+            <ImportButton className="mr-4" onMerge={merge}/>
+            <Button
+              className="mr-4"
+              variant="outlined"
+              onClick={saveFile}
+            >
+              Export
+            </Button>
+          </div>
 
         </div>
         {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds} />}
