@@ -265,6 +265,25 @@ class TimeLogApiTest {
 
   }
 
+  @Test
+  void shouldGetHoursForWeek() throws Exception {
+    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now().with(DayOfWeek.MONDAY), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog3 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now().with(DayOfWeek.SUNDAY), LocalTime.of(9, 0, 0));
+
+    timeLog1 = timeLogRepository.save(timeLog1);
+    timeLog2 = timeLogRepository.save(timeLog2);
+    timeLog3 = timeLogRepository.save(timeLog3);
+
+    mvc.perform(get("/time-logs/hoursForWeek")
+            .param("date", LocalDate.now(clock).toString())
+            .param("offset", "3")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items[?(@.dayName == 'Monday')].ticketDurations[*]", hasItem(
+            hasEntry("duration", "1h 0m")
+        )));
+  }
 
   @Test
   void shouldGetHoursForMonth() throws Exception {
