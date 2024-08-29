@@ -1,6 +1,5 @@
 package com.example.timecraft.domain.timelog.utils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -14,6 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.example.timecraft.domain.timelog.dto.TimeLogMergeRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
+import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.jayway.jsonpath.JsonPath;
 
 import static org.hamcrest.Matchers.allOf;
@@ -23,29 +25,37 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class TimeLogApiTestUtils {
-  public static Matcher<?> matchTimeLog(final Object toCheck) {
-    try {
-      List<Matcher<? super Map<String, String>>> matchers = new ArrayList<>();
 
-      String ticket = getValue(toCheck, "getTicket", String.class);
-      if (ticket != null) matchers.add(hasEntry("ticket", ticket));
+  public static Matcher<?> matchTimeLog(final TimeLogEntity entity) {
+    List<Matcher<? super Map<String, String>>> matchers = new ArrayList<>();
+    if (entity.getTicket() != null) matchers.add(hasEntry("ticket", entity.getTicket()));
+    if (entity.getDate() != null) matchers.add(hasEntry("date", entity.getDate().toString()));
+    if (entity.getStartTime() != null) matchers.add(hasEntry("startTime", entity.getStartTime().format(DateTimeFormatter.ISO_TIME)));
+    if (entity.getEndTime() != null) matchers.add(hasEntry("endTime", entity.getEndTime().format(DateTimeFormatter.ISO_TIME)));
+    if (entity.getDescription() != null) matchers.add(hasEntry("description", entity.getDescription()));
 
-      LocalDate date = getValue(toCheck, "getDate", LocalDate.class);
-      if (date != null) matchers.add(hasEntry("date", date.toString()));
+    return hasItem(allOf(matchers));
+  }
 
-      LocalTime startTime = getValue(toCheck, "getStartTime", LocalTime.class);
-      if (startTime != null) matchers.add(hasEntry("startTime", startTime.format(DateTimeFormatter.ISO_TIME)));
+  public static Matcher<?> matchTimeLogUpdateDto(final TimeLogUpdateRequest dto) {
+    List<Matcher<? super Map<String, String>>> matchers = new ArrayList<>();
+    if (dto.getTicket() != null) matchers.add(hasEntry("ticket", dto.getTicket()));
+    if (dto.getDate() != null) matchers.add(hasEntry("date", dto.getDate().toString()));
+    if (dto.getStartTime() != null) matchers.add(hasEntry("startTime", dto.getStartTime().format(DateTimeFormatter.ISO_TIME)));
+    if (dto.getEndTime() != null) matchers.add(hasEntry("endTime", dto.getEndTime().format(DateTimeFormatter.ISO_TIME)));
 
-      LocalTime endTime = getValue(toCheck, "getEndTime", LocalTime.class);
-      if (endTime != null) matchers.add(hasEntry("endTime", endTime.format(DateTimeFormatter.ISO_TIME)));
+    return hasItem(allOf(matchers));
+  }
 
-      String description = getValue(toCheck, "getDescription", String.class);
-      if (description != null) matchers.add(hasEntry("description", description));
+  public static Matcher<?> matchTimeLogMergeDto(final TimeLogMergeRequest.TimeLogDto dto) {
+    List<Matcher<? super Map<String, String>>> matchers = new ArrayList<>();
+    if (dto.getTicket() != null) matchers.add(hasEntry("ticket", dto.getTicket()));
+    if (dto.getDate() != null) matchers.add(hasEntry("date", dto.getDate().toString()));
+    if (dto.getStartTime() != null) matchers.add(hasEntry("startTime", dto.getStartTime().format(DateTimeFormatter.ISO_TIME)));
+    if (dto.getEndTime() != null) matchers.add(hasEntry("endTime", dto.getEndTime().format(DateTimeFormatter.ISO_TIME)));
+    if (dto.getDescription() != null) matchers.add(hasEntry("description", dto.getDescription()));
 
-      return hasItem(allOf(matchers));
-    } catch (Exception e) {
-      throw new RuntimeException("Error matching entity", e);
-    }
+    return hasItem(allOf(matchers));
   }
 
   private static <T> T getValue(final Object toCheck, final String methodName, final Class<T> returnType) {
@@ -58,63 +68,54 @@ public class TimeLogApiTestUtils {
     }
   }
 
-  public static <B, T> T cloneTimeLogObject(B builder, Object toClone) {
-    try {
-      Method ticketMethod = builder.getClass().getMethod("ticket", String.class);
-      ticketMethod.invoke(builder, getValue(toClone, "getTicket", String.class));
-
-      Method descriptionMethod = builder.getClass().getMethod("description", String.class);
-      descriptionMethod.invoke(builder, getValue(toClone, "getDescription", String.class));
-
-      Method dateMethod = builder.getClass().getMethod("date", LocalDate.class);
-      dateMethod.invoke(builder, getValue(toClone, "getDate", LocalDate.class));
-
-      Method startTimeMethod = builder.getClass().getMethod("startTime", LocalTime.class);
-      startTimeMethod.invoke(builder, getValue(toClone, "getStartTime", LocalTime.class));
-
-      Method endTimeMethod = builder.getClass().getMethod("endTime", LocalTime.class);
-      endTimeMethod.invoke(builder, getValue(toClone, "getEndTime", LocalTime.class));
-
-      Method buildMethod = builder.getClass().getMethod("build");
-      return (T) buildMethod.invoke(builder);
-
-    } catch (Exception e) {
-      throw new RuntimeException("Error while cloning object", e);
-    }
+  public static TimeLogEntity createTimeLogEntity(final LocalDate date, final LocalTime startTime) {
+    return TimeLogEntity.builder()
+        .ticket("TMC-" + (int) (Math.random() * 1000))
+        .description("Description " + (int) (Math.random() * 10))
+        .date(date)
+        .startTime(startTime)
+        .endTime(startTime != null ? startTime.plusHours(1) : null)
+        .build();
   }
 
-  public static <T, B> T createTimeLogObject(B builder, final LocalDate date, final LocalTime startTime, final LocalTime endTime)
-      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    T timeLogObject = createTimeLogObject(builder, date, startTime);
-    Method endTimeMethod = builder.getClass().getMethod("endTime", LocalTime.class);
-    endTimeMethod.invoke(builder, endTime);
-    return timeLogObject;
+  public static TimeLogEntity createTimeLogEntity(final LocalDate date, final LocalTime startTime, final LocalTime endTime) {
+    return TimeLogEntity.builder()
+        .ticket("TMC-" + (int) (Math.random() * 1000))
+        .description("Description " + (int) (Math.random() * 10))
+        .date(date)
+        .startTime(startTime)
+        .endTime(endTime)
+        .build();
   }
 
+  public static TimeLogMergeRequest.TimeLogDto createMergeTimeLogDto(final LocalDate date, final LocalTime startTime, final LocalTime endTime) {
+    return TimeLogMergeRequest.TimeLogDto.builder()
+        .ticket("TMC-" + (int) (Math.random() * 1000))
+        .description("Description " + (int) (Math.random() * 10))
+        .date(date)
+        .startTime(startTime)
+        .endTime(endTime)
+        .build();
+  }
 
-  public static <T, B> T createTimeLogObject(B builder, final LocalDate date, final LocalTime startTime) {
-    try {
-      Method ticketMethod = builder.getClass().getMethod("ticket", String.class);
-      ticketMethod.invoke(builder, "TMC-" + (int) (Math.random() * 1000));
+  public static TimeLogEntity clone(final TimeLogEntity toClone) {
+    return TimeLogEntity.builder()
+        .startTime(toClone.getStartTime())
+        .endTime(toClone.getEndTime())
+        .ticket(toClone.getTicket())
+        .description(toClone.getDescription())
+        .date(toClone.getDate())
+        .build();
+  }
 
-      Method descriptionMethod = builder.getClass().getMethod("description", String.class);
-      descriptionMethod.invoke(builder, "Description " + (int) (Math.random() * 10));
-
-      Method dateMethod = builder.getClass().getMethod("date", LocalDate.class);
-      dateMethod.invoke(builder, date);
-
-      Method startTimeMethod = builder.getClass().getMethod("startTime", LocalTime.class);
-      startTimeMethod.invoke(builder, startTime);
-
-      Method endTimeMethod = builder.getClass().getMethod("endTime", LocalTime.class);
-      endTimeMethod.invoke(builder, startTime != null ? startTime.plusHours(1) : null);
-
-      Method buildMethod = builder.getClass().getMethod("build");
-      return (T) buildMethod.invoke(builder);
-
-    } catch (Exception e) {
-      throw new RuntimeException("Error while creating object", e);
-    }
+  public static TimeLogEntity clone(final TimeLogMergeRequest.TimeLogDto toClone) {
+    return TimeLogEntity.builder()
+        .startTime(toClone.getStartTime())
+        .endTime(toClone.getEndTime())
+        .ticket(toClone.getTicket())
+        .description(toClone.getDescription())
+        .date(toClone.getDate())
+        .build();
   }
 
   public static int getSize(final MockMvc mvc, final String mode, final LocalDate date, final int offset) throws Exception {

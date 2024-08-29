@@ -27,12 +27,15 @@ import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
+import com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.cloneTimeLogObject;
-import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.createTimeLogObject;
+import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.createMergeTimeLogDto;
+import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.createTimeLogEntity;
 import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.getSize;
 import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.matchTimeLog;
+import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.matchTimeLogMergeDto;
+import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.matchTimeLogUpdateDto;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.time.temporal.TemporalAdjusters.firstDayOfMonth;
@@ -74,10 +77,10 @@ class TimeLogApiTest {
 
   @Test
   void shouldReturnTimeLogsForDayMode() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock).plusDays(1),
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock).plusDays(1),
         LocalTime.of(2, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock).plusDays(2),
+    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now(clock).plusDays(2),
         LocalTime.of(10, 0, 0));
 
     timeLog1 = timeLogRepository.save(timeLog1);
@@ -99,10 +102,10 @@ class TimeLogApiTest {
 
   @Test
   void shouldReturnTimeLogsForWeekMode() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock).with(next(DayOfWeek.MONDAY)),
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock).with(next(DayOfWeek.MONDAY)),
         LocalTime.of(2, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock).with(next(DayOfWeek.TUESDAY)),
+    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now(clock).with(next(DayOfWeek.TUESDAY)),
         LocalTime.of(10, 0, 0));
 
     timeLog1 = timeLogRepository.save(timeLog1);
@@ -123,10 +126,10 @@ class TimeLogApiTest {
 
   @Test
   void shouldReturnTimeLogsForMonthMode() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock).with(firstDayOfNextMonth()),
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock).with(firstDayOfNextMonth()),
         LocalTime.of(2, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock).with(firstDayOfNextMonth()).plusDays(1),
+    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now(clock).with(firstDayOfNextMonth()).plusDays(1),
         LocalTime.of(10, 0, 0));
 
     timeLog1 = timeLogRepository.save(timeLog1);
@@ -170,7 +173,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldCreateTimeLog() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     timeLog1 = timeLogRepository.save(timeLog1);
 
     int initialSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
@@ -197,7 +200,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldGetTimeLog() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     timeLog1 = timeLogRepository.save(timeLog1);
     mvc.perform(get("/time-logs/{id}", timeLog1.getId())
             .contentType(MediaType.APPLICATION_JSON))
@@ -216,17 +219,17 @@ class TimeLogApiTest {
 
   @Test
   void shouldMergeTimeLogs() throws Exception {
-    TimeLogMergeRequest.TimeLogDto timeLogDto1 = createTimeLogObject(TimeLogMergeRequest.TimeLogDto.builder(),
-        LocalDate.now(clock), LocalTime.of(9, 0, 0), LocalTime.of(11, 0, 0));
-    TimeLogMergeRequest.TimeLogDto timeLogDto2 = createTimeLogObject(TimeLogMergeRequest.TimeLogDto.builder(),
-        LocalDate.now(clock), LocalTime.of(11, 0, 0), LocalTime.of(13, 0, 0));
-    TimeLogMergeRequest.TimeLogDto timeLogDto3 = createTimeLogObject(TimeLogMergeRequest.TimeLogDto.builder(),
-        LocalDate.now(clock), LocalTime.of(13, 0, 0), LocalTime.of(15, 0, 0));
-    TimeLogMergeRequest.TimeLogDto timeLogDto4 = createTimeLogObject(TimeLogMergeRequest.TimeLogDto.builder(),
-        LocalDate.now(clock), LocalTime.of(15, 0, 0), LocalTime.of(17, 0, 0));
+    TimeLogMergeRequest.TimeLogDto timeLogDto1 = createMergeTimeLogDto(LocalDate.now(clock), LocalTime.of(9, 0, 0),
+        LocalTime.of(11, 0, 0));
+    TimeLogMergeRequest.TimeLogDto timeLogDto2 = createMergeTimeLogDto(LocalDate.now(clock), LocalTime.of(11, 0, 0),
+        LocalTime.of(13, 0, 0));
+    TimeLogMergeRequest.TimeLogDto timeLogDto3 = createMergeTimeLogDto(LocalDate.now(clock), LocalTime.of(13, 0, 0),
+        LocalTime.of(15, 0, 0));
+    TimeLogMergeRequest.TimeLogDto timeLogDto4 = createMergeTimeLogDto(LocalDate.now(clock), LocalTime.of(15, 0, 0),
+        LocalTime.of(17, 0, 0));
 
-    TimeLogEntity timeLogEntity1 = cloneTimeLogObject(TimeLogEntity.builder(), timeLogDto1);
-    TimeLogEntity timeLogEntity2 = cloneTimeLogObject(TimeLogEntity.builder(), timeLogDto2);
+    TimeLogEntity timeLogEntity1 = TimeLogApiTestUtils.clone(timeLogDto1);
+    TimeLogEntity timeLogEntity2 = TimeLogApiTestUtils.clone(timeLogDto2);
 
     timeLogEntity1 = timeLogRepository.save(timeLogEntity1);
     timeLogEntity2 = timeLogRepository.save(timeLogEntity2);
@@ -260,16 +263,16 @@ class TimeLogApiTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
-        .andExpect(jsonPath("$.items", matchTimeLog(timeLogDto3)))
-        .andExpect(jsonPath("$.items", matchTimeLog(timeLogDto4)));
+        .andExpect(jsonPath("$.items", matchTimeLogMergeDto(timeLogDto3)))
+        .andExpect(jsonPath("$.items", matchTimeLogMergeDto(timeLogDto4)));
 
   }
 
   @Test
   void shouldGetHoursForWeek() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now().with(DayOfWeek.MONDAY), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now().with(DayOfWeek.SUNDAY), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now().with(DayOfWeek.MONDAY), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now().with(DayOfWeek.SUNDAY), LocalTime.of(9, 0, 0));
 
     timeLog1 = timeLogRepository.save(timeLog1);
     timeLog2 = timeLogRepository.save(timeLog2);
@@ -287,9 +290,9 @@ class TimeLogApiTest {
 
   @Test
   void shouldGetHoursForMonth() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now().with(firstDayOfMonth()), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now().with(lastDayOfMonth()), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now().with(firstDayOfMonth()), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now().with(lastDayOfMonth()), LocalTime.of(9, 0, 0));
 
     timeLog1 = timeLogRepository.save(timeLog1);
     timeLog2 = timeLogRepository.save(timeLog2);
@@ -309,9 +312,9 @@ class TimeLogApiTest {
 
   @Test
   void shouldUpdateTimeLog() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(11, 0, 0), null);
-    TimeLogEntity cloneForCompare = cloneTimeLogObject(TimeLogEntity.builder(), timeLog1);
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(11, 0, 0), null);
+    TimeLogEntity cloneForCompare = TimeLogApiTestUtils.clone(timeLog1);
 
     timeLog1 = timeLogRepository.save(timeLog1);
     timeLog2 = timeLogRepository.save(timeLog2);
@@ -330,7 +333,7 @@ class TimeLogApiTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items", not(matchTimeLog(cloneForCompare))))
-        .andExpect(jsonPath("$.items", matchTimeLog(request)));
+        .andExpect(jsonPath("$.items", matchTimeLogUpdateDto(request)));
 
     mvc.perform(get("/time-logs/{id}", timeLog2.getId())
             .contentType(MediaType.APPLICATION_JSON))
@@ -340,8 +343,8 @@ class TimeLogApiTest {
 
   @Test
   void shouldUpdateWhenConflicted() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(12, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(12, 0, 0));
     timeLog1 = timeLogRepository.save(timeLog1);
     timeLog2 = timeLogRepository.save(timeLog2);
     TimeLogUpdateRequest request = new TimeLogUpdateRequest(timeLog2.getDate(), timeLog2.getTicket(), timeLog1.getStartTime(), timeLog2.getEndTime());
@@ -355,7 +358,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldSetGroupDescriptionForOneTimeLog() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     timeLog1 = timeLogRepository.save(timeLog1);
     TimeLogSetGroupDescrRequest request = new TimeLogSetGroupDescrRequest(List.of(timeLog1.getId()), "New description");
 
@@ -372,8 +375,8 @@ class TimeLogApiTest {
 
   @Test
   void shouldSetGroupDescriptionForManyTimeLogs() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(11, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(11, 0, 0));
     timeLog1 = timeLogRepository.save(timeLog1);
     timeLog2 = timeLogRepository.save(timeLog2);
     TimeLogSetGroupDescrRequest request = new TimeLogSetGroupDescrRequest(List.of(timeLog1.getId(), timeLog2.getId()), "New description");
@@ -397,7 +400,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldDeleteTimeLog() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     timeLog1 = timeLogRepository.save(timeLog1);
 
     int initialSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
@@ -420,7 +423,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldChangeDateToNextDay() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     timeLog1 = timeLogRepository.save(timeLog1);
     TimeLogChangeDateRequest request = new TimeLogChangeDateRequest(true);
 
@@ -437,7 +440,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldChangeDateToPrevDay() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogObject(TimeLogEntity.builder(), LocalDate.now(clock), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     timeLog1 = timeLogRepository.save(timeLog1);
     TimeLogChangeDateRequest request = new TimeLogChangeDateRequest(false);
 
