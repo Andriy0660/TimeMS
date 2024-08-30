@@ -64,18 +64,20 @@ const fileService = {
 
 }
 
+const igorRegex = /[+-] {2}(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*) \(.*\) - \[(.+)\] (.*)/;
+const andriiRegex = /(\d{1,2}(?:\.\d{1,2})?) -\s?(?:(\d{1,2}(?:\.\d{1,2})?)\(.*\) - (.*)\s*)?$/;
 const parsers = [
   {
     isValid: isValidIgorFormat,
     parse: parseIgorFormat,
     getDate: getIgorDate,
-    regex: /[+-]\s+(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*).*\[(.+)\] (.*)/
+    regex: igorRegex
   },
   {
     isValid: isValidAndriiFormat,
     parse: parseAndriiFormat,
     getDate: getAndriiDate,
-    regex: /(.*?) -\s*(?:(.*)\(.*\) - )?(.*)?/
+    regex: andriiRegex
   }
 ];
 
@@ -97,13 +99,19 @@ function parseIgorFormat(currentDate, match) {
 }
 
 function isValidIgorFormat(line) {
-  const regex = /[+-]\s+(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*).*\[(.+)\] (.*)/;
-  return regex.test(line);
+  return igorRegex.test(line);
 }
 
 function getIgorDate(line) {
-  const date = dayjs(line, "ddd DD.MM.YYYY");
-  return date.isValid() ? date : null;
+  const datePattern = /\w{3} \d{2}\.\d{2}\.\d{4}/;
+
+  const dateMatch = line.match(datePattern);
+  if (dateMatch) {
+    const date = dayjs(dateMatch[0], "ddd DD.MM.YYYY");
+    return date.isValid() ? date : null;
+  }
+
+  return null;
 }
 
 function parseAndriiFormat(currentDate, match) {
@@ -131,13 +139,19 @@ function parseAndriiTime(timeString) {
 }
 
 function isValidAndriiFormat(line) {
-  const regex = /(.*?) -\s*(?:(.*)\(.*\) - )?(.*)?/;
-  return regex.test(line);
+  return andriiRegex.test(line);
 }
 
 function getAndriiDate(line) {
-  const date = dayjs(line.replace(/-/g, ''), "DD.MM.YYYY");
-  return date.isValid() ? date : null;
+  const datePattern = /-{14}\d{2}\.\d{2}\.\d{4}/;
+
+  const dateMatch = line.match(datePattern);
+  if (dateMatch) {
+    const date = dayjs(line.substring(14, 24), "DD.MM.YYYY");
+    return date.isValid() ? date : null;
+  }
+
+  return null;
 }
 
 export default fileService;
