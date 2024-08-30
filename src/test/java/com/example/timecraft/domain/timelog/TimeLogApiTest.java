@@ -22,7 +22,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import com.example.timecraft.config.TestPostgresContainerConfiguration;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
-import com.example.timecraft.domain.timelog.dto.TimeLogMergeRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
@@ -30,7 +30,7 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.createMergeTimeLogDto;
+import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.createImportTimeLogDto;
 import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.createTimeLogEntity;
 import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.getSize;
 import static com.example.timecraft.domain.timelog.utils.TimeLogApiTestUtils.matchTimeLog;
@@ -219,13 +219,13 @@ class TimeLogApiTest {
 
   @Test
   void shouldMergeTimeLogs() throws Exception {
-    TimeLogMergeRequest.TimeLogDto timeLogDto1 = createMergeTimeLogDto(LocalDate.now(clock), LocalTime.of(9, 0, 0),
+    TimeLogImportRequest.TimeLogDto timeLogDto1 = createImportTimeLogDto(LocalDate.now(clock), LocalTime.of(9, 0, 0),
         LocalTime.of(11, 0, 0));
-    TimeLogMergeRequest.TimeLogDto timeLogDto2 = createMergeTimeLogDto(LocalDate.now(clock), LocalTime.of(11, 0, 0),
+    TimeLogImportRequest.TimeLogDto timeLogDto2 = createImportTimeLogDto(LocalDate.now(clock), LocalTime.of(11, 0, 0),
         LocalTime.of(13, 0, 0));
-    TimeLogMergeRequest.TimeLogDto timeLogDto3 = createMergeTimeLogDto(LocalDate.now(clock), LocalTime.of(13, 0, 0),
+    TimeLogImportRequest.TimeLogDto timeLogDto3 = createImportTimeLogDto(LocalDate.now(clock), LocalTime.of(13, 0, 0),
         LocalTime.of(15, 0, 0));
-    TimeLogMergeRequest.TimeLogDto timeLogDto4 = createMergeTimeLogDto(LocalDate.now(clock), LocalTime.of(15, 0, 0),
+    TimeLogImportRequest.TimeLogDto timeLogDto4 = createImportTimeLogDto(LocalDate.now(clock), LocalTime.of(15, 0, 0),
         LocalTime.of(17, 0, 0));
 
     TimeLogEntity timeLogEntity1 = TimeLogApiTestUtils.clone(timeLogDto1);
@@ -234,13 +234,13 @@ class TimeLogApiTest {
     timeLogEntity1 = timeLogRepository.save(timeLogEntity1);
     timeLogEntity2 = timeLogRepository.save(timeLogEntity2);
 
-    TimeLogMergeRequest request = TimeLogMergeRequest.builder()
+    TimeLogImportRequest request = TimeLogImportRequest.builder()
         .dateGroups(Arrays.asList(
-            TimeLogMergeRequest.TimeLogDateGroup.builder()
+            TimeLogImportRequest.TimeLogDateGroup.builder()
                 .key(LocalDate.now(clock))
                 .items(Arrays.asList(timeLogDto1, timeLogDto2))
                 .build(),
-            TimeLogMergeRequest.TimeLogDateGroup.builder()
+            TimeLogImportRequest.TimeLogDateGroup.builder()
                 .key(LocalDate.now(clock).plusDays(1))
                 .items(Arrays.asList(timeLogDto3, timeLogDto4))
                 .build()
@@ -248,7 +248,7 @@ class TimeLogApiTest {
 
     int initialSize = getSize(mvc, "All", LocalDate.now(clock), 3);
 
-    mvc.perform(post("/time-logs/merge")
+    mvc.perform(post("/time-logs/importTimeLogs")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());

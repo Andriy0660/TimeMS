@@ -144,8 +144,8 @@ export default function TimeLogPage() {
     }
   });
 
-  const {mutateAsync: merge} = useMutation({
-    mutationFn: (body) => timeLogApi.merge(body),
+  const {mutateAsync: importTimeLogs} = useMutation({
+    mutationFn: (body) => timeLogApi.importTimeLogs(body),
     onSuccess: async (body) => {
       queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
@@ -365,7 +365,7 @@ export default function TimeLogPage() {
         <div className="flex justify-between items-center">
           <TotalTimeLabel label={totalTimeLabel} />
           <div className="mt-8">
-            <ImportButton className="mr-4" onMerge={merge}/>
+            <ImportButton className="mr-4" onImport={importTimeLogs}/>
             <Button
               className="mr-4"
               variant="outlined"
