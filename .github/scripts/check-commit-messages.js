@@ -12,11 +12,11 @@ if (!jiraTaskNumberMatch) {
 }
 const jiraTaskNumber = jiraTaskNumberMatch[1];
 
-// Fetch base branch
-execSync(`git fetch origin ${baseRef}:${baseRef}`);
+// Fetch the latest base branch
+execSync(`git fetch origin ${baseRef}`);
 
 // Determine base commit
-const baseCommit = execSync(`git merge-base HEAD ${baseRef}`).toString().trim();
+const baseCommit = execSync(`git merge-base HEAD origin/${baseRef}`).toString().trim();
 
 // List commit messages
 const commitMessages = execSync(`git log --pretty=format:"%H %s" ${baseCommit}..HEAD`).toString().trim().split('\n');

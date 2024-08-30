@@ -21,6 +21,9 @@ jobs:
         id: get_branch
         run: echo "BRANCH_NAME=${{ github.head_ref }}" >> $GITHUB_ENV
 
+      - name: Fetch latest base branch
+        run: git fetch origin ${{ github.base_ref }}
+
       - name: Set base ref
         run: echo "BASE_REF=${{ github.base_ref }}" >> $GITHUB_ENV
 

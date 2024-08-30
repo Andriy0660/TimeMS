@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,6 +54,11 @@ public class GlobalExceptionHandler {
     String errorMessage = "Required parameter is missing: " + parameterName;
 
     return new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseStatusException handleInvalidArgumentType(final MethodArgumentTypeMismatchException e) {
+    return new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid argument type of parameter: " + e.getName());
   }
 }
 
