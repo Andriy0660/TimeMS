@@ -6,7 +6,6 @@
     left: 50%;
     transform: translateX(-50%);
     border-radius: 9999px;
-    background-color: #e0e0e0;
     overflow: hidden;
 }
 

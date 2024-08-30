@@ -44,13 +44,33 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
       inactiveSegments.push({startTime: lastEnd, endTime: end, color: "gray"});
     }
 
-    return inactiveSegments.concat(intervals).map(interval => {
+    return inactiveSegments.concat(intervals).map((interval, index, array) => {
+      let adjustedWidth = interval.endTime.diff(interval.startTime, "minute") / minutesInDay * 100;
+      let adjustedLeft = interval.startTime.diff(start, "minute") / minutesInDay * 100;
+
+      const gap = 0.2;
+
+      if (index > 0) {
+        const prevInterval = array[index - 1];
+        if (prevInterval.endTime.isSame(interval.startTime)) {
+          adjustedLeft += gap;
+          adjustedWidth -= gap;
+        }
+      }
+
+      if (index < array.length - 1) {
+        const nextInterval = array[index + 1];
+        if (interval.endTime.isSame(nextInterval.startTime)) {
+          adjustedWidth -= gap;
+        }
+      }
+
       return {
         ...interval,
-        width: interval.endTime.diff(interval.startTime, "minute") / minutesInDay * 100,
-        left: interval.startTime.diff(start, "minute") / minutesInDay * 100
-      }
-    });
+        width: adjustedWidth,
+        left: adjustedLeft,
+      };
+    })
   }
 
   function getColor(overlapCount) {
