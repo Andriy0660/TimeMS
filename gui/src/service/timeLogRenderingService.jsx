@@ -16,12 +16,12 @@ const timeLogRenderingService = {
               <TimeLogGroupedByDate {...props} date={date} logsForDate={logsForDate} />
             </div>
           )) : <NoLogs />
-      case JSON.stringify(["date", "description"]) :
+      case JSON.stringify(["date", "ticketAndDescription"]) :
         return timeLogs.data.length ? timeLogs.data
           .sort((a, b) => dateTimeService.compareDates(a.key, b.key))
           .map(({key: date, items: logsForDate}) => (
             <div key={date}>
-              <TimeLogGroupedByDate {...props} date={date} logsForDate={logsForDate} renderInner={this.renderDescriptionGroup(props)} />
+              <TimeLogGroupedByDate {...props} date={date} logsForDate={logsForDate} renderedInner={this.renderedDescriptionGroup(props, logsForDate)} />
             </div>
           )) : <NoLogs />
       case undefined :
@@ -35,12 +35,12 @@ const timeLogRenderingService = {
         return null;
     }
   },
-  renderDescriptionGroup(props) {
-    return (description, logsForDescription) => (
-      <div key={description}>
-        <TimeLogGroupedByDescription {...props} description={description} logsForDescription={logsForDescription} />
+  renderedDescriptionGroup(props, logsForDate) {
+    return logsForDate.map(({key, items: logsForDescription}) => (
+      <div key={key}>
+        <TimeLogGroupedByDescription {...props} description={logsForDescription[0].description} logsForDescription={logsForDescription} />
       </div>
-    );
+    ));
   }
 }
 

@@ -68,8 +68,8 @@ const timeLogProcessingService = {
 
   processData(data, selectedTickets) {
     const filteredData = this.filterByTickets(data, selectedTickets);
-    const dataWithBuildedTime = this.buildTimeLogDateTime(filteredData);
-    return this.markAsConflicted(dataWithBuildedTime);
+    const builtTimeLog = this.buildTimeLog(filteredData);
+    return this.markAsConflicted(builtTimeLog);
   },
 
   filterByTickets(timeLogs, tickets) {
@@ -87,7 +87,7 @@ const timeLogProcessingService = {
     return timeLogs.filter(timeLog => timeLog.ticket === null);
   },
 
-  buildTimeLogDateTime(data) {
+  buildTimeLog(data) {
     let dataNotNull = data ? Array.from(data) : [];
 
     const getStatus = ({totalTime, startTime}) => {
@@ -107,7 +107,8 @@ const timeLogProcessingService = {
         date,
         startTime,
         endTime,
-        status: getStatus(timeLog)
+        status: getStatus(timeLog),
+        ticketAndDescription: timeLog.ticket + timeLog.description
       };
     });
   },
