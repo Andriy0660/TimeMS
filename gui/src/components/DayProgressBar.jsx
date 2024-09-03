@@ -168,7 +168,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
 
     if (endTime.isAfter(endOfWorkingDay)) {
       segments.push({
-        startTime: endOfWorkingDay,
+        startTime: dayjs.max(startTime, endOfWorkingDay),
         endTime: endTime,
         id: [id],
         thin: true
