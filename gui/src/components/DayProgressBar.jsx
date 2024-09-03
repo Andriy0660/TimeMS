@@ -157,7 +157,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
       });
     }
 
-    if (endTime.isAfter(startOfWorkingDay)) {
+    if (startTime.isBefore(endOfWorkingDay) && endTime.isAfter(startOfWorkingDay)) {
       segments.push({
         startTime: dayjs.max(startTime, startOfWorkingDay),
         endTime: dayjs.min(endTime, endOfWorkingDay),
