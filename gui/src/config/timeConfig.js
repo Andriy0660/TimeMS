@@ -1,2 +1,4 @@
 const startHourOfDay = 3;
-export {startHourOfDay};
+const startHourOfWorkingDay = 7;
+const endHourOfWorkingDay = 17;
+export {startHourOfDay, startHourOfWorkingDay, endHourOfWorkingDay};
