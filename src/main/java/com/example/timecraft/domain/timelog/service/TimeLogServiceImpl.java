@@ -278,15 +278,14 @@ public class TimeLogServiceImpl implements TimeLogService {
   public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date) {
     final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
     final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
-    final LocalTime startOfDay = LocalTime.of(offset, 0);
 
-    final List<TimeLogEntity> entities = repository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startOfDay);
     final List<TimeLogHoursForMonthResponse.DayInfo> dayInfoList = new ArrayList<>();
     Duration totalDuration = Duration.ZERO;
     LocalDate currentDay = startOfMonth;
     while (!currentDay.isAfter(endOfMonth)) {
-      final Duration durationForDay = getDurationForDay(entities, currentDay, startOfDay);
+      final Duration durationForDay = getDurationForDay(getAllTimeLogEntitiesInMode("Day", currentDay, offset));
       totalDuration = totalDuration.plus(durationForDay);
+
       dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
           .start(LocalDateTime.of(currentDay, LocalTime.MIN))
           .title(formatDuration(durationForDay))
@@ -297,14 +296,10 @@ public class TimeLogServiceImpl implements TimeLogService {
     return new TimeLogHoursForMonthResponse(formatDuration(totalDuration), dayInfoList);
   }
 
-  private Duration getDurationForDay(final List<TimeLogEntity> entities, final LocalDate date, final LocalTime startOfDay) {
+  private Duration getDurationForDay(final List<TimeLogEntity> entities) {
     Duration duration = Duration.ZERO;
     for (TimeLogEntity entity : entities) {
-      if (entity.getStartTime() == null || entity.getEndTime() == null) {
-        continue;
-      }
-      if ((entity.getDate().isEqual(date) && !entity.getStartTime().isBefore(startOfDay)) ||
-          (entity.getDate().minusDays(1).equals(date) && entity.getStartTime().isBefore(startOfDay))) {
+      if (entity.getStartTime() != null && entity.getEndTime() != null) {
         duration = duration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime()));
       }
     }
