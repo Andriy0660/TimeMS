@@ -112,11 +112,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
 
     timeLogEntity = repository.save(timeLogEntity);
-    TimeLogCreateResponse response = mapper.toCreateResponse(timeLogEntity);
-    if (isConflictedWithOthersTimeLogs(timeLogEntity.getId(), timeLogEntity.getStartTime(), timeLogEntity.getEndTime(), timeLogEntity.getDate())) {
-      response.setConflicted(true);
-    }
-    return response;
+    return mapper.toCreateResponse(timeLogEntity);
   }
 
   @Override
@@ -144,12 +140,10 @@ public class TimeLogServiceImpl implements TimeLogService {
         && Objects.equals(timeLogEntity.getDescription(), timeLogDto.getDescription());
   }
 
-  private boolean isConflictedWithOthersTimeLogs(final Long id, final LocalTime startTime, final LocalTime endTime,
-                                                 final LocalDate date) {
-    final List<TimeLogEntity> timeLogEntities = repository.findAllByDateIs(date);
-    return timeLogEntities.stream().anyMatch(timeLog ->
-        !timeLog.getId().equals(id) &&
-            areIntervalsOverlapping(startTime, endTime, timeLog.getStartTime(), timeLog.getEndTime())
+  private boolean isConflictedWithOthersTimeLogs(final TimeLogEntity entity, final List<TimeLogEntity> otherTimeLogs) {
+    return otherTimeLogs.stream().anyMatch(timeLog ->
+        !timeLog.getId().equals(entity.getId()) &&
+            areIntervalsOverlapping(entity.getStartTime(), entity.getEndTime(), timeLog.getStartTime(), timeLog.getEndTime())
     );
   }
 
@@ -167,15 +161,11 @@ public class TimeLogServiceImpl implements TimeLogService {
       return false;
     }
     if (border2.isBefore(border1)) {
-      if(target.isBefore(border1)) {
-        return false;
-      }
-      else {
-        return  (!target.isBefore(border1) && !target.isAfter(LocalTime.MAX))
-            || (!target.isBefore(LocalTime.MIN) && !target.isAfter(border2));
-      }
+      return target.isAfter(border1) && target.isBefore(LocalTime.MAX)
+          || target.isAfter(LocalTime.MIN) && target.isBefore(border2);
+
     } else {
-      return !target.isBefore(border1) && !target.isAfter(border2);
+      return target.isAfter(border1) && target.isBefore(border2);
     }
   }
 
@@ -283,12 +273,21 @@ public class TimeLogServiceImpl implements TimeLogService {
     Duration totalDuration = Duration.ZERO;
     LocalDate currentDay = startOfMonth;
     while (!currentDay.isAfter(endOfMonth)) {
-      final Duration durationForDay = getDurationForDay(getAllTimeLogEntitiesInMode("Day", currentDay, offset));
+      boolean isConflicted = false;
+      List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
+      for(TimeLogEntity entity : entitiesForDay) {
+        if(isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
+          isConflicted = true;
+          break;
+        }
+      }
+      final Duration durationForDay = getDurationForDay(entitiesForDay);
       totalDuration = totalDuration.plus(durationForDay);
 
       dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
           .start(LocalDateTime.of(currentDay, LocalTime.MIN))
           .title(formatDuration(durationForDay))
+          .isConflicted(isConflicted)
           .build());
 
       currentDay = currentDay.plusDays(1);
@@ -323,9 +322,6 @@ public class TimeLogServiceImpl implements TimeLogService {
 
     TimeLogUpdateResponse response = mapper.toUpdateResponse(timeLogEntity);
     response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
-    if (isConflictedWithOthersTimeLogs(timeLogEntity.getId(), timeLogEntity.getStartTime(), timeLogEntity.getEndTime(), timeLogEntity.getDate())) {
-      response.setConflicted(true);
-    }
     return response;
   }
 
