@@ -28,6 +28,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogOffsetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -45,9 +46,10 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final TimeLogRepository repository;
   private final TimeLogMapper mapper;
   private final Clock clock;
+  private final int offset = 3;
 
   @Override
-  public TimeLogListResponse list(final String mode, final LocalDate date, final int offset) {
+  public TimeLogListResponse list(final String mode, final LocalDate date) {
     if(offset < 0 || offset > 23) {
       throw new BadRequestException("Offset must be between 0 and 23");
     }
@@ -197,7 +199,12 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   @Override
-  public TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date, final int offset) {
+  public TimeLogOffsetResponse getOffset() {
+    return new TimeLogOffsetResponse(offset);
+  }
+
+  @Override
+  public TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date) {
     LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
@@ -268,7 +275,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   @Override
-  public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date, final int offset) {
+  public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date) {
     final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
     final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
     final LocalTime startOfDay = LocalTime.of(offset, 0);

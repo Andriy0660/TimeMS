@@ -21,6 +21,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogOffsetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -34,8 +35,8 @@ public class TimeLogController {
   private final TimeLogService timeLogService;
 
   @GetMapping
-  public TimeLogListResponse list(@RequestParam final String mode, @RequestParam final LocalDate date, @RequestParam final int offset) {
-    return timeLogService.list(mode, date, offset);
+  public TimeLogListResponse list(@RequestParam final String mode, @RequestParam final LocalDate date) {
+    return timeLogService.list(mode, date);
   }
 
   @PostMapping
@@ -53,14 +54,19 @@ public class TimeLogController {
     return timeLogService.get(timeLogId);
   }
 
+  @GetMapping("/offset")
+  public TimeLogOffsetResponse getOffset() {
+    return timeLogService.getOffset();
+  }
+
   @GetMapping("/hoursForWeek")
-  public TimeLogHoursForWeekResponse getHoursForWeek(@RequestParam final LocalDate date, @RequestParam final int offset) {
-    return timeLogService.getHoursForWeek(date, offset);
+  public TimeLogHoursForWeekResponse getHoursForWeek(@RequestParam final LocalDate date) {
+    return timeLogService.getHoursForWeek(date);
   }
 
   @GetMapping("/hoursForMonth")
-  public TimeLogHoursForMonthResponse getHoursForMonth(@RequestParam final LocalDate date, @RequestParam final int offset) {
-    return timeLogService.getHoursForMonth(date, offset);
+  public TimeLogHoursForMonthResponse getHoursForMonth(@RequestParam final LocalDate date) {
+    return timeLogService.getHoursForMonth(date);
   }
 
   @PutMapping("/{timeLogId}")
