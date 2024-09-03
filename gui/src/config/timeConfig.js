@@ -1,6 +1,12 @@
 import timeLogApi from "../api/timeLogApi.js";
 
-const startHourOfDay = await timeLogApi.getOffset()
+let startHourOfDay = 0;
+
+const initializeOffset = async () => {
+  startHourOfDay = await timeLogApi.getOffset();
+};
+
+initializeOffset();
 
 const startHourOfWorkingDay = 7;
 const endHourOfWorkingDay = 17;
