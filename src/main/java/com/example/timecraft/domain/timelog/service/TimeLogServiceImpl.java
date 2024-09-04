@@ -201,20 +201,29 @@ public class TimeLogServiceImpl implements TimeLogService {
     final LocalTime startOfDay = LocalTime.of(offset, 0);
     final List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startOfDay);
 
-    return new TimeLogHoursForWeekResponse(getDayInfoList(entities, startOfWeek, endOfWeek, startOfDay));
+    return new TimeLogHoursForWeekResponse(getDayInfoList(entities, startOfWeek, endOfWeek));
   }
 
   private List<TimeLogHoursForWeekResponse.DayInfo> getDayInfoList(final List<TimeLogEntity> entities, final LocalDate startOfWeek,
-                                                                   final LocalDate endOfWeek, final LocalTime startOfDay) {
+                                                                   final LocalDate endOfWeek) {
     final Set<String> tickets = getTicketsForWeek(entities);
 
     final List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
     LocalDate currentDay = startOfWeek;
     while (!currentDay.isAfter(endOfWeek)) {
+      boolean isConflicted = false;
+      List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
+      for (TimeLogEntity entity : entitiesForDay) {
+        if (isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
+          isConflicted = true;
+          break;
+        }
+      }
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
           .date(currentDay)
-          .ticketDurations(getTicketDurationsForDay(entities, startOfDay, tickets, currentDay))
+          .isConflicted(isConflicted)
+          .ticketDurations(getTicketDurationsForDay(entitiesForDay, tickets))
           .build());
 
       currentDay = currentDay.plusDays(1);
@@ -232,23 +241,16 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   private List<TimeLogHoursForWeekResponse.TicketDuration> getTicketDurationsForDay(
-      final List<TimeLogEntity> entities,
-      final LocalTime startOfDay,
-      final Set<String> tickets,
-      final LocalDate currentDay) {
+      final List<TimeLogEntity> entitiesForDay, final Set<String> tickets) {
+
     final List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = new ArrayList<>();
     Duration totalForDay = Duration.ZERO;
 
     for (String ticket : tickets) {
       Duration totalForTicket = Duration.ZERO;
 
-      for (TimeLogEntity entity : entities) {
-        if (entity.getStartTime() == null || entity.getEndTime() == null) {
-          continue;
-        }
-        if ((entity.getDate().isEqual(currentDay) && !entity.getStartTime().isBefore(startOfDay)) ||
-            (entity.getDate().minusDays(1).equals(currentDay) && entity.getStartTime().isBefore(startOfDay))) {
-
+      for (TimeLogEntity entity : entitiesForDay) {
+        if (entity.getStartTime() != null && entity.getEndTime() != null) {
           String currentTicket = entity.getTicket() != null ? entity.getTicket() : "Without Ticket";
           if (currentTicket.equals(ticket)) {
             Duration duration = getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime());
