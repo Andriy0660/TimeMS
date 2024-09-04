@@ -1,14 +1,41 @@
-import {AppBar, Box, Drawer, IconButton, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography} from "@mui/material";
+import {
+  AppBar,
+  Box,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  MenuItem,
+  Select,
+  Toolbar,
+  Typography
+} from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
-import {useState} from "react";
-import {Link} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {Link, useNavigate} from "react-router-dom";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
-
+  const [mode, setMode] = useState("Day")
   const toggleMenu = (newOpen) => () => {
     setOpen(newOpen);
   };
+  const navigate = useNavigate();
+  useEffect(() => {
+    switch (mode) {
+      case "Day" :
+        navigate("/app/timelog");
+        break;
+      case "Week" :
+        navigate("/app/weekview");
+        break;
+      case "Month" :
+        navigate("/app/monthview");
+        break;
+    }
+  }, [mode])
 
   const DrawerList = (
     <Box sx={{width: 250}} onClick={toggleMenu(false)}>
@@ -20,20 +47,7 @@ export default function NavBar() {
             </ListItemButton>
           </Link>
         </ListItem>
-        <ListItem disablePadding>
-          <Link to="/app/weekview" className="text-inherit no-underline w-full">
-            <ListItemButton>
-              <ListItemText primary="Week View" />
-            </ListItemButton>
-          </Link>
-        </ListItem>
-        <ListItem disablePadding>
-          <Link to="/app/monthview" className="text-inherit no-underline w-full">
-            <ListItemButton>
-              <ListItemText primary="Month View" />
-            </ListItemButton>
-          </Link>
-        </ListItem>
+
         <ListItem disablePadding>
           <Link to="/app/info" className="text-inherit no-underline w-full">
             <ListItemButton>
@@ -58,9 +72,23 @@ export default function NavBar() {
         >
           <MenuIcon />
         </IconButton>
-        <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
+        <Typography variant="h6">
           Time Craft
         </Typography>
+        <Select
+          className="mx-8 bg-white h-8"
+          size="small"
+          inputProps={{"aria-label": "Without label"}}
+          value={mode}
+          onChange={(event) => {
+            setMode(event.target.value);
+          }}
+          autoWidth
+        >
+          <MenuItem value="Day">Day</MenuItem>
+          <MenuItem value="Week">Week</MenuItem>
+          <MenuItem value="Month">Month</MenuItem>
+        </Select>
       </Toolbar>
       <Drawer open={open} onClose={toggleMenu(false)}>
         {DrawerList}
