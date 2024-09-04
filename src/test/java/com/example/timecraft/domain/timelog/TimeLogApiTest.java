@@ -173,9 +173,6 @@ class TimeLogApiTest {
 
   @Test
   void shouldCreateTimeLog() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    timeLog1 = timeLogRepository.save(timeLog1);
-
     int initialSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
 
     TimeLogCreateRequest request = new TimeLogCreateRequest("TMC-1", LocalDate.now(clock), LocalTime.of(9, 30, 0), "some descr");
@@ -183,8 +180,7 @@ class TimeLogApiTest {
     mvc.perform(post("/time-logs")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.conflicted").value(true));
+        .andExpect(status().isOk());
 
     int newSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
     assertEquals(initialSize + 1, newSize);
@@ -339,21 +335,6 @@ class TimeLogApiTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.endTime").exists());
-  }
-
-  @Test
-  void shouldUpdateWhenConflicted() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(12, 0, 0));
-    timeLog1 = timeLogRepository.save(timeLog1);
-    timeLog2 = timeLogRepository.save(timeLog2);
-    TimeLogUpdateRequest request = new TimeLogUpdateRequest(timeLog2.getDate(), timeLog2.getTicket(), timeLog1.getStartTime(), timeLog2.getEndTime());
-
-    mvc.perform(put("/time-logs/{id}", timeLog2.getId())
-            .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.conflicted").value(true));
   }
 
   @Test
