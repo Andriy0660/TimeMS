@@ -4,25 +4,27 @@ import Button from "@mui/material/Button";
 import {MobileDatePicker} from "@mui/x-date-pickers";
 import useAppContext from "../context/useAppContext.js";
 
-export default function DayPicker({date, toNext, toPrev, isLoading}) {
-  const {setDate} = useAppContext();
+export default function DayPicker({isOnNavBar, isLoading}) {
+  const {date, setDate} = useAppContext()
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center justify-center ">
       <Button
-        onClick={toPrev}
+        className={`${isOnNavBar ? "text-white" : ""}`}
+        onClick={() => setDate(date.subtract(1, "day"))}
         disabled={isLoading}
       >
         <ArrowBackIosIcon />
       </Button>
       <MobileDatePicker
         slotProps={{textField: {size: "small"}}}
-        className="w-32"
+        className="w-32 bg-white rounded"
         value={date}
         format="DD/MM/YYYY"
         onChange={(newValue) => setDate(newValue)}
       />
       <Button
-        onClick={toNext}
+        className={`${isOnNavBar ? "text-white" : ""}`}
+        onClick={() => setDate(date.add(1, "day"))}
         disabled={isLoading}
       >
         <ArrowForwardIosIcon />

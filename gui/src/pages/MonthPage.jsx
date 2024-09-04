@@ -1,15 +1,13 @@
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from "@fullcalendar/interaction"
-import {useState} from "react";
-import MonthPicker from "../components/MonthPicker..jsx";
+import {useEffect, useState} from "react";
 import dayjs from "dayjs";
 import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import {startHourOfDay} from "../config/timeConfig.js";
-import useDateInUrl from "../hooks/useDateInUrl.js";
 import {useNavigate} from "react-router-dom";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
 
@@ -19,7 +17,6 @@ export default function MonthPage() {
 
   const {date, setDate, addAlert} = useAppContext();
   const navigate = useNavigate();
-  useDateInUrl(date);
 
   const {data} = useQuery({
     queryKey: [timeLogApi.key, "month", date, offset],
@@ -35,6 +32,14 @@ export default function MonthPage() {
     retryDelay: 300,
   });
 
+  useEffect(() => {
+    if(calendarApi && calendarApi.currentData.currentDate.getMonth() !== date.get("month")) {
+      queueMicrotask(() => {
+        calendarApi.gotoDate(new Date(date))
+      })
+    }
+  }, [calendarApi, date])
+
   const handleCalendarRef = (calendar) => {
     if (calendar) {
       setCalendarApi(calendar.getApi());
@@ -47,24 +52,10 @@ export default function MonthPage() {
   };
 
   return (
-    <div className="w-2/3 mx-auto">
+    <div className="mt-6 w-2/3 mx-auto">
       <div className="flex items-center">
         <div className="w-1/3 font-medium">
           Month: {data.totalHours}
-        </div>
-        <div className="min-w-1/3">
-          <MonthPicker
-            date={date}
-            toNext={() => {
-              setDate(date.add(1, "month"));
-              calendarApi.next();
-            }}
-            toPrev={() => {
-              setDate(date.subtract(1, "month"));
-              calendarApi.prev();
-            }}
-            classNames="my-2"
-          />
         </div>
       </div>
       <FullCalendar

@@ -18,7 +18,6 @@ import useAppContext from "../context/useAppContext.js";
 import {useEffect, useRef, useState} from "react";
 import dayjs from "dayjs";
 import dateTimeService from "../service/dateTimeService.js";
-import DayPicker from "../components/DayPicker.jsx";
 import MonthPicker from "../components/MonthPicker..jsx";
 import WeekPicker from "../components/WeekPicker.jsx";
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
@@ -257,20 +256,9 @@ export default function TimeLogPage() {
   }
 
   const modeDatePickerConfig = {
-    Day: <DayPicker
-      date={date}
-      toPrev={() => setDate(date.subtract(1, "day"))}
-      toNext={() => setDate(date.add(1, "day"))}
-      isLoading={isPlaceholderData}/>,
     Week: <WeekPicker
-      date={date}
-      toPrev={() => setDate(date.subtract(1, "week"))}
-      toNext={() => setDate(date.add(1, "week"))}
       isLoading={isPlaceholderData}/>,
     Month: <MonthPicker
-      date={date}
-      toPrev={() => setDate(date.subtract(1, "month"))}
-      toNext={() => setDate(date.add(1, "month"))}
       isLoading={isPlaceholderData}/>,
     All: null,
   };

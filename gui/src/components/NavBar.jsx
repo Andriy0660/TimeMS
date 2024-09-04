@@ -15,27 +15,58 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
+import MonthPicker from "./MonthPicker..jsx";
+import WeekPicker from "./WeekPicker.jsx";
+import DayPicker from "./DayPicker.jsx";
+import dayjs from "dayjs";
+import dateTimeService from "../service/dateTimeService.js";
+import useAppContext from "../context/useAppContext.js";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState("Day")
+
+  const queryParams = new URLSearchParams(location.search);
+  const {date} = useAppContext();
+  const [view, setView] = useState(queryParams.get("view") || "Day")
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setView(queryParams.get("view") || "Day")
+  }, [location.search]);
+
+  useEffect(() => {
+    let viewUrl;
+    switch (view) {
+      case "Day" :
+        viewUrl = "/app/timelog";
+        break;
+      case "Week" :
+        viewUrl = "/app/weekview";
+        break;
+      case "Month" :
+        viewUrl = "/app/monthview";
+        break;
+    }
+    const params = new URLSearchParams();
+    if (date && !dayjs().isSame(date, "day")) {
+      params.set("date", dateTimeService.getFormattedDateTime(date));
+    }
+    if (view && view !== "Day") {
+      params.set("view", view);
+    }
+    navigate({pathname: viewUrl, search: params.toString()});
+  }, [date, view])
+
+  const modeDatePickerConfig = {
+    Day: <DayPicker isOnNavBar />,
+    Week: <WeekPicker isOnNavBar />,
+    Month: <MonthPicker isOnNavBar />,
+    All: null,
+  };
+
   const toggleMenu = (newOpen) => () => {
     setOpen(newOpen);
   };
-  const navigate = useNavigate();
-  useEffect(() => {
-    switch (mode) {
-      case "Day" :
-        navigate("/app/timelog");
-        break;
-      case "Week" :
-        navigate("/app/weekview");
-        break;
-      case "Month" :
-        navigate("/app/monthview");
-        break;
-    }
-  }, [mode])
 
   const DrawerList = (
     <Box sx={{width: 250}} onClick={toggleMenu(false)}>
@@ -62,7 +93,7 @@ export default function NavBar() {
 
   return (
     <AppBar position="static">
-      <Toolbar variant="dense">
+      <Toolbar>
         <IconButton
           onClick={toggleMenu(true)}
           size="large"
@@ -76,12 +107,12 @@ export default function NavBar() {
           Time Craft
         </Typography>
         <Select
-          className="mx-8 bg-white h-8"
+          className="mx-8 bg-white"
           size="small"
           inputProps={{"aria-label": "Without label"}}
-          value={mode}
+          value={view}
           onChange={(event) => {
-            setMode(event.target.value);
+            setView(event.target.value);
           }}
           autoWidth
         >
@@ -89,6 +120,8 @@ export default function NavBar() {
           <MenuItem value="Week">Week</MenuItem>
           <MenuItem value="Month">Month</MenuItem>
         </Select>
+        {modeDatePickerConfig[view]}
+
       </Toolbar>
       <Drawer open={open} onClose={toggleMenu(false)}>
         {DrawerList}
