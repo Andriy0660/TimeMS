@@ -10,6 +10,7 @@ import {
   MenuItem,
   Select,
   Toolbar,
+  Tooltip,
   Typography
 } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
@@ -20,11 +21,13 @@ import WeekPicker from "./WeekPicker.jsx";
 import DayPicker from "./DayPicker.jsx";
 import useAppContext from "../context/useAppContext.js";
 import useDateInUrl from "../hooks/useDateInUrl.js";
+import dayjs from "dayjs";
+import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore.js";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
   const queryParams = new URLSearchParams(location.search);
-  const {date} = useAppContext();
+  const {date, setDate} = useAppContext();
   const [view, setView] = useState(queryParams.get("view") || "Day")
   const navigate = useNavigate();
 
@@ -119,7 +122,15 @@ export default function NavBar() {
           <MenuItem value="Month">Month</MenuItem>
         </Select>
         {modeDatePickerConfig[view]}
-
+        <Tooltip title="reset">
+          <IconButton
+            onClick={() => setDate(dayjs())}
+            variant="outlined"
+            className="text-white"
+          >
+            <SettingsBackupRestoreIcon />
+          </IconButton>
+        </Tooltip>
       </Toolbar>
       <Drawer open={open} onClose={toggleMenu(false)}>
         {DrawerList}

@@ -2,25 +2,12 @@ import TimeLogList from "../components/TimeLogList.jsx";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {
-  Checkbox,
-  CircularProgress,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  ListItemText,
-  MenuItem,
-  Select,
-  Switch,
-  Tooltip
-} from "@mui/material";
+import {Checkbox, CircularProgress, FormControl, FormControlLabel, IconButton, ListItemText, MenuItem, Select, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useRef, useState} from "react";
-import dayjs from "dayjs";
 import dateTimeService from "../service/dateTimeService.js";
 import MonthPicker from "../components/MonthPicker..jsx";
 import WeekPicker from "../components/WeekPicker.jsx";
-import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import {useNavigate} from "react-router-dom";
 import timeLogProcessingService from "../service/timeLogProcessingService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
@@ -324,18 +311,7 @@ export default function TimeLogPage() {
           </IconButton>
 
           {modeDatePickerConfig[mode]}
-          {mode !== "All" &&
-            <Tooltip title="reset">
-              <IconButton
-                onClick={() => setDate(dayjs())}
-                variant="outlined"
-                color="primary"
-              >
-                <SettingsBackupRestoreIcon />
-              </IconButton>
-            </Tooltip>
 
-          }
         </div>
         <div className="flex justify-between items-center">
           <TotalTimeLabel label={totalTimeLabel} />
