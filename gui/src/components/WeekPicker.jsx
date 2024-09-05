@@ -66,6 +66,11 @@ export default function WeekPicker({isOnNavBar, isLoading}) {
   const {date, setDate} = useAppContext()
   const [hoveredDay, setHoveredDay] = React.useState(null);
 
+  const startOfWeek = date.startOf('week').format('DD/MM/YYYY');
+  const endOfWeek = date.endOf('week').format('DD/MM/YYYY');
+  const weekRange = `${startOfWeek} - ${endOfWeek}`;
+
+
   return (
     <div className={`flex items-center justify-center`}>
       <Button
@@ -76,7 +81,7 @@ export default function WeekPicker({isOnNavBar, isLoading}) {
         <ArrowBackIosIcon />
       </Button>
       <DatePicker
-        className="bg-white rounded w-44"
+        className="bg-white rounded w-[260px]"
         onChange={(newValue) => setDate(newValue)}
         value={date}
         showDaysOutsideCurrentMonth
@@ -88,9 +93,13 @@ export default function WeekPicker({isOnNavBar, isLoading}) {
             onPointerEnter: () => setHoveredDay(ownerState.day),
             onPointerLeave: () => setHoveredDay(null),
           }),
-          textField: {size: "small"}
+          textField: {
+            size: "small",
+            inputProps: {
+              value: weekRange,
+            },
+          }
         }}
-        format="DD/MM/YYYY"
       />
       <Button
         className={`${isOnNavBar ? "text-white" : ""}`}
