@@ -9,9 +9,9 @@ const timeLogApi = {
     return data.items;
   },
 
-  getOffset: async () => {
-    const {data} = await axios.get(`/${key}/offset`, {baseMsg: "Error while getting offset"});
-    return data.offset;
+  getConfig: async () => {
+    const {data} = await axios.get(`/${key}/config`, {baseMsg: "Error while getting config"});
+    return data;
   },
 
   getHoursForWeek: async (body) => {

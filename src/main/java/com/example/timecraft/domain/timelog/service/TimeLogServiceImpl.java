@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -28,7 +29,6 @@ import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogOffsetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -47,6 +47,8 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final TimeLogMapper mapper;
   private final Clock clock;
   private final int offset = 3;
+  private final int startHourOfWorkingDay = 7;
+  private final int endHourOfWorkingDay = 17;
 
   @Override
   public TimeLogListResponse list(final String mode, final LocalDate date) {
@@ -189,8 +191,8 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   @Override
-  public TimeLogOffsetResponse getOffset() {
-    return new TimeLogOffsetResponse(offset);
+  public TimeLogConfigResponse getConfig() {
+    return new TimeLogConfigResponse(offset, startHourOfWorkingDay, endHourOfWorkingDay);
   }
 
   @Override

@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TimeLogOffsetResponse {
+public class TimeLogConfigResponse {
   private Integer offset;
+  private Integer startHourOfWorkingDay;
+  private Integer endHourOfWorkingDay;
 }
