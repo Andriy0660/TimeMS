@@ -48,18 +48,19 @@ export default function TimeLogPage() {
 
   const navigate = useNavigate();
   useEffect(() => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(location.search);
     if (mode && mode !== "Day") {
       params.set("mode", mode);
-    }
-    if (date && !dayjs().isSame(date, "day")) {
-      params.set("date", dateTimeService.getFormattedDateTime(date));
+    } else {
+      params.delete("mode")
     }
     if(groupByDescription) {
       params.set("groupByDescription", true);
+    } else {
+      params.delete("groupByDescription");
     }
     navigate({search: params.toString()});
-  }, [mode, date, groupByDescription]);
+  }, [mode, groupByDescription]);
 
   const {
     data,

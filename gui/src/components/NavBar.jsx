@@ -18,20 +18,23 @@ import {Link, useNavigate} from "react-router-dom";
 import MonthPicker from "./MonthPicker..jsx";
 import WeekPicker from "./WeekPicker.jsx";
 import DayPicker from "./DayPicker.jsx";
-import dayjs from "dayjs";
-import dateTimeService from "../service/dateTimeService.js";
 import useAppContext from "../context/useAppContext.js";
+import useDateInUrl from "../hooks/useDateInUrl.js";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
-
   const queryParams = new URLSearchParams(location.search);
   const {date} = useAppContext();
   const [view, setView] = useState(queryParams.get("view") || "Day")
   const navigate = useNavigate();
 
+  useDateInUrl(date);
+
   useEffect(() => {
-    setView(queryParams.get("view") || "Day")
+    const viewInUrl = queryParams.get("view") || "Day";
+    if (viewInUrl !== view) {
+      setView(queryParams.get("view") || "Day")
+    }
   }, [location.search]);
 
   useEffect(() => {
@@ -47,15 +50,10 @@ export default function NavBar() {
         viewUrl = "/app/monthview";
         break;
     }
-    const params = new URLSearchParams();
-    if (date && !dayjs().isSame(date, "day")) {
-      params.set("date", dateTimeService.getFormattedDateTime(date));
-    }
-    if (view && view !== "Day") {
-      params.set("view", view);
-    }
+    const params = new URLSearchParams(location.search);
+    params.set("view", view);
     navigate({pathname: viewUrl, search: params.toString()});
-  }, [date, view])
+  }, [view])
 
   const modeDatePickerConfig = {
     Day: <DayPicker isOnNavBar />,
