@@ -213,18 +213,13 @@ public class TimeLogServiceImpl implements TimeLogService {
     final List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
     LocalDate currentDay = startOfWeek;
     while (!currentDay.isAfter(endOfWeek)) {
-      boolean isConflicted = false;
       List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
-      for (TimeLogEntity entity : entitiesForDay) {
-        if (isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
-          isConflicted = true;
-          break;
-        }
-      }
+
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
           .date(currentDay)
-          .isConflicted(isConflicted)
+          .isConflicted(hasConflictsForDay(entitiesForDay))
+          .isInProgress(hasInProgressTimeLogs(entitiesForDay))
           .ticketDurations(getTicketDurationsForDay(entitiesForDay, tickets))
           .build());
 
@@ -232,6 +227,25 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
     return dayInfoList;
   }
+
+  public boolean hasConflictsForDay(List<TimeLogEntity> entitiesForDay) {
+    for (TimeLogEntity entity : entitiesForDay) {
+      if (isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasInProgressTimeLogs(List<TimeLogEntity> entitiesForDay) {
+    for (TimeLogEntity entity : entitiesForDay) {
+      if (entity.getStartTime() != null && entity.getEndTime() == null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 
   private Set<String> getTicketsForWeek(final List<TimeLogEntity> entities) {
     final Set<String> tickets = entities.stream()
@@ -277,19 +291,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     Duration totalDuration = Duration.ZERO;
     LocalDate currentDay = startOfMonth;
     while (!currentDay.isAfter(endOfMonth)) {
-      boolean isConflicted = false;
-      boolean isInProgress = false;
       List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
-
-      for(TimeLogEntity entity : entitiesForDay) {
-        if(isInProgress && isConflicted) break;
-        if(!isInProgress && entity.getStartTime() != null && entity.getEndTime() == null) {
-          isInProgress = true;
-        }
-        if(!isConflicted && isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
-          isConflicted = true;
-        }
-      }
 
       final Duration durationForDay = getDurationForDay(entitiesForDay);
       totalDuration = totalDuration.plus(durationForDay);
@@ -297,8 +299,8 @@ public class TimeLogServiceImpl implements TimeLogService {
       dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
           .start(LocalDateTime.of(currentDay, LocalTime.MIN))
           .title(formatDuration(durationForDay))
-          .isConflicted(isConflicted)
-          .isInProgress(isInProgress)
+          .isConflicted(hasConflictsForDay(entitiesForDay))
+          .isInProgress(hasInProgressTimeLogs(entitiesForDay))
           .build());
 
       currentDay = currentDay.plusDays(1);

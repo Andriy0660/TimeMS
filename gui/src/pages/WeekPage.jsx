@@ -11,13 +11,14 @@ import timeLogApi from "../api/timeLogApi.js";
 import {CircularProgress} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import CustomTableCell from "../components/CustomTableCell.jsx";
-import {useNavigate} from "react-router-dom";
+import useViewChanger from "../hooks/useViewChanger.js";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
   const {date, setDate, addAlert} = useAppContext();
-  const navigate = useNavigate();
+  const {changeView} = useViewChanger();
+
 
   const {
     data,
@@ -41,7 +42,7 @@ export default function WeekPage() {
 
   const handleClick = (date) => {
     setDate(dayjs(date))
-    navigate(`/app/timelog`)
+    changeView("Day")
   }
 
   const getTotalTimeForTicket = (ticket) => {
@@ -74,7 +75,7 @@ export default function WeekPage() {
                 <CustomTableCell
                   key={dayInfo.date}
                   isHover
-                  classNames={`${dayInfo.conflicted ? "bg-red-200" : ""}`}
+                  classNames={`${dayInfo.conflicted ? "bg-red-200" : ""} ${dayInfo.inProgress ? "bg-blue-200" : ""}`}
                   onClick={() => handleClick(dayInfo.date)}
                 >
                   {dayInfo.dayName}
