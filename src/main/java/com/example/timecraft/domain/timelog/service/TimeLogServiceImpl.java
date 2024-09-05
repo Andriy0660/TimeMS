@@ -278,13 +278,19 @@ public class TimeLogServiceImpl implements TimeLogService {
     LocalDate currentDay = startOfMonth;
     while (!currentDay.isAfter(endOfMonth)) {
       boolean isConflicted = false;
+      boolean isInProgress = false;
       List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
+
       for(TimeLogEntity entity : entitiesForDay) {
-        if(isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
+        if(isInProgress && isConflicted) break;
+        if(!isInProgress && entity.getStartTime() != null && entity.getEndTime() == null) {
+          isInProgress = true;
+        }
+        if(!isConflicted && isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
           isConflicted = true;
-          break;
         }
       }
+
       final Duration durationForDay = getDurationForDay(entitiesForDay);
       totalDuration = totalDuration.plus(durationForDay);
 
@@ -292,6 +298,7 @@ public class TimeLogServiceImpl implements TimeLogService {
           .start(LocalDateTime.of(currentDay, LocalTime.MIN))
           .title(formatDuration(durationForDay))
           .isConflicted(isConflicted)
+          .isInProgress(isInProgress)
           .build());
 
       currentDay = currentDay.plusDays(1);

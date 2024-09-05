@@ -51,6 +51,22 @@ export default function MonthPage() {
     changeView("Day")
   };
 
+  const getEventContent = (eventInfo) => {
+    const {start, title} = eventInfo.event;
+    return <MonthPageDuration title={title} handleClickDate={() => handleClickDate(start)} />
+  }
+
+  const getEventClassNames = (eventInfo) => {
+    const {conflicted, inProgress} = eventInfo.event.extendedProps;
+
+    if (conflicted) {
+      return ["bg-red-200 hover:bg-transparent"];
+    } else if (inProgress) {
+      return ["bg-blue-200 hover:bg-transparent"];
+    } else {
+      return ["bg-transparent"];
+    }
+  }
   return (
     <div className="mt-6 w-2/3 mx-auto">
       <div className="flex items-center">
@@ -75,12 +91,8 @@ export default function MonthPage() {
             return ["bg-white hover:bg-blue"];
           }
         }}
-        eventContent={(eventInfo) =>{
-          return <MonthPageDuration title={eventInfo.event.title} handleClickDate={() => handleClickDate(eventInfo.event.start)} />
-        }}
-        eventClassNames={(eventInfo) => eventInfo.event.extendedProps.conflicted
-          ? ["bg-red-200 hover:bg-transparent"]
-          : ["bg-transparent"]}
+        eventContent={getEventContent}
+        eventClassNames={getEventClassNames}
       />
     </div>
   );

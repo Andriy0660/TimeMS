@@ -22,5 +22,6 @@ public class TimeLogHoursForMonthResponse {
     private LocalDateTime start;
     private String title;
     private boolean isConflicted;
+    private boolean isInProgress;
   }
 }
