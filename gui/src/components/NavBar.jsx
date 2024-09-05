@@ -14,8 +14,8 @@ import {
   Typography
 } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
-import {useEffect, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import {useState} from "react";
+import {Link} from "react-router-dom";
 import MonthPicker from "./MonthPicker..jsx";
 import WeekPicker from "./WeekPicker.jsx";
 import DayPicker from "./DayPicker.jsx";
@@ -23,40 +23,14 @@ import useAppContext from "../context/useAppContext.js";
 import useDateInUrl from "../hooks/useDateInUrl.js";
 import dayjs from "dayjs";
 import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore.js";
+import useViewChanger from "../hooks/useViewChanger.js";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
-  const queryParams = new URLSearchParams(location.search);
-  const {date, setDate} = useAppContext();
-  const [view, setView] = useState(queryParams.get("view") || "Day")
-  const navigate = useNavigate();
+  const {date, setDate, view} = useAppContext();
 
   useDateInUrl(date);
-
-  useEffect(() => {
-    const viewInUrl = queryParams.get("view") || "Day";
-    if (viewInUrl !== view) {
-      setView(queryParams.get("view") || "Day")
-    }
-  }, [location.search]);
-
-  useEffect(() => {
-    let viewUrl;
-    switch (view) {
-      case "Day" :
-        viewUrl = "/app/timelog";
-        break;
-      case "Week" :
-        viewUrl = "/app/weekview";
-        break;
-      case "Month" :
-        viewUrl = "/app/monthview";
-        break;
-    }
-    const params = new URLSearchParams(location.search);
-    params.set("view", view);
-    navigate({pathname: viewUrl, search: params.toString()});
-  }, [view])
+  const {changeView} = useViewChanger();
 
   const modeDatePickerConfig = {
     Day: <DayPicker isOnNavBar />,
@@ -113,7 +87,7 @@ export default function NavBar() {
           inputProps={{"aria-label": "Without label"}}
           value={view}
           onChange={(event) => {
-            setView(event.target.value);
+            changeView(event.target.value);
           }}
           autoWidth
         >

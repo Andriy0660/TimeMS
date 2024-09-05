@@ -1,5 +1,5 @@
 import {createContext, useState} from "react";
-import {ToastContainer, toast} from 'react-toastify';
+import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dayjs from "dayjs";
 
@@ -8,6 +8,8 @@ const AppContext = createContext();
 export const AppProvider = ({children}) => {
   const queryParams = new URLSearchParams(location.search);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs())
+  const [view, setView] = useState(queryParams.get("view") || "Day")
+
   const addAlert = ({type, text}) => {
     return toast[type](text);
   };
@@ -31,6 +33,8 @@ export const AppProvider = ({children}) => {
       <AppContext.Provider value={{
         date,
         setDate,
+        view,
+        setView,
         addAlert
       }}>
         {children}

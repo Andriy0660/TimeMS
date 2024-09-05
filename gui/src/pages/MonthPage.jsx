@@ -8,15 +8,15 @@ import dateTimeService from "../service/dateTimeService.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import {startHourOfDay} from "../config/timeConfig.js";
-import {useNavigate} from "react-router-dom";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
+import useViewChanger from "../hooks/useViewChanger.js";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
   const [calendarApi, setCalendarApi] = useState(null);
 
   const {date, setDate, addAlert} = useAppContext();
-  const navigate = useNavigate();
+  const {changeView} = useViewChanger();
 
   const {data} = useQuery({
     queryKey: [timeLogApi.key, "month", date, offset],
@@ -48,7 +48,7 @@ export default function MonthPage() {
 
   const handleClickDate = (date) => {
     setDate(dayjs(date));
-    navigate(`/app/timelog`);
+    changeView("Day")
   };
 
   return (
