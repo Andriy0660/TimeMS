@@ -312,8 +312,9 @@ public class TimeLogServiceImpl implements TimeLogService {
   private Duration getDurationForDay(final List<TimeLogEntity> entities) {
     Duration duration = Duration.ZERO;
     for (TimeLogEntity entity : entities) {
-      if (entity.getStartTime() != null && entity.getEndTime() != null) {
-        duration = duration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime()));
+      if (entity.getStartTime() != null) {
+        duration = duration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(),
+            entity.getEndTime() != null ? entity.getEndTime() : LocalTime.now(clock)));
       }
     }
     return duration;
