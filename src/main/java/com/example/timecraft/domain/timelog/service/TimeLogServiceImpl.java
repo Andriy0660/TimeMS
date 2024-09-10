@@ -266,10 +266,11 @@ public class TimeLogServiceImpl implements TimeLogService {
       Duration totalForTicket = Duration.ZERO;
 
       for (TimeLogEntity entity : entitiesForDay) {
-        if (entity.getStartTime() != null && entity.getEndTime() != null) {
+        if (entity.getStartTime() != null) {
           String currentTicket = entity.getTicket() != null ? entity.getTicket() : "Without Ticket";
           if (currentTicket.equals(ticket)) {
-            Duration duration = getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime());
+            Duration duration = getDurationBetweenStartAndEndTime(entity.getStartTime(),
+                entity.getEndTime() != null ? entity.getEndTime() : LocalTime.now(clock));
             totalForTicket = totalForTicket.plus(duration);
             totalForDay = totalForDay.plus(duration);
           }
