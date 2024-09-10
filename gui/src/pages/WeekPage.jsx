@@ -8,10 +8,11 @@ import dateTimeService from "../service/dateTimeService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress} from "@mui/material";
+import {CircularProgress, Tooltip} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import CustomTableCell from "../components/CustomTableCell.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
+import PendingIcon from '@mui/icons-material/Pending';
 
 export default function WeekPage() {
   const offset = startHourOfDay;
@@ -75,9 +76,11 @@ export default function WeekPage() {
                 <CustomTableCell
                   key={dayInfo.date}
                   isHover
-                  classNames={`${dayInfo.conflicted ? "bg-red-200" : ""} ${dayInfo.inProgress ? "bg-blue-200" : ""}`}
+                  classNames={`${dayInfo.conflicted ? "bg-red-200" : ""} ${dayInfo.inProgress ? "bg-blue-200 flex" : ""}`}
                   onClick={() => handleClick(dayInfo.date)}
                 >
+
+                  {dayInfo.inProgress && <Tooltip title="In Progress"><PendingIcon color="primary" className="mr-1"/></Tooltip>}
                   {dayInfo.dayName}
                 </CustomTableCell>
               ))}
