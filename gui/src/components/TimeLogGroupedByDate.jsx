@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 export default function TimeLogGroupedByDate({
   date,
   logsForDate,
-  renderInner,
+  renderedInner,
   mode,
   onCreate,
   onUpdate,
@@ -20,7 +20,7 @@ export default function TimeLogGroupedByDate({
     <div className="mb-2 shadow-md bg-gray-50">
       {mode !== "Day" &&
         <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
-      {renderInner ? logsForDate.map(({key, items}) => renderInner(key, items)) : logsForDate.map((timeLog) =>
+      {renderedInner ? renderedInner : logsForDate.map((timeLog) =>
         <div key={timeLog.id}>
           <TimeLog
             timeLog={timeLog}

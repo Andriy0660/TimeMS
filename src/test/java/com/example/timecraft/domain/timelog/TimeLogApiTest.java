@@ -138,7 +138,7 @@ class TimeLogApiTest {
 
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Week")
+            .param("mode", "Month")
             .param("date", LocalDate.now(clock).toString())
             .param("offset", "3")
             .contentType(MediaType.APPLICATION_JSON))

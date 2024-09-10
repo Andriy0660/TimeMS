@@ -105,7 +105,7 @@ export default function TimeLogPage() {
 
   function groupAndSortData(data, groupByDescription) {
     if (groupByDescription) {
-      return timeLogProcessingService.group(data, ["date", "description"]);
+      return timeLogProcessingService.group(data, ["date", "ticketAndDescription"]);
     } else {
       return timeLogProcessingService.group(data, ["date"]);
     }
