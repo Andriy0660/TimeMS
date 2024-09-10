@@ -6,8 +6,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '**/pom.xml'
 jobs:
   build:
     runs-on: ubuntu-latest
