@@ -1,4 +1,14 @@
-import {Chip, Icon, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
+import {
+  Chip,
+  Icon,
+  IconButton,
+  LinearProgress,
+  Menu,
+  MenuItem,
+  TextField,
+  Tooltip,
+  Typography
+} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useMemo, useRef, useState} from "react";
@@ -50,6 +60,8 @@ export default function TimeLog({
   const [endTimeError, setEndTimeError] = useState(false);
 
   const timeLogRef = useRef(null);
+  const [menuEl, setMenuEl] = useState(null);
+
   const {addAlert} = useAppContext();
   useEffect(() => {
     initializeState();
@@ -393,6 +405,24 @@ export default function TimeLog({
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
           )}
+          {timeLog.endTime?.isAfter(dateTimeService.getStartOfDay(timeLog.startTime).add(1, "day")) &&
+            <div>
+              <Button onClick={(event) => setMenuEl(event.currentTarget)}>
+                <Tooltip title="timelog continues tomorrow">
+                  <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
+                </Tooltip>
+              </Button>
+              <Menu
+                anchorEl={menuEl}
+                open={!!menuEl}
+                onClose={() => setMenuEl(null)}
+              >
+                <MenuItem className="py-0 px-2" onClick={() => setMenuEl(null)}>Divide into two days</MenuItem>
+                <Divider/>
+                <MenuItem className="py-0 px-2" onClick={() => setMenuEl(null)}>Cancel</MenuItem>
+              </Menu>
+            </div>
+          }
         </div>
 
         <div className="flex items-center">
