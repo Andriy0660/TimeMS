@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TimeLogMergeRequest {
+public class TimeLogImportRequest {
   private List<TimeLogDateGroup> dateGroups;
 
   @Data

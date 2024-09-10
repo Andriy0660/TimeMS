@@ -26,8 +26,8 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogMergeRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -118,11 +118,11 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   @Override
-  public void merge(final TimeLogMergeRequest request) {
-    List<TimeLogMergeRequest.TimeLogDateGroup> timeLogDateGroups = request.getDateGroups();
-    for(TimeLogMergeRequest.TimeLogDateGroup timeLogDateGroup : timeLogDateGroups) {
+  public void importTimeLogs(final TimeLogImportRequest request) {
+    List<TimeLogImportRequest.TimeLogDateGroup> timeLogDateGroups = request.getDateGroups();
+    for(TimeLogImportRequest.TimeLogDateGroup timeLogDateGroup : timeLogDateGroups) {
       List<TimeLogEntity> timeLogEntityList = repository.findAllByDateIs(timeLogDateGroup.getKey());
-      for(TimeLogMergeRequest.TimeLogDto timeLogDto : timeLogDateGroup.getItems()) {
+      for(TimeLogImportRequest.TimeLogDto timeLogDto : timeLogDateGroup.getItems()) {
         if(timeLogEntityList.stream().noneMatch(timeLogEntity -> isSameTimeLog(timeLogEntity, timeLogDto))) {
           TimeLogEntity timeLogEntity = mapper.fromMergeRequest(timeLogDto);
           if (timeLogEntity.getStartTime() != null) {
@@ -134,7 +134,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
   }
 
-  private boolean isSameTimeLog(TimeLogEntity timeLogEntity, TimeLogMergeRequest.TimeLogDto timeLogDto) {
+  private boolean isSameTimeLog(TimeLogEntity timeLogEntity, TimeLogImportRequest.TimeLogDto timeLogDto) {
     return Objects.equals(timeLogEntity.getTicket(), timeLogDto.getTicket())
         && Objects.equals(timeLogEntity.getStartTime(), timeLogDto.getStartTime())
         && Objects.equals(timeLogEntity.getEndTime(), timeLogDto.getEndTime())

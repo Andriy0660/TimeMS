@@ -7,7 +7,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogMergeRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
@@ -17,7 +17,7 @@ public interface TimeLogMapper {
   TimeLogListResponse.TimeLogDto toListItem(final TimeLogEntity entity);
 
   TimeLogEntity fromCreateRequest(final TimeLogCreateRequest request);
-  TimeLogEntity fromMergeRequest(final TimeLogMergeRequest.TimeLogDto timeLogDto);
+  TimeLogEntity fromMergeRequest(final TimeLogImportRequest.TimeLogDto timeLogDto);
 
   TimeLogCreateResponse toCreateResponse(final TimeLogEntity entity);
 

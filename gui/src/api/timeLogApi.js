@@ -26,8 +26,8 @@ const timeLogApi = {
     return data;
   },
 
-  merge: async (body) => {
-    await axios.post(`/${key}/merge`, {...body}, {baseMsg: "Error while importing time logs"});
+  importTimeLogs: async (body) => {
+    await axios.post(`/${key}/importTimeLogs`, {...body}, {baseMsg: "Error while importing time logs"});
   },
 
   update: async ({id, ...body}) => {

@@ -13,7 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.example.timecraft.domain.timelog.dto.TimeLogMergeRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.jayway.jsonpath.JsonPath;
@@ -47,7 +47,7 @@ public class TimeLogApiTestUtils {
     return hasItem(allOf(matchers));
   }
 
-  public static Matcher<?> matchTimeLogMergeDto(final TimeLogMergeRequest.TimeLogDto dto) {
+  public static Matcher<?> matchTimeLogMergeDto(final TimeLogImportRequest.TimeLogDto dto) {
     List<Matcher<? super Map<String, String>>> matchers = new ArrayList<>();
     if (dto.getTicket() != null) matchers.add(hasEntry("ticket", dto.getTicket()));
     if (dto.getDate() != null) matchers.add(hasEntry("date", dto.getDate().toString()));
@@ -56,16 +56,6 @@ public class TimeLogApiTestUtils {
     if (dto.getDescription() != null) matchers.add(hasEntry("description", dto.getDescription()));
 
     return hasItem(allOf(matchers));
-  }
-
-  private static <T> T getValue(final Object toCheck, final String methodName, final Class<T> returnType) {
-    try {
-      Method method = toCheck.getClass().getMethod(methodName);
-      Object value = method.invoke(toCheck);
-      return returnType.cast(value);
-    } catch (Exception e) {
-      return null;
-    }
   }
 
   public static TimeLogEntity createTimeLogEntity(final LocalDate date, final LocalTime startTime) {
@@ -88,8 +78,8 @@ public class TimeLogApiTestUtils {
         .build();
   }
 
-  public static TimeLogMergeRequest.TimeLogDto createMergeTimeLogDto(final LocalDate date, final LocalTime startTime, final LocalTime endTime) {
-    return TimeLogMergeRequest.TimeLogDto.builder()
+  public static TimeLogImportRequest.TimeLogDto createImportTimeLogDto(final LocalDate date, final LocalTime startTime, final LocalTime endTime) {
+    return TimeLogImportRequest.TimeLogDto.builder()
         .ticket("TMC-" + (int) (Math.random() * 1000))
         .description("Description " + (int) (Math.random() * 10))
         .date(date)
@@ -108,7 +98,7 @@ public class TimeLogApiTestUtils {
         .build();
   }
 
-  public static TimeLogEntity clone(final TimeLogMergeRequest.TimeLogDto toClone) {
+  public static TimeLogEntity clone(final TimeLogImportRequest.TimeLogDto toClone) {
     return TimeLogEntity.builder()
         .startTime(toClone.getStartTime())
         .endTime(toClone.getEndTime())

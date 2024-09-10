@@ -6,12 +6,12 @@ import {CircularProgress} from "@mui/material";
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import useAppContext from "../context/useAppContext.js";
 
-export default function ImportButton({className, onMerge}) {
+export default function ImportButton({className, onImport}) {
   const fileInputRef = useRef(null);
   const [isReading, setIsReading] = useState(false);
   const {addAlert} = useAppContext();
-  const {execute: handleMerge, isExecuting: isMerging} = useAsyncCall({
-    fn: onMerge
+  const {execute: handleImport, isExecuting: isMerging} = useAsyncCall({
+    fn: onImport
   })
 
   const handleFileChange = (event) => {
@@ -30,7 +30,7 @@ export default function ImportButton({className, onMerge}) {
         try {
           const fileContent = e.target.result;
           const dateGroups = timeLogProcessingService.group(fileService.parseTimeLogs(fileContent), ["date"]);
-          await handleMerge({dateGroups: dateGroups.data})
+          await handleImport({dateGroups: dateGroups.data})
         } catch (error) {
           addAlert({
             text: error.message,

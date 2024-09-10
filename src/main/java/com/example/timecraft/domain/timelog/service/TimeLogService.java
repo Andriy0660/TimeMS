@@ -9,7 +9,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogMergeRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -19,7 +19,7 @@ public interface TimeLogService {
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 
-  void merge(final TimeLogMergeRequest request);
+  void importTimeLogs(final TimeLogImportRequest request);
 
   TimeLogGetResponse get(final long timeLogId);
 
