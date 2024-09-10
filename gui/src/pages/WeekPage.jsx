@@ -83,6 +83,7 @@ export default function WeekPage() {
                 <CustomTableCell
                   key={dayInfo.date}
                   isHover
+                  classNames={`${dayInfo.conflicted ? "bg-red-200" : ""}`}
                   onClick={() => handleClick(dayInfo.date)}
                 >
                   {dayInfo.dayName}
@@ -97,6 +98,7 @@ export default function WeekPage() {
                 <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
                 {data.map(dayInfo => {
                   const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
+                  console.log(dayInfo.conflicted)
                   return (
                     <CustomTableCell
                       key={`${dayInfo.date}-${ticket}`}

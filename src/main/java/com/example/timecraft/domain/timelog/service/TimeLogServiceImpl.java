@@ -28,6 +28,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogOffsetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -45,9 +46,10 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final TimeLogRepository repository;
   private final TimeLogMapper mapper;
   private final Clock clock;
+  private final int offset = 3;
 
   @Override
-  public TimeLogListResponse list(final String mode, final LocalDate date, final int offset) {
+  public TimeLogListResponse list(final String mode, final LocalDate date) {
     if(offset < 0 || offset > 23) {
       throw new BadRequestException("Offset must be between 0 and 23");
     }
@@ -110,11 +112,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
 
     timeLogEntity = repository.save(timeLogEntity);
-    TimeLogCreateResponse response = mapper.toCreateResponse(timeLogEntity);
-    if (isConflictedWithOthersTimeLogs(timeLogEntity.getId(), timeLogEntity.getStartTime(), timeLogEntity.getEndTime(), timeLogEntity.getDate())) {
-      response.setConflicted(true);
-    }
-    return response;
+    return mapper.toCreateResponse(timeLogEntity);
   }
 
   @Override
@@ -142,12 +140,10 @@ public class TimeLogServiceImpl implements TimeLogService {
         && Objects.equals(timeLogEntity.getDescription(), timeLogDto.getDescription());
   }
 
-  private boolean isConflictedWithOthersTimeLogs(final Long id, final LocalTime startTime, final LocalTime endTime,
-                                                 final LocalDate date) {
-    final List<TimeLogEntity> timeLogEntities = repository.findAllByDateIs(date);
-    return timeLogEntities.stream().anyMatch(timeLog ->
-        !timeLog.getId().equals(id) &&
-            areIntervalsOverlapping(startTime, endTime, timeLog.getStartTime(), timeLog.getEndTime())
+  private boolean isConflictedWithOthersTimeLogs(final TimeLogEntity entity, final List<TimeLogEntity> otherTimeLogs) {
+    return otherTimeLogs.stream().anyMatch(timeLog ->
+        !timeLog.getId().equals(entity.getId()) &&
+            areIntervalsOverlapping(entity.getStartTime(), entity.getEndTime(), timeLog.getStartTime(), timeLog.getEndTime())
     );
   }
 
@@ -165,15 +161,11 @@ public class TimeLogServiceImpl implements TimeLogService {
       return false;
     }
     if (border2.isBefore(border1)) {
-      if(target.isBefore(border1)) {
-        return false;
-      }
-      else {
-        return  (!target.isBefore(border1) && !target.isAfter(LocalTime.MAX))
-            || (!target.isBefore(LocalTime.MIN) && !target.isAfter(border2));
-      }
+      return target.isAfter(border1) && target.isBefore(LocalTime.MAX)
+          || target.isAfter(LocalTime.MIN) && target.isBefore(border2);
+
     } else {
-      return !target.isBefore(border1) && !target.isAfter(border2);
+      return target.isAfter(border1) && target.isBefore(border2);
     }
   }
 
@@ -197,27 +189,41 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   @Override
-  public TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date, final int offset) {
+  public TimeLogOffsetResponse getOffset() {
+    return new TimeLogOffsetResponse(offset);
+  }
+
+  @Override
+  public TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date) {
     LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
     final LocalTime startOfDay = LocalTime.of(offset, 0);
     final List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startOfDay);
 
-    return new TimeLogHoursForWeekResponse(getDayInfoList(entities, startOfWeek, endOfWeek, startOfDay));
+    return new TimeLogHoursForWeekResponse(getDayInfoList(entities, startOfWeek, endOfWeek));
   }
 
   private List<TimeLogHoursForWeekResponse.DayInfo> getDayInfoList(final List<TimeLogEntity> entities, final LocalDate startOfWeek,
-                                                                   final LocalDate endOfWeek, final LocalTime startOfDay) {
+                                                                   final LocalDate endOfWeek) {
     final Set<String> tickets = getTicketsForWeek(entities);
 
     final List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
     LocalDate currentDay = startOfWeek;
     while (!currentDay.isAfter(endOfWeek)) {
+      boolean isConflicted = false;
+      List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
+      for (TimeLogEntity entity : entitiesForDay) {
+        if (isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
+          isConflicted = true;
+          break;
+        }
+      }
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
           .date(currentDay)
-          .ticketDurations(getTicketDurationsForDay(entities, startOfDay, tickets, currentDay))
+          .isConflicted(isConflicted)
+          .ticketDurations(getTicketDurationsForDay(entitiesForDay, tickets))
           .build());
 
       currentDay = currentDay.plusDays(1);
@@ -235,23 +241,16 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   private List<TimeLogHoursForWeekResponse.TicketDuration> getTicketDurationsForDay(
-      final List<TimeLogEntity> entities,
-      final LocalTime startOfDay,
-      final Set<String> tickets,
-      final LocalDate currentDay) {
+      final List<TimeLogEntity> entitiesForDay, final Set<String> tickets) {
+
     final List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = new ArrayList<>();
     Duration totalForDay = Duration.ZERO;
 
     for (String ticket : tickets) {
       Duration totalForTicket = Duration.ZERO;
 
-      for (TimeLogEntity entity : entities) {
-        if (entity.getStartTime() == null || entity.getEndTime() == null) {
-          continue;
-        }
-        if ((entity.getDate().isEqual(currentDay) && !entity.getStartTime().isBefore(startOfDay)) ||
-            (entity.getDate().minusDays(1).equals(currentDay) && entity.getStartTime().isBefore(startOfDay))) {
-
+      for (TimeLogEntity entity : entitiesForDay) {
+        if (entity.getStartTime() != null && entity.getEndTime() != null) {
           String currentTicket = entity.getTicket() != null ? entity.getTicket() : "Without Ticket";
           if (currentTicket.equals(ticket)) {
             Duration duration = getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime());
@@ -268,21 +267,29 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   @Override
-  public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date, final int offset) {
+  public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date) {
     final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
     final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
-    final LocalTime startOfDay = LocalTime.of(offset, 0);
 
-    final List<TimeLogEntity> entities = repository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startOfDay);
     final List<TimeLogHoursForMonthResponse.DayInfo> dayInfoList = new ArrayList<>();
     Duration totalDuration = Duration.ZERO;
     LocalDate currentDay = startOfMonth;
     while (!currentDay.isAfter(endOfMonth)) {
-      final Duration durationForDay = getDurationForDay(entities, currentDay, startOfDay);
+      boolean isConflicted = false;
+      List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
+      for(TimeLogEntity entity : entitiesForDay) {
+        if(isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
+          isConflicted = true;
+          break;
+        }
+      }
+      final Duration durationForDay = getDurationForDay(entitiesForDay);
       totalDuration = totalDuration.plus(durationForDay);
+
       dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
           .start(LocalDateTime.of(currentDay, LocalTime.MIN))
           .title(formatDuration(durationForDay))
+          .isConflicted(isConflicted)
           .build());
 
       currentDay = currentDay.plusDays(1);
@@ -290,14 +297,10 @@ public class TimeLogServiceImpl implements TimeLogService {
     return new TimeLogHoursForMonthResponse(formatDuration(totalDuration), dayInfoList);
   }
 
-  private Duration getDurationForDay(final List<TimeLogEntity> entities, final LocalDate date, final LocalTime startOfDay) {
+  private Duration getDurationForDay(final List<TimeLogEntity> entities) {
     Duration duration = Duration.ZERO;
     for (TimeLogEntity entity : entities) {
-      if (entity.getStartTime() == null || entity.getEndTime() == null) {
-        continue;
-      }
-      if ((entity.getDate().isEqual(date) && !entity.getStartTime().isBefore(startOfDay)) ||
-          (entity.getDate().minusDays(1).equals(date) && entity.getStartTime().isBefore(startOfDay))) {
+      if (entity.getStartTime() != null && entity.getEndTime() != null) {
         duration = duration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime()));
       }
     }
@@ -321,9 +324,6 @@ public class TimeLogServiceImpl implements TimeLogService {
 
     TimeLogUpdateResponse response = mapper.toUpdateResponse(timeLogEntity);
     response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
-    if (isConflictedWithOthersTimeLogs(timeLogEntity.getId(), timeLogEntity.getStartTime(), timeLogEntity.getEndTime(), timeLogEntity.getDate())) {
-      response.setConflicted(true);
-    }
     return response;
   }
 

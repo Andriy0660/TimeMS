@@ -20,6 +20,7 @@ public class TimeLogHoursForWeekResponse {
   public static class DayInfo {
     private String dayName;
     private LocalDate date;
+    private boolean isConflicted;
     private List<TicketDuration> ticketDurations;
   }
 

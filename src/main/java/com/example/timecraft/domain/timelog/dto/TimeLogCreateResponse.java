@@ -16,5 +16,4 @@ public class TimeLogCreateResponse {
   private String ticket;
   private LocalTime startTime;
   private String description;
-  private boolean isConflicted;
 }

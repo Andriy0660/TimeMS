@@ -81,12 +81,15 @@ export default function MonthPage() {
           if (dayOfWeek === 0 || dayOfWeek === 6) {
             return ["bg-red-50"];
           } else {
-            return ["bg-white"];
+            return ["bg-white hover:bg-blue"];
           }
         }}
-        eventContent={(eventInfo) =>
-          <MonthPageDuration title={eventInfo.event.title} handleClickDate={() => handleClickDate(eventInfo.event.start)} />}
-        eventClassNames={() => ["bg-transparent"]}
+        eventContent={(eventInfo) =>{
+          return <MonthPageDuration title={eventInfo.event.title} handleClickDate={() => handleClickDate(eventInfo.event.start)} />
+        }}
+        eventClassNames={(eventInfo) => eventInfo.event.extendedProps.conflicted
+          ? ["bg-red-200 hover:bg-transparent"]
+          : ["bg-transparent"]}
       />
     </div>
   );

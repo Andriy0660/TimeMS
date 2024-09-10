@@ -123,17 +123,10 @@ export default function TimeLogPage() {
     mutationFn: (body) => timeLogApi.create(body),
     onSuccess: async (body) => {
       queryClient.invalidateQueries(timeLogApi.key);
-      if (body.conflicted) {
-        addAlert({
-          text: "Time log is created with time conflicts with other time logs",
-          type: "warning"
-        });
-      } else {
-        addAlert({
-          text: "Time log is successfully created",
-          type: "success"
-        });
-      }
+      addAlert({
+        text: "Time log is successfully created",
+        type: "success"
+      });
     },
     onError: async (error, body) => {
       addAlert({
@@ -167,17 +160,10 @@ export default function TimeLogPage() {
     mutationFn: (body) => timeLogApi.update(body),
     onSuccess: async (body) => {
       queryClient.invalidateQueries(timeLogApi.key);
-      if (body.conflicted) {
-        addAlert({
-          text: "Time log is updated with time conflicts with other time logs",
-          type: "warning"
-        });
-      } else {
-        addAlert({
-          text: "Time log is successfully updated",
-          type: "success"
-        });
-      }
+      addAlert({
+        text: "Time log is successfully updated",
+        type: "success"
+      });
     },
     onError: async (error, body) => {
       queryClient.invalidateQueries(timeLogApi.key);
