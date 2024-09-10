@@ -53,7 +53,7 @@ export default function MonthPage() {
 
   const getEventContent = (eventInfo) => {
     const {start, title} = eventInfo.event;
-    return <MonthPageDuration title={title} handleClickDate={() => handleClickDate(start)} />
+    return <MonthPageDuration isInProgress={eventInfo.event.extendedProps.inProgress} title={title} handleClickDate={() => handleClickDate(start)} />
   }
 
   const getEventClassNames = (eventInfo) => {
