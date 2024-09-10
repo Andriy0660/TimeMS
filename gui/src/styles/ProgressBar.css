@@ -13,3 +13,8 @@
     position: absolute;
     height: 100%;
 }
+
+.thin {
+    top: 25%;
+    height: 50%;
+}

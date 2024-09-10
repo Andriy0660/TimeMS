@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import {startHourOfDay} from "../config/timeConfig.js";
+import {endHourOfWorkingDay, startHourOfDay, startHourOfWorkingDay} from "../config/timeConfig.js";
 
 const dateTimeService = {
   getFormattedTime(time) {
@@ -30,8 +30,16 @@ const dateTimeService = {
   isNextDay(dateTime) {
     return dateTime && dateTime.isValid() ? this.compareTimes(dateTime, this.getStartOfDay()) < 0 && this.compareTimes(dateTime, dayjs().startOf("day")) > 0 : false;
   },
-  getStartOfDay() {
-    return dayjs().startOf("day").add(startHourOfDay, "hour");
+  getStartOfDay(date) {
+    const baseDate = date ? dayjs(date, "YYYY-MM-DD") : dayjs().startOf("day");
+    return baseDate.set("hour", startHourOfDay).set("minute", 0).set("second", 0);
+  },
+  getStartOfWorkingDay(date) {
+    return dayjs(date, "YYYY-MM-DD").set("hour", startHourOfWorkingDay).set("minute", 0).set("second", 0);
+  },
+  getEndOfWorkingDay(date) {
+    return dayjs(date, "YYYY-MM-DD").set("hour", endHourOfWorkingDay).set("minute", 0).set("second", 0);
+
   },
   compareDates(date1, date2) {
     date1 = dayjs(date1);
