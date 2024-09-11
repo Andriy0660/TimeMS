@@ -8,13 +8,9 @@ export default function TimeLogGroupedByDate({
   logsForDate,
   renderedInner,
   mode,
-  onCreate,
-  onDivide,
-  onUpdate,
-  onDelete,
-  changeDate,
   hoveredTimeLogIds,
-  setGroupDescription
+  setGroupDescription,
+  ...apiCalls
 }) {
 
   return (
@@ -25,11 +21,7 @@ export default function TimeLogGroupedByDate({
         <div key={timeLog.id}>
           <TimeLog
             timeLog={timeLog}
-            onCreate={onCreate}
-            onDivide={onDivide}
-            onUpdate={onUpdate}
-            onDelete={onDelete}
-            changeDate={changeDate}
+            {...apiCalls}
             setGroupDescription={setGroupDescription}
             hovered={hoveredTimeLogIds.includes(timeLog.id)}
           />
