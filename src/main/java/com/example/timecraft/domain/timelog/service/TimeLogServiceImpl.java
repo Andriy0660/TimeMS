@@ -143,7 +143,9 @@ public class TimeLogServiceImpl implements TimeLogService {
         .endTime(timeLogEntity.getEndTime())
         .description(timeLogEntity.getDescription())
         .ticket(timeLogEntity.getTicket())
-        .date(timeLogEntity.getDate().plusDays(1))
+        .date(timeLogEntity.getStartTime().isBefore(LocalTime.of(offset, 0))
+            ? timeLogEntity.getDate()
+            : timeLogEntity.getDate().plusDays(1))
         .build();
 
     timeLogEntity.setEndTime(startOfDay);

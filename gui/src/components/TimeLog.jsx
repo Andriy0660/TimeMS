@@ -409,7 +409,9 @@ export default function TimeLog({
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
           )}
-          {timeLog.endTime?.isAfter(dateTimeService.getStartOfDay(timeLog.startTime).add(1, "day")) &&
+          {timeLog.endTime?.isAfter(isTimeLogInNextDay.startTime
+              ? dateTimeService.getStartOfDay(timeLog.startTime)
+              : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day"))) &&
             <div>
               <Button onClick={(event) => setMenuEl(event.currentTarget)}>
                 <Tooltip title="timelog continues tomorrow">
