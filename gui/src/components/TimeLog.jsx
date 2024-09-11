@@ -35,6 +35,7 @@ import {deepOrange} from "@mui/material/colors";
 export default function TimeLog({
   timeLog,
   onCreate,
+  onDivide,
   onUpdate,
   onDelete,
   groupByDescription,
@@ -108,6 +109,9 @@ export default function TimeLog({
 
   const {execute: handleCreateTimeLog, isExecuting: isCreateLoading} = useAsyncCall({
     fn: onCreate,
+  })
+  const {execute: handleDivideTimeLog, isExecuting: isDivideLoading} = useAsyncCall({
+    fn: onDivide,
   })
   const {execute: handleUpdateTimeLog, isExecuting: isUpdateLoading} = useAsyncCall({
     fn: updateTimeLog,
@@ -417,7 +421,7 @@ export default function TimeLog({
                 open={!!menuEl}
                 onClose={() => setMenuEl(null)}
               >
-                <MenuItem className="py-0 px-2" onClick={() => setMenuEl(null)}>Divide into two days</MenuItem>
+                <MenuItem className="py-0 px-2" onClick={() => handleDivideTimeLog(timeLog.id)}>Divide into two days</MenuItem>
                 <Divider/>
                 <MenuItem className="py-0 px-2" onClick={() => setMenuEl(null)}>Cancel</MenuItem>
               </Menu>
@@ -505,7 +509,7 @@ export default function TimeLog({
       </div>
 
       {!groupByDescription && <Description className="mb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription}/>}
-      {(isCreateLoading || isUpdateLoading || isDeleteLoading) && <LinearProgress />}
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading) && <LinearProgress />}
     </div>
   );
 }

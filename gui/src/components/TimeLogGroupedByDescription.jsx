@@ -8,6 +8,7 @@ export default function TimeLogGroupedByDescription({
   description,
   logsForDescription,
   onCreate,
+  onDivide,
   onUpdate,
   onDelete,
   setGroupDescription,
@@ -28,6 +29,7 @@ export default function TimeLogGroupedByDescription({
           <TimeLog
             timeLog={timeLog}
             onCreate={onCreate}
+            onDivide={onDivide}
             onUpdate={onUpdate}
             onDelete={onDelete}
             groupByDescription={true}

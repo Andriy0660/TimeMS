@@ -124,6 +124,24 @@ export default function TimeLogPage() {
     }
   });
 
+  const {mutateAsync: divide} = useMutation({
+    mutationFn: (id) => timeLogApi.divide(id),
+    onSuccess: async () => {
+      queryClient.invalidateQueries(timeLogApi.key);
+      addAlert({
+        text: "Time logs is successfully divided",
+        type: "success"
+      });
+    },
+    onError: async (error, body) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      })
+      console.error("Dividing time logs failed:", error);
+    }
+  });
+
   const {mutateAsync: importTimeLogs} = useMutation({
     mutationFn: (body) => timeLogApi.importTimeLogs(body),
     onSuccess: async (body) => {
@@ -333,6 +351,7 @@ export default function TimeLogPage() {
           timeLogs={timeLogs}
           mode={mode}
           onCreate={create}
+          onDivide={divide}
           onUpdate={update}
           onDelete={deleteTimeLog}
           setGroupDescription={setGroupDescription}

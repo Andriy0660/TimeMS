@@ -134,6 +134,23 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
   }
 
+  @Override
+  public void divide(final long timeLogId) {
+    LocalTime startOfDay = LocalTime.of(offset, 0);
+    final TimeLogEntity timeLogEntity = getRaw(timeLogId);
+    TimeLogEntity secondEntity = TimeLogEntity.builder()
+        .startTime(startOfDay)
+        .endTime(timeLogEntity.getEndTime())
+        .description(timeLogEntity.getDescription())
+        .ticket(timeLogEntity.getTicket())
+        .date(timeLogEntity.getDate().plusDays(1))
+        .build();
+
+    timeLogEntity.setEndTime(startOfDay);
+    repository.save(timeLogEntity);
+    repository.save(secondEntity);
+  }
+
   private boolean isSameTimeLog(TimeLogEntity timeLogEntity, TimeLogImportRequest.TimeLogDto timeLogDto) {
     return Objects.equals(timeLogEntity.getTicket(), timeLogDto.getTicket())
         && Objects.equals(timeLogEntity.getStartTime(), timeLogDto.getStartTime())

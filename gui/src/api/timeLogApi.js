@@ -31,6 +31,10 @@ const timeLogApi = {
     return data;
   },
 
+  divide: async (id) => {
+    await axios.post(`/${key}/divide/${id}`, {}, {baseMsg: "Error while dividing time logs"});
+  },
+
   importTimeLogs: async (body) => {
     await axios.post(`/${key}/importTimeLogs`, {...body}, {baseMsg: "Error while importing time logs"});
   },

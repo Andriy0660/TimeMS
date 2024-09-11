@@ -9,6 +9,7 @@ export default function TimeLogGroupedByDate({
   renderedInner,
   mode,
   onCreate,
+  onDivide,
   onUpdate,
   onDelete,
   changeDate,
@@ -25,6 +26,7 @@ export default function TimeLogGroupedByDate({
           <TimeLog
             timeLog={timeLog}
             onCreate={onCreate}
+            onDivide={onDivide}
             onUpdate={onUpdate}
             onDelete={onDelete}
             changeDate={changeDate}
