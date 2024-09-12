@@ -1,7 +1,7 @@
 package com.example.timecraft.domain.worklog.persistence;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,7 +27,6 @@ import lombok.ToString;
 public class WorklogEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id")
   @ToString.Include
   private Long id;
@@ -36,24 +35,24 @@ public class WorklogEntity {
   @ToString.Include
   private String author;
 
+  @Column(name = "ticket")
+  @ToString.Include
+  private String ticket;
+
   @Column(name = "date")
   @ToString.Include
   private LocalDate date;
 
   @Column(name = "start_time")
   @ToString.Include
-  private LocalDateTime startTime;
-
-  @Column(name = "time_spent_seconds")
-  @ToString.Include
-  private int timeSpentSeconds;
-
-  @Column(name = "ticket")
-  @ToString.Include
-  private String ticket;
+  private LocalTime startTime;
 
   @Column(name = "comment")
   @ToString.Include
   private String comment;
+
+  @Column(name = "time_spent_seconds")
+  @ToString.Include
+  private Integer timeSpentSeconds;
 
 }
