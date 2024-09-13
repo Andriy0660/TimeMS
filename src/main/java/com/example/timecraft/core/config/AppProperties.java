@@ -13,6 +13,14 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
   private Cors cors = new Cors();
+  private Jira jira;
+
+  @Data
+  public static class Jira {
+    private String url;
+    private String email;
+    private String token;
+  }
 
   @Data
   public static class Cors {

@@ -22,9 +22,6 @@ app:
     allowed-origins:
       - http://localhost:*
       - http://127.0.0.1:*
-
-
-jira:
   jira:
     url: https://craftcodelab.atlassian.net
     email: andrii@craftcodelab.com
