@@ -17,6 +17,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import fileService from "../service/fileService.js";
 import Button from "@mui/material/Button";
 import ImportButton from "../components/ImportButton.jsx";
+import worklogApi from "../api/worklogApi.js";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -232,6 +233,24 @@ export default function TimeLogPage() {
     }
   });
 
+  const {mutateAsync: synchronizeWorklogs, isPending: isSyncing} = useMutation({
+    mutationFn: (body) => worklogApi.synchronizeWorklogs(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(timeLogApi.key);
+      addAlert({
+        text: "You have successfully synchronized worklogs",
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("synchronizing worklogs failed:", error);
+    }
+  });
+
   const saveFile = async () => {
     const formattedText = fileService.convertToTxt(processedDataRef.current);
     const blob = new Blob([formattedText], {type: "text/plain"});
@@ -333,7 +352,13 @@ export default function TimeLogPage() {
         </div>
         <div className="flex justify-between items-center">
           <TotalTimeLabel label={totalTimeLabel} />
-          <div className="mt-8">
+          <div className="flex items-center mt-8">
+            <Button className="mr-4" variant="outlined" onClick={synchronizeWorklogs}>
+              {isSyncing
+                ? <CircularProgress size={25} />
+                : "synchronize worklogs"}
+            </Button>
+
             <ImportButton className="mr-4" onImport={importTimeLogs}/>
             <Button
               className="mr-4"
