@@ -1,9 +1,11 @@
 package com.example.timecraft.domain.worklog;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
 import com.example.timecraft.domain.worklog.service.WorklogService;
 import lombok.RequiredArgsConstructor;
 
@@ -16,5 +18,9 @@ public class WorklogController {
   @PostMapping
   public void synchronizeWorklogs() {
     worklogService.synchronizeWorklogs();
+  }
+  @GetMapping
+  public WorklogProgressResponse getProgress() {
+    return worklogService.getProgress();
   }
 }

@@ -32,6 +32,7 @@ public class JiraWorklogService {
   private final RestTemplate restTemplate;
   private final AppProperties appProperties;
   private final ObjectMapper objectMapper;
+  private final SyncProgressService syncProgressService;
 
   private static String getTextFromAdf(JsonNode node) {
     StringBuilder text = new StringBuilder();
@@ -79,8 +80,10 @@ public class JiraWorklogService {
   public List<WorklogJiraDto> fetchAllWorkLogDtos() {
     List<WorklogJiraDto> allWorklogJiraDtos = new ArrayList<>();
     List<String> allKeys = fetchAllIssueKeys();
+    double step = 100. / allKeys.size();
     for (String key : allKeys) {
       allWorklogJiraDtos.addAll(fetchWorklogDtosForIssue(key));
+      syncProgressService.setProgress(syncProgressService.getProgress() + step);
     }
     return allWorklogJiraDtos;
   }

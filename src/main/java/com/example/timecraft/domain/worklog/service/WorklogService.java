@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
+import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.persistence.WorklogRepository;
@@ -19,20 +20,22 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WorklogService {
   private final WorklogRepository worklogRepository;
-  private final WorklogMapper mapper;
+  private final TimeLogRepository timeLogRepository;
   private final JiraWorklogService jiraWorklogService;
-  private final TimeLogRepository repository;
+  private final SyncProgressService syncProgressService;
+  private final WorklogMapper mapper;
 
   public void synchronizeWorklogs() {
+    if(syncProgressService.getProgress() > 0) return;
     var list = jiraWorklogService.fetchAllWorkLogDtos()
         .stream()
         .map(mapper::toWorklogEntity)
         .toList();
     worklogRepository.saveAll(list);
-
+    syncProgressService.clearProgress();
     // testing purpose: basic code for 100% comparing
     for (LocalDate date : list.stream().map(WorklogEntity::getDate).distinct().toList()) {
-      List<TimeLogEntity> entities = repository.findAllByDateIs(date);
+      List<TimeLogEntity> entities = timeLogRepository.findAllByDateIs(date);
       List<WorklogEntity> worklogEntities = worklogRepository.findAllByDateIs(date);
       for (WorklogEntity worklogEntity : worklogEntities) {
         boolean match = false;
@@ -75,5 +78,9 @@ public class WorklogService {
       }
     }
     return result.toString();
+  }
+
+  public WorklogProgressResponse getProgress() {
+    return new WorklogProgressResponse(syncProgressService.getProgress());
   }
 }

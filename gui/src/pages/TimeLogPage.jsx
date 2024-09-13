@@ -2,7 +2,17 @@ import TimeLogList from "../components/TimeLogList.jsx";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {Checkbox, CircularProgress, FormControl, FormControlLabel, IconButton, ListItemText, MenuItem, Select, Switch} from "@mui/material";
+import {
+  Checkbox,
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  IconButton,
+  ListItemText,
+  MenuItem,
+  Select,
+  Switch
+} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useRef, useState} from "react";
 import dateTimeService from "../service/dateTimeService.js";
@@ -233,7 +243,7 @@ export default function TimeLogPage() {
     }
   });
 
-  const {mutateAsync: synchronizeWorklogs, isPending: isSyncing} = useMutation({
+  const {mutateAsync: synchronizeWorklogs, isPending: isSynchronizing} = useMutation({
     mutationFn: (body) => worklogApi.synchronizeWorklogs(),
     onSuccess: () => {
       queryClient.invalidateQueries(timeLogApi.key);
@@ -250,6 +260,18 @@ export default function TimeLogPage() {
       console.error("synchronizing worklogs failed:", error);
     }
   });
+
+  const {
+    data: progress,
+  } = useQuery({
+    queryKey: [worklogApi.key, "progress"],
+    queryFn: () => worklogApi.getProgress(),
+    initialData: () => 0,
+    refetchInterval: (data) => isSynchronizing || data.state.data > 0 ? 500 : false,
+    refetchOnWindowFocus: false
+  });
+
+  const isSynchronizingRunning = isSynchronizing || progress > 0;
 
   const saveFile = async () => {
     const formattedText = fileService.convertToTxt(processedDataRef.current);
@@ -353,9 +375,14 @@ export default function TimeLogPage() {
         <div className="flex justify-between items-center">
           <TotalTimeLabel label={totalTimeLabel} />
           <div className="flex items-center mt-8">
-            <Button className="mr-4" variant="outlined" onClick={synchronizeWorklogs}>
-              {isSyncing
-                ? <CircularProgress size={25} />
+            <Button className="mr-4" disabled={isSynchronizing || progress > 0} variant="outlined" onClick={synchronizeWorklogs}>
+              {isSynchronizingRunning
+                ? (
+                  <>
+                    {progress > 0 ? `${Math.floor(progress)}%` : <CircularProgress size={25}/>}
+                    <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
+                  </>
+                )
                 : "synchronize worklogs"}
             </Button>
 
