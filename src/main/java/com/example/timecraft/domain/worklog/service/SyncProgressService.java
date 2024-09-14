@@ -4,9 +4,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.stereotype.Service;
 
+import lombok.Data;
+
 @Service
+@Data
 public class SyncProgressService {
   private final AtomicReference<Double> progress = new AtomicReference<>(0.0);
+  private String ticketOfCurrentWorklog;
+  private String commentOfCurrentWorklog;
 
   public double getProgress() {
     return progress.get();

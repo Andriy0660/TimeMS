@@ -82,8 +82,14 @@ public class JiraWorklogService {
     List<String> allKeys = fetchAllIssueKeys();
     double step = 100. / allKeys.size();
     for (String key : allKeys) {
-      allWorklogJiraDtos.addAll(fetchWorklogDtosForIssue(key));
+      List<WorklogJiraDto> worklogForKey = fetchWorklogDtosForIssue(key);
+      allWorklogJiraDtos.addAll(worklogForKey);
+
       syncProgressService.setProgress(syncProgressService.getProgress() + step);
+      String ticket = !worklogForKey.isEmpty() ? worklogForKey.getFirst().getTicket() : null;
+      String comment = !worklogForKey.isEmpty() ? worklogForKey.getFirst().getComment() : null;
+      if (ticket != null) syncProgressService.setTicketOfCurrentWorklog(ticket);
+      if (comment != null) syncProgressService.setCommentOfCurrentWorklog(comment);
     }
     return allWorklogJiraDtos;
   }

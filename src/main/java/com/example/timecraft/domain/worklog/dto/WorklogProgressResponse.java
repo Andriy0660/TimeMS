@@ -9,4 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class WorklogProgressResponse {
   private double progress;
+  private String ticketOfCurrentWorklog;
+  private String commentOfCurrentWorklog;
 }

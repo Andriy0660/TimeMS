@@ -81,6 +81,10 @@ public class WorklogService {
   }
 
   public WorklogProgressResponse getProgress() {
-    return new WorklogProgressResponse(syncProgressService.getProgress());
+    return new WorklogProgressResponse(
+        syncProgressService.getProgress(),
+        syncProgressService.getTicketOfCurrentWorklog(),
+        syncProgressService.getCommentOfCurrentWorklog()
+    );
   }
 }

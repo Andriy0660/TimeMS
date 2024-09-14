@@ -8,7 +8,7 @@ const worklogApi = {
   },
   getProgress: async () => {
     const {data} = await axios.get(`/${key}`, {}, {baseMsg: "Error while getting worklogs"});
-    return data.progress;
+    return data;
   }
 };
 

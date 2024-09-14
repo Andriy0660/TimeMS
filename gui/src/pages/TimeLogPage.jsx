@@ -2,17 +2,7 @@ import TimeLogList from "../components/TimeLogList.jsx";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {
-  Checkbox,
-  CircularProgress,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  ListItemText,
-  MenuItem,
-  Select,
-  Switch
-} from "@mui/material";
+import {Checkbox, CircularProgress, FormControl, FormControlLabel, IconButton, ListItemText, MenuItem, Select, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import {useEffect, useRef, useState} from "react";
 import dateTimeService from "../service/dateTimeService.js";
@@ -253,6 +243,7 @@ export default function TimeLogPage() {
       });
     },
     onError: (error) => {
+      queryClient.setQueryData([worklogApi.key, "progress"], {progress: 0});
       addAlert({
         text: error.displayMessage,
         type: "error"
@@ -262,15 +253,17 @@ export default function TimeLogPage() {
   });
 
   const {
-    data: progress,
+    data: progressInfo,
   } = useQuery({
     queryKey: [worklogApi.key, "progress"],
     queryFn: () => worklogApi.getProgress(),
     initialData: () => 0,
-    refetchInterval: (data) => isSynchronizing || data.state.data > 0 ? 500 : false,
-    refetchOnWindowFocus: false
+    refetchInterval: (data) => isSynchronizing || data.state.data.progress > 0 ? 300 : false,
+    refetchOnWindowFocus: false,
+    retryDelay: 300
   });
 
+  const progress = progressInfo.progress;
   const isSynchronizingRunning = isSynchronizing || progress > 0;
 
   const saveFile = async () => {
@@ -375,18 +368,18 @@ export default function TimeLogPage() {
         <div className="flex justify-between items-center">
           <TotalTimeLabel label={totalTimeLabel} />
           <div className="flex items-center mt-8">
-            <Button className="mr-4" disabled={isSynchronizing || progress > 0} variant="outlined" onClick={synchronizeWorklogs}>
+            <Button className="mr-4" disabled={isSynchronizing || progressInfo.progress > 0} variant="outlined" onClick={synchronizeWorklogs}>
               {isSynchronizingRunning
                 ? (
                   <>
-                    {progress > 0 ? `${Math.floor(progress)}%` : <CircularProgress size={25}/>}
+                    {progress > 0 ? `${Math.floor(progress)}%` : <CircularProgress size={25} />}
                     <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
                   </>
                 )
                 : "synchronize worklogs"}
             </Button>
 
-            <ImportButton className="mr-4" onImport={importTimeLogs}/>
+            <ImportButton className="mr-4" onImport={importTimeLogs} />
             <Button
               className="mr-4"
               variant="outlined"
@@ -397,6 +390,13 @@ export default function TimeLogPage() {
           </div>
 
         </div>
+        {progress > 0 &&
+          <div className="m-4 flex justify-center">
+            <div className="text-center p-2 h-16 w-full overflow-x-auto shadow-md bg-gray-50">
+              <div className="text-center">{progressInfo.ticketOfCurrentWorklog} {progressInfo.commentOfCurrentWorklog}</div>
+            </div>
+          </div>
+        }
         {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds} />}
 
         <TimeLogList
