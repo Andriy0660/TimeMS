@@ -35,6 +35,8 @@ import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
+import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
+import com.example.timecraft.domain.worklog.service.WorklogService;
 import lombok.RequiredArgsConstructor;
 
 import static com.example.timecraft.domain.timelog.service.DurationService.formatDuration;
@@ -44,6 +46,7 @@ import static com.example.timecraft.domain.timelog.service.DurationService.forma
 @Transactional
 public class TimeLogServiceImpl implements TimeLogService {
   private final TimeLogRepository repository;
+  private final WorklogService worklogService;
   private final TimeLogMapper mapper;
   private final Clock clock;
   private final int offset = 3;
@@ -56,11 +59,27 @@ public class TimeLogServiceImpl implements TimeLogService {
       throw new BadRequestException("Offset must be between 0 and 23");
     }
     final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date, offset);
+    final List<WorklogEntity> worklogEntities = worklogService.getAllWorklogEntitiesInMode(mode, date, offset);
+
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
-        .map(mapper::toListItem)
-        .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
+        .map(timeLogEntity -> {
+          TimeLogListResponse.TimeLogDto timeLogDto = mapper.toListItem(timeLogEntity);
+          timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime()));
+          boolean isSynced = getIsTimeLogSuccessfullySynced(timeLogEntity, worklogEntities);
+          timeLogDto.setSuccessfullySynced(isSynced);
+          return timeLogDto;
+        })
         .toList();
     return new TimeLogListResponse(timeLogDtoList);
+  }
+
+  private boolean getIsTimeLogSuccessfullySynced(final TimeLogEntity timeLogEntity, final List<WorklogEntity> worklogEntities) {
+    for (WorklogEntity worklogEntity : worklogEntities) {
+      if (worklogService.isWorklogCompatibleWithTimelog(worklogEntity, timeLogEntity)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {

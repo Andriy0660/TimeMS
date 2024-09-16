@@ -1,14 +1,4 @@
-import {
-  Chip,
-  Icon,
-  IconButton,
-  LinearProgress,
-  Menu,
-  MenuItem,
-  TextField,
-  Tooltip,
-  Typography
-} from "@mui/material";
+import {Chip, Icon, IconButton, LinearProgress, Menu, MenuItem, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useMemo, useRef, useState} from "react";
@@ -31,6 +21,8 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Description from "./Description.jsx";
 import {deepOrange} from "@mui/material/colors";
+import DoneIcon from '@mui/icons-material/Done';
+import CloseIcon from '@mui/icons-material/Close';
 
 export default function TimeLog({
   timeLog,
@@ -408,14 +400,30 @@ export default function TimeLog({
             size="small"
             className="shadow-md mr-2"
           /> : null}
+
+          {timeLog.successfullySynced && timeLog.startTime && timeLog.endTime
+            ? (
+              <Tooltip title="synchronized">
+                <DoneIcon color="success" />
+              </Tooltip>
+            )
+            : (
+              <Tooltip title="not synchronized">
+                <CloseIcon color="error" />
+              </Tooltip>
+            )
+          }
+
           {isHovered && timeLog.ticket && (
-            <Button onClick={() => handleSynchronize(timeLog.ticket)} variant="outlined" size="small" className="ml-6 text-sm">Sync</Button>
+            <Button onClick={() => handleSynchronize(timeLog.ticket)} variant="outlined" size="small" className="mx-6 text-sm">Sync</Button>
           )}
+
           {timeLog.isConflicted && (
             <Tooltip title="conflicted">
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
           )}
+
           {timeLog.endTime?.isAfter(isTimeLogInNextDay.startTime
               ? dateTimeService.getStartOfDay(timeLog.startTime)
               : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day"))) &&
