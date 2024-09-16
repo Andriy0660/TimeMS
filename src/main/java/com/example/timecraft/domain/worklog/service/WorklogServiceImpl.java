@@ -26,6 +26,7 @@ public class WorklogServiceImpl implements WorklogService {
   @Override
   public void synchronizeWorklogs() {
     if (syncProgressService.getProgress() > 0) return;
+    worklogRepository.deleteAll();
     worklogRepository.saveAll(jiraWorklogService.fetchAllWorkLogDtos()
         .stream()
         .map(mapper::toWorklogEntity)
@@ -39,6 +40,7 @@ public class WorklogServiceImpl implements WorklogService {
         .stream()
         .map(mapper::toWorklogEntity)
         .toList();
+    worklogRepository.deleteAll(worklogRepository.findAllByTicket(issueKey));
     worklogRepository.saveAll(list);
   }
 
