@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.Objects;
 
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
@@ -36,10 +37,7 @@ public class TimeLogUtils {
   public static boolean areDescriptionsEqual(String descr1, String descr2) {
     descr1 = descr1 != null ? removeNonLetterCharacters(descr1) : null;
     descr2 = descr2 != null ? removeNonLetterCharacters(descr2) : null;
-    if (descr1 == null && descr2 == null) {
-      return true;
-    }
-    return descr1 != null && descr1.equals(descr2);
+    return Objects.equals(descr1, descr2);
   }
 
   public static boolean isWorklogsAndTimeLogsCompatibleInTime(final List<TimeLogEntity> timeLogs, final List<WorklogEntity> worklogs) {

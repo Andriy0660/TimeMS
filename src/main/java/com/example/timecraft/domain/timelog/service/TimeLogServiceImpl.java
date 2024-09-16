@@ -65,8 +65,10 @@ public class TimeLogServiceImpl implements TimeLogService {
         .map(timeLogEntity -> {
           TimeLogListResponse.TimeLogDto timeLogDto = mapper.toListItem(timeLogEntity);
           timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime()));
-          boolean isSynced = isTimeLogSynced(timeLogEntity);
-          timeLogDto.setSuccessfullySynced(isSynced);
+          if (timeLogEntity.getStartTime() != null && timeLogEntity.getEndTime() != null && timeLogEntity.getTicket() != null) {
+            boolean isSynced = isTimeLogSynced(timeLogEntity);
+            timeLogDto.setSuccessfullySynced(isSynced);
+          }
           return timeLogDto;
         })
         .toList();
@@ -80,11 +82,13 @@ public class TimeLogServiceImpl implements TimeLogService {
     timeLogEntityList = timeLogEntityList
         .stream()
         .filter(entity -> TimeLogUtils.areDescriptionsEqual(entity.getDescription(), timeLogEntity.getDescription()))
+        .filter(entity -> Objects.equals(entity.getTicket(), timeLogEntity.getTicket()))
         .toList();
 
     worklogEntityList = worklogEntityList
         .stream()
         .filter(entity -> TimeLogUtils.areDescriptionsEqual(entity.getComment(), timeLogEntity.getDescription()))
+        .filter(entity -> Objects.equals(entity.getTicket(), timeLogEntity.getTicket()))
         .toList();
     return TimeLogUtils.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
   }
