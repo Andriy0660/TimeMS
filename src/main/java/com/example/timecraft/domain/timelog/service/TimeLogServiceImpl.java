@@ -255,7 +255,7 @@ public class TimeLogServiceImpl implements TimeLogService {
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
           .date(currentDay)
-          .isSynchronized(hasNotSynchronizedTimeLogsForDay(entitiesForDay, currentDay))
+          .isSynchronized(hasNotSynchronizedTimeLogsForDay(entitiesForDay))
           .isConflicted(hasConflictsForDay(entitiesForDay))
           .isInProgress(hasInProgressTimeLogs(entitiesForDay))
           .ticketDurations(getTicketDurationsForDay(entitiesForDay, tickets))
@@ -266,8 +266,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     return dayInfoList;
   }
 
-  public boolean hasNotSynchronizedTimeLogsForDay(List<TimeLogEntity> entitiesForDay, LocalDate currentDay) {
-    List<WorklogEntity> worklogsForDay = worklogService.getAllWorklogEntitiesInMode("Day", currentDay, offset);
+  public boolean hasNotSynchronizedTimeLogsForDay(List<TimeLogEntity> entitiesForDay) {
     for (TimeLogEntity entity : entitiesForDay) {
       if (!isTimeLogSynced(entity)) {
         return true;
@@ -348,7 +347,7 @@ public class TimeLogServiceImpl implements TimeLogService {
       dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
           .start(LocalDateTime.of(currentDay, LocalTime.MIN))
           .title(formatDuration(durationForDay))
-          .isSynchronized(hasNotSynchronizedTimeLogsForDay(entitiesForDay, currentDay))
+          .isSynchronized(hasNotSynchronizedTimeLogsForDay(entitiesForDay))
           .isConflicted(hasConflictsForDay(entitiesForDay))
           .isInProgress(hasInProgressTimeLogs(entitiesForDay))
           .build());
