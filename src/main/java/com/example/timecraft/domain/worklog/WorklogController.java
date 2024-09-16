@@ -2,6 +2,7 @@ package com.example.timecraft.domain.worklog;
 
 import java.time.LocalDate;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,11 @@ public class WorklogController {
   @GetMapping()
   public WorklogListResponse listNotSyncedWorklogs(@RequestParam final String mode, @RequestParam final LocalDate date) {
     return timeLogService.listNotSyncedWorklogs(mode, date);
+  }
+
+  @DeleteMapping("/{issueKey}/{worklogId}")
+  public void deleteUnsyncedWorklog(@PathVariable String issueKey, @PathVariable Long worklogId) {
+    worklogService.deleteUnsyncedWorklog(issueKey, worklogId);
   }
 
   @PostMapping

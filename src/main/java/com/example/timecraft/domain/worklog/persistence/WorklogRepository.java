@@ -19,4 +19,6 @@ public interface WorklogRepository extends JpaRepository<WorklogEntity, Long> {
   List<WorklogEntity> findAllInRange(@Param("currentDay") LocalDate currentDay,
                                      @Param("nextDay") LocalDate nextDay,
                                      @Param("startTime") LocalTime startTime);
+
+  List<WorklogEntity> findAllByTicket(String ticket);
 }

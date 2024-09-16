@@ -14,4 +14,6 @@ public interface WorklogService {
   WorklogProgressResponse getProgress();
 
   List<WorklogEntity> getAllWorklogEntitiesInMode(final String mode, final LocalDate date, final int offset);
+
+  void deleteUnsyncedWorklog(final String issueKey, final Long id);
 }

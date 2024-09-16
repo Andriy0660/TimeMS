@@ -20,7 +20,11 @@ const worklogApi = {
   getProgress: async () => {
     const {data} = await axios.get(`/${key}/progress`, {}, {baseMsg: "Error while getting worklogs"});
     return data;
-  }
+  },
+
+  delete: async (issueKey, id) => {
+    await axios.delete(`/${key}/${issueKey}/${id}`,{baseMsg: "Error while deleting worklog"});
+  },
 };
 
 export default worklogApi;

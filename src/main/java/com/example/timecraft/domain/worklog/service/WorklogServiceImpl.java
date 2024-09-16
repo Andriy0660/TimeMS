@@ -64,4 +64,10 @@ public class WorklogServiceImpl implements WorklogService {
       return worklogRepository.findAllInRange(dateRange[0], dateRange[1], startTime);
     }
   }
+
+  @Override
+  public void deleteUnsyncedWorklog(final String issueKey, final Long id) {
+    jiraWorklogService.delete(issueKey, id);
+    synchronizeWorklogsForIssue(issueKey);
+  }
 }

@@ -284,6 +284,24 @@ export default function TimeLogPage() {
     }
   });
 
+  const {mutateAsync: deleteWorklog} = useMutation({
+    mutationFn: (body) => worklogApi.delete(body.issueKey, body.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(worklogApi.key);
+      addAlert({
+        text: "You have successfully deleted worklog",
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("Deleting worklog failed:", error);
+    }
+  });
+
   const {
     data: progressInfo,
   } = useQuery({
@@ -445,6 +463,7 @@ export default function TimeLogPage() {
         />
         {notSyncedWorklogs.length > 0 && <WorklogList
           worklogs={notSyncedWorklogs}
+          onDelete={deleteWorklog}
         />
         }
       </div>

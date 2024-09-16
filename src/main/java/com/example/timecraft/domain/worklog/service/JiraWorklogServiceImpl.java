@@ -182,6 +182,23 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
     return text.toString().trim();
   }
 
+  @Override
+  public void delete(final String issueKey, final Long id) {
+    String url = appProperties.getJira().getUrl() + "/rest/api/3/issue/" + issueKey + "/worklog/" + id;
+
+    HttpHeaders headers = getHttpHeaders();
+
+    HttpEntity<String> entity = new HttpEntity<>(headers);
+
+    RestTemplate restTemplate = new RestTemplate();
+
+    ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, Void.class);
+
+    if (!response.getStatusCode().is2xxSuccessful()) {
+      throw new RuntimeException("Failed to delete worklog with " + id + " for " + issueKey + " : " + response.getStatusCode());
+    }
+  }
+
   @Getter
   @Setter
   public static class JiraResponse {

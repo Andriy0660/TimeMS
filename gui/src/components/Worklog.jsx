@@ -11,7 +11,9 @@ export default function Worklog({worklog, onSave, onDelete}) {
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-
+  const {execute: handleDeleteWorklog, isExecuting: isDeleteLoading} = useAsyncCall({
+    fn: onDelete,
+  })
 
   return (
     <div className="mb-2 px-4 shadow-md rounded-md bg-gray-50"
@@ -53,7 +55,7 @@ export default function Worklog({worklog, onSave, onDelete}) {
             open={showDeleteModal}
             type="error"
             actionText="Delete"
-
+            onConfirm={() => handleDeleteWorklog({issueKey: worklog.ticket, id: worklog.id})}
             onClose={() => {
               setShowDeleteModal(false);
               setIsHovered(false);
@@ -70,7 +72,7 @@ export default function Worklog({worklog, onSave, onDelete}) {
           {worklog.comment}
         </div>
       </div>
-
+      {isDeleteLoading && <LinearProgress />}
     </div>
   )
 }
