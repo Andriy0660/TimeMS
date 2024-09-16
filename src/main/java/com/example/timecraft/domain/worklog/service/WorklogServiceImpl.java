@@ -1,13 +1,16 @@
 package com.example.timecraft.domain.worklog.service;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
-import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
@@ -20,53 +23,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WorklogServiceImpl implements WorklogService {
   private final WorklogRepository worklogRepository;
-  private final TimeLogRepository timeLogRepository;
   private final JiraWorklogService jiraWorklogService;
   private final SyncProgressService syncProgressService;
   private final WorklogMapper mapper;
 
-  public void synchronizeWorklogs() {
-    if(syncProgressService.getProgress() > 0) return;
-    var list = jiraWorklogService.fetchAllWorkLogDtos()
-        .stream()
-        .map(mapper::toWorklogEntity)
-        .toList();
-    worklogRepository.saveAll(list);
-    syncProgressService.clearProgress();
-    // testing purpose: basic code for 100% comparing
-    for (LocalDate date : list.stream().map(WorklogEntity::getDate).distinct().toList()) {
-      List<TimeLogEntity> entities = timeLogRepository.findAllByDateIs(date);
-      List<WorklogEntity> worklogEntities = worklogRepository.findAllByDateIs(date);
-      for (WorklogEntity worklogEntity : worklogEntities) {
-        boolean match = false;
-        for (TimeLogEntity timeLogEntity : entities) {
-          if (isWorklogCompatibleWithTimelog(worklogEntity, timeLogEntity)) {
-            match = true;
-          }
-        }
-        if (!match) {
-          log.warn("worklog does not match {}", worklogEntity);
-        }
-      }
+  private static boolean areCommentsEqual(final WorklogEntity worklogEntity, final TimeLogEntity timeLogEntity) {
+    final String worklogComment = worklogEntity.getComment() != null ? removeNonLetterCharacters(worklogEntity.getComment()) : null;
+    final String timeLogDescription = timeLogEntity.getDescription() != null ? removeNonLetterCharacters(timeLogEntity.getDescription().trim()) : null;
+    if (worklogComment == null && timeLogDescription == null) {
+      return true;
     }
-  }
-
-  private boolean isWorklogCompatibleWithTimelog(WorklogEntity worklog, TimeLogEntity timeLog) {
-    return worklog.getDate().equals(timeLog.getDate())
-        && areCommentsEqual(worklog, timeLog)
-        && areDurationsEqual(worklog, timeLog);
-  }
-
-  private boolean areDurationsEqual(final WorklogEntity worklog, final TimeLogEntity timeLog) {
-    int duration = (int) Duration.between(timeLog.getStartTime(), timeLog.getEndTime()).toSeconds();
-    duration = duration < 0 ? 3600 * 24 + duration : duration;
-    return worklog.getTimeSpentSeconds().equals(duration);
-  }
-
-  private static boolean areCommentsEqual(WorklogEntity worklog, TimeLogEntity timeLog) {
-    String worklogComment = worklog.getComment() != null ? removeNonLetterCharacters(worklog.getComment()) : null;
-    String timeLogDescription = timeLog.getDescription() != null ? removeNonLetterCharacters(timeLog.getDescription().trim()) : null;
-    if(worklogComment == null && timeLogDescription == null) return true;
     return worklogComment != null && worklogComment.equals(timeLogDescription);
   }
 
@@ -78,6 +44,27 @@ public class WorklogServiceImpl implements WorklogService {
       }
     }
     return result.toString();
+  }
+
+  public void synchronizeWorklogs() {
+    if (syncProgressService.getProgress() > 0) return;
+    worklogRepository.saveAll(jiraWorklogService.fetchAllWorkLogDtos()
+        .stream()
+        .map(mapper::toWorklogEntity)
+        .toList());
+    syncProgressService.clearProgress();
+  }
+
+  public boolean isWorklogCompatibleWithTimelog(final WorklogEntity worklogEntity, final TimeLogEntity timeLogEntity) {
+    return worklogEntity.getDate().equals(timeLogEntity.getDate())
+        && areCommentsEqual(worklogEntity, timeLogEntity)
+        && areDurationsEqual(worklogEntity, timeLogEntity);
+  }
+
+  private boolean areDurationsEqual(final WorklogEntity worklogEntity, final TimeLogEntity timeLogEntity) {
+    int duration = (int) Duration.between(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()).toSeconds();
+    duration = duration < 0 ? 3600 * 24 + duration : duration;
+    return worklogEntity.getTimeSpentSeconds().equals(duration);
   }
 
   @Override
@@ -95,5 +82,29 @@ public class WorklogServiceImpl implements WorklogService {
         syncProgressService.getTicketOfCurrentWorklog(),
         syncProgressService.getCommentOfCurrentWorklog()
     );
+  }
+
+  @Override
+  public List<WorklogEntity> getAllWorklogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
+    final LocalTime startTime = LocalTime.of(offset, 0);
+    switch (mode) {
+      case "Day" -> {
+        return worklogRepository.findAllInRange(date, date.plusDays(1), startTime);
+      }
+      case "Week" -> {
+        LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        return worklogRepository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startTime);
+      }
+      case "Month" -> {
+        LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
+        return worklogRepository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startTime);
+      }
+      case "All" -> {
+        return worklogRepository.findAll();
+      }
+      default -> throw new BadRequestException("Invalid time mode");
+    }
   }
 }
