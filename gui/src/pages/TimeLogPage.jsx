@@ -18,6 +18,7 @@ import fileService from "../service/fileService.js";
 import Button from "@mui/material/Button";
 import ImportButton from "../components/ImportButton.jsx";
 import worklogApi from "../api/worklogApi.js";
+import WorklogList from "../components/WorklogList.jsx";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -62,7 +63,6 @@ export default function TimeLogPage() {
     placeholderData: (prev) => prev,
     retryDelay: 300,
   });
-  console.log(notSyncedWorklogs)
 
   const {
     data,
@@ -443,6 +443,10 @@ export default function TimeLogPage() {
           onSynchronize={synchronizeWorklogsForIssue}
           hoveredTimeLogIds={hoveredTimeLogIds}
         />
+        {notSyncedWorklogs.length > 0 && <WorklogList
+          worklogs={notSyncedWorklogs}
+        />
+        }
       </div>
     </div>
   )

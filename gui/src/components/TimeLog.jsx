@@ -24,6 +24,7 @@ import {deepOrange} from "@mui/material/colors";
 import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
 import SyncIcon from '@mui/icons-material/Sync';
+import Duration from "./Duration.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -394,13 +395,7 @@ export default function TimeLog({
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
 
-          {statusConfig[status].label ? <Chip
-            label={statusConfig[status].label}
-            color="primary"
-            variant="outlined"
-            size="small"
-            className="shadow-md mr-2"
-          /> : null}
+          {statusConfig[status].label ? <Duration duration={statusConfig[status].label} /> : null}
 
           {timeLog.successfullySynced && timeLog.startTime && timeLog.endTime
             ? (
