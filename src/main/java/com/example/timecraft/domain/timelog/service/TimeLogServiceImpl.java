@@ -245,6 +245,7 @@ public class TimeLogServiceImpl implements TimeLogService {
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
           .date(currentDay)
+          .isSynchronized(hasNotSynchronizedTimeLogsForDay(entitiesForDay, currentDay))
           .isConflicted(hasConflictsForDay(entitiesForDay))
           .isInProgress(hasInProgressTimeLogs(entitiesForDay))
           .ticketDurations(getTicketDurationsForDay(entitiesForDay, tickets))
@@ -253,6 +254,16 @@ public class TimeLogServiceImpl implements TimeLogService {
       currentDay = currentDay.plusDays(1);
     }
     return dayInfoList;
+  }
+
+  public boolean hasNotSynchronizedTimeLogsForDay(List<TimeLogEntity> entitiesForDay, LocalDate currentDay) {
+    List<WorklogEntity> worklogsForDay = worklogService.getAllWorklogEntitiesInMode("Day", currentDay, offset);
+    for (TimeLogEntity entity : entitiesForDay) {
+      if (!getIsTimeLogSuccessfullySynced(entity, worklogsForDay)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public boolean hasConflictsForDay(List<TimeLogEntity> entitiesForDay) {

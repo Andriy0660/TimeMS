@@ -414,10 +414,6 @@ export default function TimeLog({
             )
           }
 
-          {isHovered && timeLog.ticket && (
-            <Button onClick={() => handleSynchronize(timeLog.ticket)} variant="outlined" size="small" className="mx-6 text-sm">Sync</Button>
-          )}
-
           {timeLog.isConflicted && (
             <Tooltip title="conflicted">
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
@@ -445,6 +441,10 @@ export default function TimeLog({
             </div>
           }
         </div>
+
+        {isHovered && timeLog.ticket && (
+          <Button onClick={() => handleSynchronize(timeLog.ticket)} variant="outlined" size="small" className="mx-6 text-sm">Sync</Button>
+        )}
 
         <div className="flex items-center">
           <div className="flex ">
