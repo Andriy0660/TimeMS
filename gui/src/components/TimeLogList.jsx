@@ -9,6 +9,7 @@ export default function TimeLogList({
   onDelete,
   setGroupDescription,
   changeDate,
+  onSynchronize,
   hoveredTimeLogIds
 }) {
   const renderedTimeLogs = timeLogRenderingService.render({
@@ -20,6 +21,7 @@ export default function TimeLogList({
     onDelete,
     setGroupDescription,
     changeDate,
+    onSynchronize,
     hoveredTimeLogIds
   })
   return (

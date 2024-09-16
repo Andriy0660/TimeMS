@@ -252,6 +252,24 @@ export default function TimeLogPage() {
     }
   });
 
+  const {mutateAsync: synchronizeWorklogsForIssue} = useMutation({
+    mutationFn: (issueKey) => worklogApi.synchronizeWorklogsForIssue(issueKey),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries(timeLogApi.key);
+      addAlert({
+        text: `You have successfully synchronized worklogs for issue ${variables}`,
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("synchronizing worklogs for issue failed:", error);
+    }
+  });
+
   const {
     data: progressInfo,
   } = useQuery({
@@ -408,6 +426,7 @@ export default function TimeLogPage() {
           onDelete={deleteTimeLog}
           setGroupDescription={setGroupDescription}
           changeDate={changeDate}
+          onSynchronize={synchronizeWorklogsForIssue}
           hoveredTimeLogIds={hoveredTimeLogIds}
         />
       </div>

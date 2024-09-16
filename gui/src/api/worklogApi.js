@@ -6,6 +6,11 @@ const worklogApi = {
   synchronizeWorklogs: async () => {
     await axios.post(`/${key}`, {}, {baseMsg: "Error while synchronizing worklogs"});
   },
+
+  synchronizeWorklogsForIssue: async (issueKey) => {
+    await axios.post(`/${key}/${issueKey}`, {}, {baseMsg: `Error while synchronizing worklogs for issue ${issueKey}`});
+  },
+
   getProgress: async () => {
     const {data} = await axios.get(`/${key}`, {}, {baseMsg: "Error while getting worklogs"});
     return data;

@@ -41,7 +41,8 @@ export default function TimeLog({
   groupByDescription,
   changeDate,
   hovered,
-  setGroupDescription
+  setGroupDescription,
+  onSynchronize
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -122,6 +123,9 @@ export default function TimeLog({
   })
   const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
     fn: changeDate
+  })
+  const {execute: handleSynchronize, isExecuting: isSynchronizing} = useAsyncCall({
+    fn: onSynchronize
   })
 
   useEffect(() => {
@@ -404,6 +408,9 @@ export default function TimeLog({
             size="small"
             className="shadow-md mr-2"
           /> : null}
+          {isHovered && timeLog.ticket && (
+            <Button onClick={() => handleSynchronize(timeLog.ticket)} variant="outlined" size="small" className="ml-6 text-sm">Sync</Button>
+          )}
           {timeLog.isConflicted && (
             <Tooltip title="conflicted">
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
@@ -511,7 +518,7 @@ export default function TimeLog({
       </div>
 
       {!groupByDescription && <Description className="mb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription}/>}
-      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading) && <LinearProgress />}
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSynchronizing) && <LinearProgress />}
     </div>
   );
 }
