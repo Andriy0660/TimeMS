@@ -53,14 +53,14 @@ export default function MonthPage() {
 
   const getEventContent = (eventInfo) => {
     const {start, title} = eventInfo.event;
-    const {conflicted, inProgress} = eventInfo.event.extendedProps;
-    return <MonthPageDuration isConflicted={conflicted} isInProgress={inProgress} title={title} handleClickDate={() => handleClickDate(start)} />
+    const {synchronized, conflicted, inProgress} = eventInfo.event.extendedProps;
+    return <MonthPageDuration isSynchronized={synchronized} isConflicted={conflicted} isInProgress={inProgress} title={title} handleClickDate={() => handleClickDate(start)} />
   }
 
   const getEventClassNames = (eventInfo) => {
-    const {conflicted, inProgress} = eventInfo.event.extendedProps;
+    const {synchronized, conflicted, inProgress} = eventInfo.event.extendedProps;
 
-    if (conflicted) {
+    if (synchronized || conflicted) {
       return ["bg-red-200 hover:bg-transparent"];
     } else if (inProgress) {
       return ["bg-blue-200 hover:bg-transparent"];

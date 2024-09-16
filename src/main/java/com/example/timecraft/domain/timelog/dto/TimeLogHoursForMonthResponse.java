@@ -21,6 +21,7 @@ public class TimeLogHoursForMonthResponse {
   public static class DayInfo {
     private LocalDateTime start;
     private String title;
+    private boolean isSynchronized;
     private boolean isConflicted;
     private boolean isInProgress;
   }

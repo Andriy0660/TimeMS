@@ -338,6 +338,7 @@ public class TimeLogServiceImpl implements TimeLogService {
       dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
           .start(LocalDateTime.of(currentDay, LocalTime.MIN))
           .title(formatDuration(durationForDay))
+          .isSynchronized(hasNotSynchronizedTimeLogsForDay(entitiesForDay, currentDay))
           .isConflicted(hasConflictsForDay(entitiesForDay))
           .isInProgress(hasInProgressTimeLogs(entitiesForDay))
           .build());
