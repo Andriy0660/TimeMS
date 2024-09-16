@@ -36,6 +36,8 @@ import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import com.example.timecraft.domain.timelog.utils.TimeLogUtils;
+import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
+import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.service.WorklogService;
 import lombok.RequiredArgsConstructor;
@@ -47,8 +49,11 @@ import static com.example.timecraft.domain.timelog.service.DurationService.forma
 @Transactional
 public class TimeLogServiceImpl implements TimeLogService {
   private final TimeLogRepository repository;
-  private final WorklogService worklogService;
   private final TimeLogMapper mapper;
+
+  private final WorklogService worklogService;
+  private final WorklogMapper worklogMapper;
+
   private final Clock clock;
   private final int offset = 3;
   private final int startHourOfWorkingDay = 7;
@@ -75,7 +80,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     return new TimeLogListResponse(timeLogDtoList);
   }
 
-  public boolean isTimeLogSynced(final TimeLogEntity timeLogEntity) {
+  private boolean isTimeLogSynced(final TimeLogEntity timeLogEntity) {
     LocalDate date = timeLogEntity.getDate();
     List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode("Day", date, offset);
     List<WorklogEntity> worklogEntityList = worklogService.getAllWorklogEntitiesInMode("Day", date, offset);
@@ -355,6 +360,34 @@ public class TimeLogServiceImpl implements TimeLogService {
       currentDay = currentDay.plusDays(1);
     }
     return new TimeLogHoursForMonthResponse(formatDuration(totalDuration), dayInfoList);
+  }
+
+  @Override
+  public WorklogListResponse listNotSyncedWorklogs(final String mode, final LocalDate date) {
+    List<WorklogEntity> worklogEntityList = worklogService.getAllWorklogEntitiesInMode("Day", date, offset);
+    final List<WorklogListResponse.WorklogDto> timeLogDtoList = worklogEntityList.stream()
+        .filter(worklogEntity->!isWorklogSynced(worklogEntity))
+        .map(worklogMapper::toListItem)
+        .toList();
+    return new WorklogListResponse(timeLogDtoList);
+  }
+
+  private boolean isWorklogSynced(final WorklogEntity worklogEntity) {
+    LocalDate date = worklogEntity.getDate();
+    List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode("Day", date, offset);
+    List<WorklogEntity> worklogEntityList = worklogService.getAllWorklogEntitiesInMode("Day", date, offset);
+    timeLogEntityList = timeLogEntityList
+        .stream()
+        .filter(entity -> TimeLogUtils.areDescriptionsEqual(entity.getDescription(), worklogEntity.getComment()))
+        .filter(entity -> Objects.equals(entity.getTicket(), worklogEntity.getTicket()))
+        .toList();
+
+    worklogEntityList = worklogEntityList
+        .stream()
+        .filter(entity -> TimeLogUtils.areDescriptionsEqual(entity.getComment(), worklogEntity.getComment()))
+        .filter(entity -> Objects.equals(entity.getTicket(), worklogEntity.getTicket()))
+        .toList();
+    return TimeLogUtils.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
   }
 
   private Duration getDurationForDay(final List<TimeLogEntity> entities) {

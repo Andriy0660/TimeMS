@@ -9,11 +9,12 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
+import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 
 public interface TimeLogService {
   TimeLogListResponse list(final String mode, final LocalDate date);
@@ -40,4 +41,5 @@ public interface TimeLogService {
 
   TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date);
 
+  WorklogListResponse listNotSyncedWorklogs(final String mode, final LocalDate date);
 }

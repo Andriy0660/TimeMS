@@ -51,6 +51,20 @@ export default function TimeLogPage() {
   }, [mode, groupByDescription]);
 
   const {
+    data: notSyncedWorklogs,
+    isPending: isNotSyncedWorklogsListing,
+    error: listNotSyncedWorklogsError,
+  } = useQuery({
+    queryKey: [worklogApi.key, mode, date, offset],
+    queryFn: () => {
+      return worklogApi.list({mode, date: dateTimeService.getFormattedDate(date), offset});
+    },
+    placeholderData: (prev) => prev,
+    retryDelay: 300,
+  });
+  console.log(notSyncedWorklogs)
+
+  const {
     data,
     isPending: isListing,
     error: listAllError,
