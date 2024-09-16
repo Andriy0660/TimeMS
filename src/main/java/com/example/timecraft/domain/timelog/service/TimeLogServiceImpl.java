@@ -65,15 +65,23 @@ public class TimeLogServiceImpl implements TimeLogService {
         .map(timeLogEntity -> {
           TimeLogListResponse.TimeLogDto timeLogDto = mapper.toListItem(timeLogEntity);
           timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime()));
-          boolean isSynced = isTimeLogSynced(timeLogEntity);
-          timeLogDto.setSuccessfullySynced(isSynced);
+          if(timeLogEntity.getStartTime() != null && timeLogEntity.getEndTime()!=null) {
+            String ticket = getTicket(timeLogEntity);
+
+            boolean isSynced = ticket != null && !ticket.isEmpty();
+            if (isSynced) {
+              timeLogEntity.setTicket(ticket);
+              repository.save(timeLogEntity);
+            }
+            timeLogDto.setSuccessfullySynced(isSynced);
+          }
           return timeLogDto;
         })
         .toList();
     return new TimeLogListResponse(timeLogDtoList);
   }
 
-  public boolean isTimeLogSynced(final TimeLogEntity timeLogEntity) {
+  public String getTicket(final TimeLogEntity timeLogEntity) {
     LocalDate date = timeLogEntity.getDate();
     List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode("Day", date, offset);
     List<WorklogEntity> worklogEntityList = worklogService.getAllWorklogEntitiesInMode("Day", date, offset);
@@ -86,7 +94,9 @@ public class TimeLogServiceImpl implements TimeLogService {
         .stream()
         .filter(entity -> TimeLogUtils.areDescriptionsEqual(entity.getComment(), timeLogEntity.getDescription()))
         .toList();
-    return TimeLogUtils.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
+    if(TimeLogUtils.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList)) {
+      return worklogEntityList.get(0).getTicket();
+    } else return null;
   }
 
   private List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
@@ -265,7 +275,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   public boolean hasNotSynchronizedTimeLogsForDay(List<TimeLogEntity> entitiesForDay, LocalDate currentDay) {
     List<WorklogEntity> worklogsForDay = worklogService.getAllWorklogEntitiesInMode("Day", currentDay, offset);
     for (TimeLogEntity entity : entitiesForDay) {
-      if (!isTimeLogSynced(entity)) {
+      if (getTicket(entity) == null) {
         return true;
       }
     }
