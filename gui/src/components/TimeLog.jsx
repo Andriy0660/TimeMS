@@ -23,6 +23,7 @@ import Description from "./Description.jsx";
 import {deepOrange} from "@mui/material/colors";
 import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
+import SyncIcon from '@mui/icons-material/Sync';
 
 export default function TimeLog({
   timeLog,
@@ -235,7 +236,7 @@ export default function TimeLog({
           }}
         >
           {startTime && isTimeLogInNextDay.startTime &&
-            <Tooltip className="flex items-center mr-1" title="next day">
+            <Tooltip className="flex items-center mr-1" title="Next day">
               <Icon fontSize="small">
                 <TiArrowForward />
               </Icon>
@@ -257,7 +258,7 @@ export default function TimeLog({
             }}
           >
             {endTime && isTimeLogInNextDay.endTime > 0 &&
-              <Tooltip className="flex items-center" title="next day">
+              <Tooltip className="flex items-center" title="Next day">
                 <Icon fontSize="small">
                   <TiArrowForward/>
                 </Icon>
@@ -290,7 +291,7 @@ export default function TimeLog({
   const getDateChanger = () => {
     return (
       <div className="mr-2">
-        <Tooltip title="move to previous day">
+        <Tooltip title="Move to previous day">
           <Button
             className="py-0 pl-1.5 pr-0 min-w-0"
             size="small"
@@ -302,7 +303,7 @@ export default function TimeLog({
             <ArrowBackIosIcon fontSize="small" />
           </Button>
         </Tooltip>
-        <Tooltip title="move to next day">
+        <Tooltip title="Move to next day">
           <Button
             className="py-0 pl-1.5 pr-0 min-w-0"
             size="small"
@@ -324,7 +325,7 @@ export default function TimeLog({
     Done: {
       label: totalTime,
       action: (isHovered || isEditing) && (
-        <Tooltip title="continue">
+        <Tooltip title="Continue">
           <IconButton
             onClick={() => handleCreateTimeLog(
               {ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description})}
@@ -341,7 +342,7 @@ export default function TimeLog({
       label: progressTime,
       action: ((isHovered || isEditing) && progressTime)
       && (
-        <Tooltip title="stop">
+        <Tooltip title="Stop">
           <IconButton
             onClick={() => {
               handleUpdateTimeLog({
@@ -363,7 +364,7 @@ export default function TimeLog({
     Pending: {
       label: 'Pending',
       action: ((isHovered || isEditing) && dateTimeService.isSameDate(dayjs(timeLog.date), currentTime)) && (
-        <Tooltip title="start">
+        <Tooltip title="Start">
           <IconButton
             onClick={() => {
               handleUpdateTimeLog({
@@ -403,19 +404,19 @@ export default function TimeLog({
 
           {timeLog.successfullySynced && timeLog.startTime && timeLog.endTime
             ? (
-              <Tooltip title="synchronized">
+              <Tooltip title="Synchronized">
                 <DoneIcon color="success" />
               </Tooltip>
             )
             : (
-              <Tooltip title="not synchronized">
+              <Tooltip title="Not synchronized">
                 <CloseIcon color="error" />
               </Tooltip>
             )
           }
 
           {timeLog.isConflicted && (
-            <Tooltip title="conflicted">
+            <Tooltip title="Conflicted">
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
           )}
@@ -425,7 +426,7 @@ export default function TimeLog({
               : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day"))) &&
             <div>
               <Button onClick={(event) => setMenuEl(event.currentTarget)}>
-                <Tooltip title="timelog continues tomorrow">
+                <Tooltip title="Timelog continues tomorrow">
                   <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
                 </Tooltip>
               </Button>
@@ -442,16 +443,12 @@ export default function TimeLog({
           }
         </div>
 
-        {isHovered && timeLog.ticket && (
-          <Button onClick={() => handleSynchronize(timeLog.ticket)} variant="outlined" size="small" className="mx-6 text-sm">Sync</Button>
-        )}
-
         <div className="flex items-center">
           <div className="flex ">
             {(isEditing) && (
               <div>
-                <Tooltip onClick={() => resetChanges()} title="Reset">
-                  <IconButton className="mr-1">
+                <Tooltip title="Reset">
+                  <IconButton onClick={() => resetChanges()} className="mr-1">
                     <BackspaceOutlinedIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
@@ -518,6 +515,17 @@ export default function TimeLog({
                   }}
                 >
                   <EditOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {(isHovered) && (
+              <Tooltip title="Synchronize">
+                <IconButton
+                  className="mr-2 p-0"
+                  color="primary"
+                  onClick={() => handleSynchronize(timeLog.ticket)}
+                >
+                  <SyncIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
             )}

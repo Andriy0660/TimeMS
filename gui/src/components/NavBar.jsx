@@ -96,7 +96,7 @@ export default function NavBar() {
           <MenuItem value="Month">Month</MenuItem>
         </Select>
         {modeDatePickerConfig[view]}
-        <Tooltip title="reset">
+        <Tooltip title="Reset">
           <IconButton
             onClick={() => setDate(dayjs())}
             variant="outlined"
