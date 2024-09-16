@@ -35,6 +35,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
+import com.example.timecraft.domain.timelog.utils.TimeLogUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.service.WorklogService;
 import lombok.RequiredArgsConstructor;
@@ -82,26 +83,14 @@ public class TimeLogServiceImpl implements TimeLogService {
     return false;
   }
 
-  private List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
+  public List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
     final LocalTime startTime = LocalTime.of(offset, 0);
-    switch (mode) {
-      case "Day" -> {
-        return repository.findAllInRange(date, date.plusDays(1), startTime);
-      }
-      case "Week" -> {
-        LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        return repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startTime);
-      }
-      case "Month" -> {
-        LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
-        return repository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startTime);
-      }
-      case "All" -> {
-        return repository.findAll();
-      }
-      default -> throw new BadRequestException("Invalid time mode");
+    final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
+
+    if ("All".equals(mode)) {
+      return repository.findAll();
+    } else {
+      return repository.findAllInRange(dateRange[0], dateRange[1], startTime);
     }
   }
 

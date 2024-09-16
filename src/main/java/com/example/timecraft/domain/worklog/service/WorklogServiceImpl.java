@@ -1,16 +1,14 @@
 package com.example.timecraft.domain.worklog.service;
 
-import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
+import com.example.timecraft.domain.timelog.utils.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
@@ -87,24 +85,12 @@ public class WorklogServiceImpl implements WorklogService {
   @Override
   public List<WorklogEntity> getAllWorklogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
     final LocalTime startTime = LocalTime.of(offset, 0);
-    switch (mode) {
-      case "Day" -> {
-        return worklogRepository.findAllInRange(date, date.plusDays(1), startTime);
-      }
-      case "Week" -> {
-        LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        return worklogRepository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startTime);
-      }
-      case "Month" -> {
-        LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
-        return worklogRepository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startTime);
-      }
-      case "All" -> {
-        return worklogRepository.findAll();
-      }
-      default -> throw new BadRequestException("Invalid time mode");
+    final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
+
+    if ("All".equals(mode)) {
+      return worklogRepository.findAll();
+    } else {
+      return worklogRepository.findAllInRange(dateRange[0], dateRange[1], startTime);
     }
   }
 }
