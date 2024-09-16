@@ -43,7 +43,9 @@ public class TimeLogUtils {
   }
 
   public static boolean isWorklogsAndTimeLogsCompatibleInTime(final List<TimeLogEntity> timeLogs, final List<WorklogEntity> worklogs) {
-
+    if(timeLogs.isEmpty() || worklogs.isEmpty()) {
+      return false;
+    }
     int totalTimeLogDurationInSeconds = timeLogs.stream().map(TimeLogUtils::getDurationInSecondsForTimelog).reduce(0, Integer::sum);
     int totalWorklogDurationInSeconds = worklogs.stream().map(WorklogEntity::getTimeSpentSeconds).reduce(0, Integer::sum);
     return totalTimeLogDurationInSeconds == totalWorklogDurationInSeconds;
