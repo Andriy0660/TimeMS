@@ -31,6 +31,11 @@ const timeLogApi = {
     return data;
   },
 
+  createFromWorklog: async (body) => {
+    const {data} = await axios.post(`/${key}/fromWorklog`, {...body}, {baseMsg: "Error while creating time log from worklog"});
+    return data;
+  },
+
   divide: async (id) => {
     await axios.post(`/${key}/divide/${id}`, {}, {baseMsg: "Error while dividing time logs"});
   },

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -42,6 +44,11 @@ public class TimeLogController {
   @PostMapping
   public TimeLogCreateResponse create(@RequestBody final TimeLogCreateRequest request) {
     return timeLogService.create(request);
+  }
+
+  @PostMapping("/fromWorklog")
+  public TimeLogCreateFormWorklogResponse createFromWorklog(@RequestBody final TimeLogCreateFromWorklogRequest request) {
+    return timeLogService.createFromWorklog(request);
   }
 
   @PostMapping("/importTimeLogs")

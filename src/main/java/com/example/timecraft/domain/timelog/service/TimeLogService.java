@@ -4,6 +4,8 @@ import java.time.LocalDate;
 
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -20,6 +22,8 @@ public interface TimeLogService {
   TimeLogListResponse list(final String mode, final LocalDate date);
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
+
+  TimeLogCreateFormWorklogResponse createFromWorklog(final TimeLogCreateFromWorklogRequest request);
 
   void importTimeLogs(final TimeLogImportRequest request);
 

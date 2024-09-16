@@ -513,7 +513,7 @@ export default function TimeLog({
                 </IconButton>
               </Tooltip>
             )}
-            {(isHovered) && (
+            {(isHovered && !isEditing) && (
               <Tooltip title="Synchronize">
                 <IconButton
                   className="mr-2 p-0"

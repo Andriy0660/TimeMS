@@ -7,12 +7,16 @@ import {useState} from "react";
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import useAsyncCall from "../hooks/useAsyncCall.js";
 
-export default function Worklog({worklog, onSave, onDelete}) {
+export default function Worklog({worklog, onCreate, onDelete}) {
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const {execute: handleDeleteWorklog, isExecuting: isDeleteLoading} = useAsyncCall({
     fn: onDelete,
+  })
+
+  const {execute: handleCreateTimeLogFromWorklog, isExecuting: isCreateLoading} = useAsyncCall({
+    fn: onCreate,
   })
 
   return (
@@ -32,6 +36,13 @@ export default function Worklog({worklog, onSave, onDelete}) {
             <>
               <Tooltip title="Save to my time logs">
                 <IconButton
+                  onClick={() => handleCreateTimeLogFromWorklog({
+                    ticket: worklog.ticket,
+                    date: worklog.date,
+                    startTime: worklog.startTime,
+                    description: worklog.comment,
+                    timeSpentSeconds: worklog.timeSpentSeconds
+                  })}
                   variant="outlined"
                   color="primary"
                   className="mr-2 p-0"
@@ -72,7 +83,7 @@ export default function Worklog({worklog, onSave, onDelete}) {
           {worklog.comment}
         </div>
       </div>
-      {isDeleteLoading && <LinearProgress />}
+      {isDeleteLoading || isCreateLoading && <LinearProgress />}
     </div>
   )
 }

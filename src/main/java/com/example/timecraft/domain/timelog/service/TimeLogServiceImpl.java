@@ -22,6 +22,8 @@ import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -138,6 +140,14 @@ public class TimeLogServiceImpl implements TimeLogService {
 
     timeLogEntity = repository.save(timeLogEntity);
     return mapper.toCreateResponse(timeLogEntity);
+  }
+
+  @Override
+  public TimeLogCreateFormWorklogResponse createFromWorklog(final TimeLogCreateFromWorklogRequest request) {
+    TimeLogEntity entity = mapper.fromCreateFromWorklogRequest(request);
+    entity.setEndTime(request.getStartTime().plusSeconds(request.getTimeSpentSeconds()));
+    entity = repository.save(entity);
+    return mapper.toCreateFromWorklogResponse(entity);
   }
 
   @Override

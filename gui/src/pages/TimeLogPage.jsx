@@ -139,6 +139,24 @@ export default function TimeLogPage() {
     }
   });
 
+  const {mutateAsync: createFromWorklog} = useMutation({
+    mutationFn: (body) => timeLogApi.createFromWorklog(body),
+    onSuccess: async (body) => {
+      queryClient.invalidateQueries(timeLogApi.key);
+      addAlert({
+        text: "Time log is successfully created",
+        type: "success"
+      });
+    },
+    onError: async (error, body) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      })
+      console.error("Creating time log from worklog failed:", error);
+    }
+  });
+
   const {mutateAsync: divide} = useMutation({
     mutationFn: (id) => timeLogApi.divide(id),
     onSuccess: async () => {
@@ -461,10 +479,11 @@ export default function TimeLogPage() {
           onSynchronize={synchronizeWorklogsForIssue}
           hoveredTimeLogIds={hoveredTimeLogIds}
         />
-        {notSyncedWorklogs.length > 0 && <WorklogList
+        {notSyncedWorklogs.length ? <WorklogList
           worklogs={notSyncedWorklogs}
           onDelete={deleteWorklog}
-        />
+          onCreate={createFromWorklog}
+        /> : null
         }
       </div>
     </div>
