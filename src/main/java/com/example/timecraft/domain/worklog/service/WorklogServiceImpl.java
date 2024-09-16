@@ -1,13 +1,11 @@
 package com.example.timecraft.domain.worklog.service;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.utils.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
@@ -25,25 +23,7 @@ public class WorklogServiceImpl implements WorklogService {
   private final SyncProgressService syncProgressService;
   private final WorklogMapper mapper;
 
-  private static boolean areCommentsEqual(final WorklogEntity worklogEntity, final TimeLogEntity timeLogEntity) {
-    final String worklogComment = worklogEntity.getComment() != null ? removeNonLetterCharacters(worklogEntity.getComment()) : null;
-    final String timeLogDescription = timeLogEntity.getDescription() != null ? removeNonLetterCharacters(timeLogEntity.getDescription().trim()) : null;
-    if (worklogComment == null && timeLogDescription == null) {
-      return true;
-    }
-    return worklogComment != null && worklogComment.equals(timeLogDescription);
-  }
-
-  private static String removeNonLetterCharacters(String input) {
-    StringBuilder result = new StringBuilder();
-    for (char c : input.toCharArray()) {
-      if (Character.isLetter(c)) {
-        result.append(c);
-      }
-    }
-    return result.toString();
-  }
-
+  @Override
   public void synchronizeWorklogs() {
     if (syncProgressService.getProgress() > 0) return;
     worklogRepository.saveAll(jiraWorklogService.fetchAllWorkLogDtos()
@@ -51,18 +31,6 @@ public class WorklogServiceImpl implements WorklogService {
         .map(mapper::toWorklogEntity)
         .toList());
     syncProgressService.clearProgress();
-  }
-
-  public boolean isWorklogCompatibleWithTimelog(final WorklogEntity worklogEntity, final TimeLogEntity timeLogEntity) {
-    return worklogEntity.getDate().equals(timeLogEntity.getDate())
-        && areCommentsEqual(worklogEntity, timeLogEntity)
-        && areDurationsEqual(worklogEntity, timeLogEntity);
-  }
-
-  private boolean areDurationsEqual(final WorklogEntity worklogEntity, final TimeLogEntity timeLogEntity) {
-    int duration = (int) Duration.between(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()).toSeconds();
-    duration = duration < 0 ? 3600 * 24 + duration : duration;
-    return worklogEntity.getTimeSpentSeconds().equals(duration);
   }
 
   @Override
@@ -74,6 +42,7 @@ public class WorklogServiceImpl implements WorklogService {
     worklogRepository.saveAll(list);
   }
 
+  @Override
   public WorklogProgressResponse getProgress() {
     return new WorklogProgressResponse(
         syncProgressService.getProgress(),

@@ -60,13 +60,12 @@ public class TimeLogServiceImpl implements TimeLogService {
       throw new BadRequestException("Offset must be between 0 and 23");
     }
     final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date, offset);
-    final List<WorklogEntity> worklogEntities = worklogService.getAllWorklogEntitiesInMode(mode, date, offset);
 
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(timeLogEntity -> {
           TimeLogListResponse.TimeLogDto timeLogDto = mapper.toListItem(timeLogEntity);
           timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime()));
-          boolean isSynced = getIsTimeLogSuccessfullySynced(timeLogEntity, worklogEntities);
+          boolean isSynced = isTimeLogSynced(timeLogEntity);
           timeLogDto.setSuccessfullySynced(isSynced);
           return timeLogDto;
         })
@@ -74,16 +73,23 @@ public class TimeLogServiceImpl implements TimeLogService {
     return new TimeLogListResponse(timeLogDtoList);
   }
 
-  private boolean getIsTimeLogSuccessfullySynced(final TimeLogEntity timeLogEntity, final List<WorklogEntity> worklogEntities) {
-    for (WorklogEntity worklogEntity : worklogEntities) {
-      if (worklogService.isWorklogCompatibleWithTimelog(worklogEntity, timeLogEntity)) {
-        return true;
-      }
-    }
-    return false;
+  public boolean isTimeLogSynced(final TimeLogEntity timeLogEntity) {
+    LocalDate date = timeLogEntity.getDate();
+    List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode("Day", date, offset);
+    List<WorklogEntity> worklogEntityList = worklogService.getAllWorklogEntitiesInMode("Day", date, offset);
+    timeLogEntityList = timeLogEntityList
+        .stream()
+        .filter(entity -> TimeLogUtils.areDescriptionsEqual(entity.getDescription(), timeLogEntity.getDescription()))
+        .toList();
+
+    worklogEntityList = worklogEntityList
+        .stream()
+        .filter(entity -> TimeLogUtils.areDescriptionsEqual(entity.getComment(), timeLogEntity.getDescription()))
+        .toList();
+    return TimeLogUtils.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
   }
 
-  public List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
+  private List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
     final LocalTime startTime = LocalTime.of(offset, 0);
     final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
 
@@ -259,7 +265,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   public boolean hasNotSynchronizedTimeLogsForDay(List<TimeLogEntity> entitiesForDay, LocalDate currentDay) {
     List<WorklogEntity> worklogsForDay = worklogService.getAllWorklogEntitiesInMode("Day", currentDay, offset);
     for (TimeLogEntity entity : entitiesForDay) {
-      if (!getIsTimeLogSuccessfullySynced(entity, worklogsForDay)) {
+      if (!isTimeLogSynced(entity)) {
         return true;
       }
     }
