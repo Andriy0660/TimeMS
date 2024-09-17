@@ -64,7 +64,7 @@ const fileService = {
 
 }
 
-const igorRegex = /[+-] {2}(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*) \(.*\) - \[(.+)\] (.*)/;
+const igorRegex = /[+-] {2}(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*) \(.*\) - \[(.+)\]\s?(.*)/;
 const parsers = [
   {
     isValid: isValidIgorFormat,
