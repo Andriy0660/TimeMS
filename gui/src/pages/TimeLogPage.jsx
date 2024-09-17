@@ -60,6 +60,7 @@ export default function TimeLogPage() {
     queryFn: () => {
       return worklogApi.list({mode, date: dateTimeService.getFormattedDate(date), offset});
     },
+    initialData: () => [],
     placeholderData: (prev) => prev,
     retryDelay: 300,
   });
