@@ -4,7 +4,6 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import dayjs from "dayjs";
-import WeekPicker from "../components/WeekPicker.jsx";
 import dateTimeService from "../service/dateTimeService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
@@ -12,15 +11,14 @@ import timeLogApi from "../api/timeLogApi.js";
 import {CircularProgress} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import CustomTableCell from "../components/CustomTableCell.jsx";
-import useDateInUrl from "../hooks/useDateInUrl.js";
-import {useNavigate} from "react-router-dom";
+import useViewChanger from "../hooks/useViewChanger.js";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
   const {date, setDate, addAlert} = useAppContext();
-  const navigate = useNavigate();
-  useDateInUrl(date);
+  const {changeView} = useViewChanger();
+
 
   const {
     data,
@@ -44,7 +42,7 @@ export default function WeekPage() {
 
   const handleClick = (date) => {
     setDate(dayjs(date))
-    navigate(`/app/timelog`)
+    changeView("Day")
   }
 
   const getTotalTimeForTicket = (ticket) => {
@@ -67,12 +65,6 @@ export default function WeekPage() {
 
   return (
     <div>
-      <WeekPicker
-        className="mt-4"
-        date={date}
-        toPrev={() => setDate(date.subtract(1, "week"))}
-        toNext={() => setDate(date.add(1, "week"))}
-        isLoading={isPlaceholderData} />
       <TableContainer className="flex mx-auto my-6 w-2/3">
         <Table size="small">
           <TableHead>
@@ -83,7 +75,8 @@ export default function WeekPage() {
                 <CustomTableCell
                   key={dayInfo.date}
                   isHover
-                  classNames={`${dayInfo.conflicted ? "bg-red-200" : ""}`}
+                  isConflicted={dayInfo.conflicted}
+                  isInProgress={dayInfo.inProgress}
                   onClick={() => handleClick(dayInfo.date)}
                 >
                   {dayInfo.dayName}
@@ -98,7 +91,6 @@ export default function WeekPage() {
                 <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
                 {data.map(dayInfo => {
                   const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
-                  console.log(dayInfo.conflicted)
                   return (
                     <CustomTableCell
                       key={`${dayInfo.date}-${ticket}`}

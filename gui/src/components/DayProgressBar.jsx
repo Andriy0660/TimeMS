@@ -32,11 +32,11 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
           const segments = splitIntoSegments(timeLog);
           segments.forEach(segment => {
             const interval = {
-              ...segment,
               id: segment.id,
               startTime: segment.startTime.isBefore(start) ? start : segment.startTime,
               endTime: segment.endTime.isAfter(end) ? end : segment.endTime,
-              color: getColor(segment.id.length)
+              color: getColor(segment.id.length),
+              ...segment,
             }
             intervals.push(interval);
           });
@@ -148,6 +148,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
 
   function splitSegmentByWorkingHours(startTime, endTime, id) {
     const segments = [];
+    const startOfNextDay = dateTimeService.getStartOfDay(startTime).add(1, "day");
     if (startTime.isBefore(startOfWorkingDay)) {
       segments.push({
         startTime: startTime,
@@ -169,9 +170,18 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
     if (endTime.isAfter(endOfWorkingDay)) {
       segments.push({
         startTime: dayjs.max(startTime, endOfWorkingDay),
-        endTime: endTime,
+        endTime: dayjs.min(endTime, startOfNextDay),
         id: [id],
         thin: true
+      });
+    }
+    if (endTime.isAfter(startOfNextDay)) {
+      segments.push({
+        startTime: dayjs.max(startTime, startOfNextDay),
+        endTime: endTime,
+        id: [id],
+        thin: true,
+        color: "red"
       });
     }
     return segments;

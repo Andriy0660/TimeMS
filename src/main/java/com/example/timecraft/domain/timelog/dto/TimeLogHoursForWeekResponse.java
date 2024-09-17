@@ -21,6 +21,7 @@ public class TimeLogHoursForWeekResponse {
     private String dayName;
     private LocalDate date;
     private boolean isConflicted;
+    private boolean isInProgress;
     private List<TicketDuration> ticketDurations;
   }
 
