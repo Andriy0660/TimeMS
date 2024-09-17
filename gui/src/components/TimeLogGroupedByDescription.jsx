@@ -7,12 +7,9 @@ import dateTimeService from "../service/dateTimeService.js";
 export default function TimeLogGroupedByDescription({
   description,
   logsForDescription,
-  onCreate,
-  onUpdate,
-  onDelete,
   setGroupDescription,
-  changeDate,
-  hoveredTimeLogIds
+  hoveredTimeLogIds,
+  ...apiCalls
 }) {
   const totalTimeLabel = dateTimeService.formatDuration(dateTimeService.getTotalTimeForTimeLogs(logsForDescription))
 
@@ -27,11 +24,8 @@ export default function TimeLogGroupedByDescription({
         <div key={timeLog.id}>
           <TimeLog
             timeLog={timeLog}
-            onCreate={onCreate}
-            onUpdate={onUpdate}
-            onDelete={onDelete}
+            {...apiCalls}
             groupByDescription={true}
-            changeDate={changeDate}
             setGroupDescription={setGroupDescription}
             hovered={hoveredTimeLogIds.includes(timeLog.id)} />
         </div>

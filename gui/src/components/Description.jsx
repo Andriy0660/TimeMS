@@ -88,7 +88,7 @@ export default function Description({description, ids, setGroupDescription, clas
             event.preventDefault()
             setIsEditing(true);
           }}
-          className="text-justify whitespace-pre-wrap">{description}</div>
+          className={`text-justify whitespace-pre-wrap ${!description ? "text-gray-500" : ""}`}>{description ? description : "add description..."}</div>
       )}
       {isExecuting && <LinearProgress className="mt-1" />}
 

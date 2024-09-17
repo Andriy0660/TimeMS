@@ -22,6 +22,8 @@ public interface TimeLogService {
 
   void importTimeLogs(final TimeLogImportRequest request);
 
+  void divide(final long timeLogId);
+
   TimeLogGetResponse get(final long timeLogId);
 
   TimeLogConfigResponse getConfig();

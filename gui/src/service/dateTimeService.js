@@ -28,7 +28,7 @@ const dateTimeService = {
     }
   },
   isNextDay(dateTime) {
-    return dateTime && dateTime.isValid() ? this.compareTimes(dateTime, this.getStartOfDay()) < 0 && this.compareTimes(dateTime, dayjs().startOf("day")) > 0 : false;
+    return dateTime && dateTime.isValid() ? this.compareTimes(dateTime, this.getStartOfDay()) < 0 && this.compareTimes(dateTime, dayjs().startOf("day")) >= 0 : false;
   },
   getStartOfDay(date) {
     const baseDate = date ? dayjs(date, "YYYY-MM-DD") : dayjs().startOf("day");
@@ -59,7 +59,7 @@ const dateTimeService = {
   },
   buildDate(date, startTime) {
     date = dayjs(date);
-    if (startTime && this.compareTimes(dayjs(startTime, "HH:mm"), dayjs().startOf("day")) > 0 &&
+    if (startTime && this.compareTimes(dayjs(startTime, "HH:mm"), dayjs().startOf("day")) >= 0 &&
       this.compareTimes(dayjs(startTime, "HH:mm"), this.getStartOfDay()) < 0) {
       date = date.subtract(1, "day");
     }

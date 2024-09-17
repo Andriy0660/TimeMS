@@ -49,6 +49,11 @@ public class TimeLogController {
     timeLogService.importTimeLogs(request);
   }
 
+  @PostMapping("/divide/{timeLogId}")
+  public void divide(@PathVariable final long timeLogId) {
+    timeLogService.divide(timeLogId);
+  }
+
   @GetMapping("/{timeLogId}")
   public TimeLogGetResponse get(@PathVariable final long timeLogId) {
     return timeLogService.get(timeLogId);

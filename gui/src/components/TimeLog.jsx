@@ -1,4 +1,14 @@
-import {Chip, Icon, IconButton, LinearProgress, TextField, Tooltip, Typography} from "@mui/material";
+import {
+  Chip,
+  Icon,
+  IconButton,
+  LinearProgress,
+  Menu,
+  MenuItem,
+  TextField,
+  Tooltip,
+  Typography
+} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useMemo, useRef, useState} from "react";
@@ -25,6 +35,7 @@ import {deepOrange} from "@mui/material/colors";
 export default function TimeLog({
   timeLog,
   onCreate,
+  onDivide,
   onUpdate,
   onDelete,
   groupByDescription,
@@ -50,6 +61,8 @@ export default function TimeLog({
   const [endTimeError, setEndTimeError] = useState(false);
 
   const timeLogRef = useRef(null);
+  const [menuEl, setMenuEl] = useState(null);
+
   const {addAlert} = useAppContext();
   useEffect(() => {
     initializeState();
@@ -96,6 +109,9 @@ export default function TimeLog({
 
   const {execute: handleCreateTimeLog, isExecuting: isCreateLoading} = useAsyncCall({
     fn: onCreate,
+  })
+  const {execute: handleDivideTimeLog, isExecuting: isDivideLoading} = useAsyncCall({
+    fn: onDivide,
   })
   const {execute: handleUpdateTimeLog, isExecuting: isUpdateLoading} = useAsyncCall({
     fn: updateTimeLog,
@@ -393,6 +409,26 @@ export default function TimeLog({
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
           )}
+          {timeLog.endTime?.isAfter(isTimeLogInNextDay.startTime
+              ? dateTimeService.getStartOfDay(timeLog.startTime)
+              : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day"))) &&
+            <div>
+              <Button onClick={(event) => setMenuEl(event.currentTarget)}>
+                <Tooltip title="timelog continues tomorrow">
+                  <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
+                </Tooltip>
+              </Button>
+              <Menu
+                anchorEl={menuEl}
+                open={!!menuEl}
+                onClose={() => setMenuEl(null)}
+              >
+                <MenuItem className="py-0 px-2" onClick={() => handleDivideTimeLog(timeLog.id)}>Divide into two days</MenuItem>
+                <Divider/>
+                <MenuItem className="py-0 px-2" onClick={() => setMenuEl(null)}>Cancel</MenuItem>
+              </Menu>
+            </div>
+          }
         </div>
 
         <div className="flex items-center">
@@ -475,7 +511,7 @@ export default function TimeLog({
       </div>
 
       {!groupByDescription && <Description className="mb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription}/>}
-      {(isCreateLoading || isUpdateLoading || isDeleteLoading) && <LinearProgress />}
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading) && <LinearProgress />}
     </div>
   );
 }
