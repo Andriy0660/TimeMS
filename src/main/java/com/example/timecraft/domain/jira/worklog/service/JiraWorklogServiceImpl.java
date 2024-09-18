@@ -11,13 +11,14 @@ import java.util.List;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
-import com.example.timecraft.domain.worklog.dto.WorklogJiraDto;
+import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.timelog.utils.TimeLogUtils;
 import com.example.timecraft.domain.worklog.service.SyncProgressService;
@@ -148,37 +149,27 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
     return jiraWorklogDto;
   }
 
-    if (node.has("content")) {
-      for (JsonNode content : node.get("content")) {
-        String type = content.get("type").asText();
+  @Override
+  public JiraWorklogDto create(final String issueKey, final JiraCreateWorklogDto createWorklogDto) {
+    String url = appProperties.getJira().getUrl() + "/rest/api/3/issue/" + issueKey + "/worklog";
+    HttpHeaders headers = getHttpHeaders();
+    HttpEntity<JiraCreateWorklogDto> entity = new HttpEntity<>(createWorklogDto, headers);
 
-        switch (type) {
-          case "hardBreak":
-            text.append("\n");
-            break;
-          case "paragraph":
-            if (!text.isEmpty()) {
-              text.append("\n");
-            }
-            break;
-          case "listItem":
-            text.append("\n- ");
-            break;
-          case "text":
-            String textContent = content.get("text").asText();
-            if (content.has("marks")) {
-              for (JsonNode mark : content.get("marks")) {
-                if (mark.get("type").asText().equals("code")) {
-                  textContent = "`" + textContent + "`";
-                  break;
-                }
-              }
-            }
-            text.append(textContent);
-            break;
-          default:
-            break;
-        }
+    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+    if (response.getStatusCode() == HttpStatus.CREATED) {
+      String worklogJson = response.getBody();
+      try {
+        JiraWorklogDto jiraWorklogDto = parseJiraWorklog(objectMapper.readTree(worklogJson));
+        jiraWorklogDto.setIssueKey(issueKey);
+        return jiraWorklogDto;
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException("Error parsing worklog for " + issueKey);
+      }
+    } else {
+      throw new RuntimeException("Failed to create worklog. Status code: " + response.getStatusCode());
+    }
+  }
 
 
   @Override
