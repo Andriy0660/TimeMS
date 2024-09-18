@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.worklog.service;
+package com.example.timecraft.domain.jira.worklog.service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -18,6 +18,9 @@ import org.springframework.web.client.RestTemplate;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.worklog.dto.WorklogJiraDto;
+import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
+import com.example.timecraft.domain.timelog.utils.TimeLogUtils;
+import com.example.timecraft.domain.worklog.service.SyncProgressService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,21 +38,21 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
   private final SyncProgressService syncProgressService;
 
   @Override
-  public List<WorklogJiraDto> fetchAllWorkLogDtos() {
-    List<WorklogJiraDto> allWorklogJiraDtos = new ArrayList<>();
+  public List<JiraWorklogDto> fetchAllWorkLogDtos() {
+    List<JiraWorklogDto> allJiraWorklogDtos = new ArrayList<>();
     List<String> allKeys = fetchAllIssueKeys();
     double step = 100. / allKeys.size();
     for (String key : allKeys) {
-      List<WorklogJiraDto> worklogForKey = fetchWorklogDtosForIssue(key);
-      allWorklogJiraDtos.addAll(worklogForKey);
+      List<JiraWorklogDto> worklogForKey = fetchWorklogDtosForIssue(key);
+      allJiraWorklogDtos.addAll(worklogForKey);
 
       syncProgressService.setProgress(syncProgressService.getProgress() + step);
-      String ticket = !worklogForKey.isEmpty() ? worklogForKey.getFirst().getTicket() : null;
+      String ticket = !worklogForKey.isEmpty() ? worklogForKey.getFirst().getIssueKey() : null;
       String comment = !worklogForKey.isEmpty() ? worklogForKey.getFirst().getComment() : null;
       if (ticket != null) syncProgressService.setTicketOfCurrentWorklog(ticket);
       if (comment != null) syncProgressService.setCommentOfCurrentWorklog(comment);
     }
-    return allWorklogJiraDtos;
+    return allJiraWorklogDtos;
   }
 
   private List<String> fetchAllIssueKeys() {
@@ -59,7 +62,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
     int total = 0;
 
     do {
-      JiraResponse jiraResponse = fetchIssueKeysPage(startAt, maxResults);
+      JiraSearchResponse jiraResponse = fetchIssueKeysPage(startAt, maxResults);
       if (jiraResponse.getIssues() != null) {
         allIssueKeys.addAll(
             jiraResponse.getIssues().stream()
@@ -76,13 +79,13 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
     return allIssueKeys;
   }
 
-  private JiraResponse fetchIssueKeysPage(int startAt, int maxResults) {
+  private JiraSearchResponse fetchIssueKeysPage(int startAt, int maxResults) {
     String url = appProperties.getJira().getUrl() + "/rest/api/3/search?&startAt=" + startAt + "&maxResults=" + maxResults;
 
     HttpHeaders headers = getHttpHeaders();
 
     HttpEntity<String> entity = new HttpEntity<>(headers);
-    ResponseEntity<JiraResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, JiraResponse.class);
+    ResponseEntity<JiraSearchResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, JiraSearchResponse.class);
 
     return response.getBody();
   }
@@ -97,7 +100,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
   }
 
   @Override
-  public List<WorklogJiraDto> fetchWorklogDtosForIssue(String issueKey) {
+  public List<JiraWorklogDto> fetchWorklogDtosForIssue(String issueKey) {
     String url = appProperties.getJira().getUrl() + "/rest/api/3/issue/" + issueKey + "/worklog";
 
     HttpHeaders headers = getHttpHeaders();
@@ -114,33 +117,36 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
     }
   }
 
-  private List<WorklogJiraDto> parseWorklogs(String jsonData, String issueKey) {
+  private List<JiraWorklogDto> parseWorklogs(String jsonData, String issueKey) {
     JsonNode rootNode = null;
     try {
       rootNode = objectMapper.readTree(jsonData);
     } catch (JsonProcessingException e) {
       throw new BadRequestException("Error parsing worklog for " + issueKey);
     }
-    List<WorklogJiraDto> worklogJiraDtos = new ArrayList<>();
+    List<JiraWorklogDto> jiraWorklogDtos = new ArrayList<>();
 
     for (JsonNode worklogNode : rootNode.path("worklogs")) {
-      WorklogJiraDto worklogJiraDto = new WorklogJiraDto();
-      worklogJiraDto.setId(Long.parseLong(worklogNode.path("id").asText()));
-      worklogJiraDto.setAuthor(worklogNode.path("author").path("displayName").asText());
-      worklogJiraDto.setTicket(issueKey);
-      worklogJiraDto.setDate(LocalDate.parse(worklogNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER));
-      LocalTime startTime = LocalTime.parse(worklogNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER);
-      worklogJiraDto.setStartTime(LocalTime.of(startTime.getHour(), startTime.getMinute()));
-      worklogJiraDto.setComment(getTextFromAdf(worklogNode.path("comment")));
-      worklogJiraDto.setTimeSpentSeconds(Integer.parseInt(worklogNode.path("timeSpentSeconds").asText()));
-      worklogJiraDtos.add(worklogJiraDto);
+      JiraWorklogDto jiraWorklogDto = parseJiraWorklog(worklogNode);
+      jiraWorklogDto.setIssueKey(issueKey);
+      jiraWorklogDtos.add(jiraWorklogDto);
     }
 
-    return worklogJiraDtos;
+    return jiraWorklogDtos;
   }
 
-  private static String getTextFromAdf(JsonNode node) {
-    StringBuilder text = new StringBuilder();
+  private JiraWorklogDto parseJiraWorklog(final JsonNode rootNode) {
+    JiraWorklogDto jiraWorklogDto = new JiraWorklogDto();
+
+    jiraWorklogDto.setId(Long.parseLong(rootNode.path("id").asText()));
+    jiraWorklogDto.setAuthor(rootNode.path("author").path("displayName").asText());
+    jiraWorklogDto.setDate(LocalDate.parse(rootNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER));
+    LocalTime startTime = LocalTime.parse(rootNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER);
+    jiraWorklogDto.setStartTime(LocalTime.of(startTime.getHour(), startTime.getMinute()));
+    jiraWorklogDto.setComment(TimeLogUtils.getTextFromAdf(rootNode.path("comment")));
+    jiraWorklogDto.setTimeSpentSeconds(Integer.parseInt(rootNode.path("timeSpentSeconds").asText()));
+    return jiraWorklogDto;
+  }
 
     if (node.has("content")) {
       for (JsonNode content : node.get("content")) {
@@ -174,13 +180,6 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
             break;
         }
 
-        if (content.has("content")) {
-          text.append(getTextFromAdf(content));
-        }
-      }
-    }
-    return text.toString().trim();
-  }
 
   @Override
   public void delete(final String issueKey, final Long id) {
@@ -201,7 +200,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
 
   @Getter
   @Setter
-  public static class JiraResponse {
+  public static class JiraSearchResponse {
     private List<Issue> issues;
     private Integer total;
   }
