@@ -6,6 +6,8 @@ import ConfirmationModal from "./ConfirmationModal.jsx";
 import {useState} from "react";
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import useAsyncCall from "../hooks/useAsyncCall.js";
+import DoneIcon from "@mui/icons-material/Done.js";
+import CloseIcon from "@mui/icons-material/Close.js";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
   const [isHovered, setIsHovered] = useState(false);
@@ -30,11 +32,23 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
             {worklog.ticket}
           </div>
           <Duration duration={dateTimeService.formatDuration(worklog.timeSpentSeconds / 60)} />
+          {worklog.synced
+            ? (
+              <Tooltip title="Synchronized">
+                <DoneIcon color="success" />
+              </Tooltip>
+            )
+            : (
+              <Tooltip title="Not synchronized">
+                <CloseIcon color="error" />
+              </Tooltip>
+            )
+          }
         </div>
         <div>
           {isHovered && (
             <>
-              <Tooltip title="Save to my time logs">
+              {!worklog.synced && <Tooltip title="Save to my time logs">
                 <IconButton
                   onClick={() => handleCreateTimeLogFromWorklog({
                     ticket: worklog.ticket,
@@ -50,6 +64,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
                   <KeyboardDoubleArrowLeftIcon />
                 </IconButton>
               </Tooltip>
+              }
               <Tooltip title="Delete">
                 <IconButton
                   className="mr-2 p-0"

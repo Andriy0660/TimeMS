@@ -402,7 +402,7 @@ export default function TimeLog({
 
           {statusConfig[status].label ? <Duration duration={statusConfig[status].label} /> : null}
 
-          {timeLog.successfullySynced && timeLog.startTime && timeLog.endTime
+          {timeLog.synced && timeLog.startTime && timeLog.endTime
             ? (
               <Tooltip title="Synchronized">
                 <DoneIcon color="success" />
@@ -529,7 +529,7 @@ export default function TimeLog({
                 </IconButton>
               </Tooltip>
             )}
-            {(isHovered && !isEditing && timeLog.ticket && timeLog.startTime && timeLog.endTime && !timeLog.successfullySynced) && (
+            {(isHovered && !isEditing && timeLog.ticket && timeLog.startTime && timeLog.endTime && !timeLog.synced) && (
               <Tooltip title="Save to worklogs">
                 <IconButton
                   className="mr-2 p-0"
