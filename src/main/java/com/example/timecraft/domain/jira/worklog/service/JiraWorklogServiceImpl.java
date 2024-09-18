@@ -20,7 +20,7 @@ import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
-import com.example.timecraft.domain.timelog.utils.TimeLogUtils;
+import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.worklog.service.SyncProgressService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -144,7 +144,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
     jiraWorklogDto.setDate(LocalDate.parse(rootNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER));
     LocalTime startTime = LocalTime.parse(rootNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER);
     jiraWorklogDto.setStartTime(LocalTime.of(startTime.getHour(), startTime.getMinute()));
-    jiraWorklogDto.setComment(TimeLogUtils.getTextFromAdf(rootNode.path("comment")));
+    jiraWorklogDto.setComment(JiraWorklogUtils.getTextFromAdf(rootNode.path("comment")));
     jiraWorklogDto.setTimeSpentSeconds(Integer.parseInt(rootNode.path("timeSpentSeconds").asText()));
     return jiraWorklogDto;
   }

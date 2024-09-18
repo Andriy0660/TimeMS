@@ -11,13 +11,13 @@ import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 public interface WorklogService {
   List<WorklogEntity> getAllWorklogEntitiesInMode(final String mode, final LocalDate date, final int offset);
 
-  void synchronizeWorklogs();
-
   WorklogCreateFromTimeLogResponse createWorklogFromTimeLog(WorklogCreateFromTimeLogRequest request);
 
   void deleteUnsyncedWorklog(final String issueKey, final Long id);
 
   WorklogProgressResponse getProgress();
+
+  void synchronizeWorklogs();
 
   void synchronizeWorklogsForIssue(final String issueKey);
 }
