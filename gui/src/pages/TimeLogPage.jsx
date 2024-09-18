@@ -140,7 +140,7 @@ export default function TimeLogPage() {
     }
   });
 
-  const {mutateAsync: createFromWorklog} = useMutation({
+  const {mutateAsync: createTimeLogFromWorklog} = useMutation({
     mutationFn: (body) => timeLogApi.createFromWorklog(body),
     onSuccess: async (body) => {
       queryClient.invalidateQueries(timeLogApi.key);
@@ -303,6 +303,24 @@ export default function TimeLogPage() {
     }
   });
 
+  const {mutateAsync: createWorklogFromTimeLog} = useMutation({
+    mutationFn: (body) => worklogApi.create(body),
+    onSuccess: async (body) => {
+      queryClient.invalidateQueries(worklogApi.key);
+      addAlert({
+        text: "Worklog is successfully created",
+        type: "success"
+      });
+    },
+    onError: async (error, body) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      })
+      console.error("Creating worklog failed:", error);
+    }
+  });
+
   const {mutateAsync: deleteWorklog} = useMutation({
     mutationFn: (body) => worklogApi.delete(body.issueKey, body.id),
     onSuccess: () => {
@@ -354,7 +372,13 @@ export default function TimeLogPage() {
         type: "error"
       });
     }
-  }, [listAllError]);
+    if (listNotSyncedWorklogsError) {
+      addAlert({
+        text: `${listNotSyncedWorklogsError.displayMessage} Try agail later`,
+        type: "error"
+      });
+    }
+  }, [listAllError, listNotSyncedWorklogsError]);
 
   if (isListing) {
     return (
@@ -474,18 +498,24 @@ export default function TimeLogPage() {
           onCreate={create}
           onDivide={divide}
           onUpdate={update}
+          onWorklogCreate={createWorklogFromTimeLog}
           onDelete={deleteTimeLog}
           setGroupDescription={setGroupDescription}
           changeDate={changeDate}
           onSynchronize={synchronizeWorklogsForIssue}
           hoveredTimeLogIds={hoveredTimeLogIds}
         />
-        {notSyncedWorklogs.length ? <WorklogList
-          worklogs={notSyncedWorklogs}
-          onDelete={deleteWorklog}
-          onCreate={createFromWorklog}
-        /> : null
-        }
+        {isNotSyncedWorklogsListing ? (
+          <div className="text-center">
+          <CircularProgress />
+        </div>
+        ) : (
+          notSyncedWorklogs.length ? <WorklogList
+            worklogs={notSyncedWorklogs}
+            onDelete={deleteWorklog}
+            onTimeLogCreate={createTimeLogFromWorklog}
+          /> : null
+        )}
       </div>
     </div>
   )

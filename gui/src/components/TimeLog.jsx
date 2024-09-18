@@ -1,4 +1,4 @@
-import {Chip, Icon, IconButton, LinearProgress, Menu, MenuItem, TextField, Tooltip, Typography} from "@mui/material";
+import {Icon, IconButton, LinearProgress, Menu, MenuItem, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useMemo, useRef, useState} from "react";
@@ -25,6 +25,7 @@ import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
 import SyncIcon from '@mui/icons-material/Sync';
 import Duration from "./Duration.jsx";
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 
 export default function TimeLog({
   timeLog,
@@ -33,6 +34,7 @@ export default function TimeLog({
   onUpdate,
   onDelete,
   groupByDescription,
+  onWorklogCreate,
   changeDate,
   hovered,
   setGroupDescription,
@@ -114,6 +116,9 @@ export default function TimeLog({
   })
   const {execute: handleDeleteTimeLog, isExecuting: isDeleteLoading} = useAsyncCall({
     fn: onDelete,
+  })
+  const {execute: handleCreateWorklog, isExecuting: isCreatingWorklogLoading} = useAsyncCall({
+    fn: onWorklogCreate,
   })
   const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
     fn: changeDate
@@ -524,12 +529,29 @@ export default function TimeLog({
                 </IconButton>
               </Tooltip>
             )}
+            {(isHovered && !isEditing && timeLog.ticket && timeLog.startTime && timeLog.endTime && !timeLog.successfullySynced) && (
+              <Tooltip title="Save to worklogs">
+                <IconButton
+                  className="mr-2 p-0"
+                  color="primary"
+                  onClick={() => handleCreateWorklog({
+                    ticket: timeLog.ticket,
+                    date: dateTimeService.getFormattedDate(timeLog.date),
+                    startTime: dateTimeService.getFormattedDateTime(timeLog.startTime),
+                    endTime: dateTimeService.getFormattedDateTime(timeLog.endTime),
+                    description: timeLog.description
+                  })}
+                >
+                  <KeyboardDoubleArrowRightIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
           </div>
         </div>
       </div>
 
       {!groupByDescription && <Description className="mb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription}/>}
-      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSynchronizing) && <LinearProgress />}
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSynchronizing || isCreatingWorklogLoading) && <LinearProgress />}
     </div>
   );
 }

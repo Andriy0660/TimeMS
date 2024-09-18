@@ -9,8 +9,17 @@ const worklogApi = {
     return data.items;
   },
 
+  create: async (body) => {
+    const {data} = await axios.post(`/${key}`, {...body}, {baseMsg: "Error while creating worklog"});
+    return data;
+  },
+
+  delete: async (issueKey, id) => {
+    await axios.delete(`/${key}/${issueKey}/${id}`, {baseMsg: "Error while deleting worklog"});
+  },
+
   synchronizeWorklogs: async () => {
-    await axios.post(`/${key}`, {}, {baseMsg: "Error while synchronizing worklogs"});
+    await axios.post(`/${key}/synchronizeWorklogs`, {}, {baseMsg: "Error while synchronizing worklogs"});
   },
 
   synchronizeWorklogsForIssue: async (issueKey) => {
@@ -22,9 +31,6 @@ const worklogApi = {
     return data;
   },
 
-  delete: async (issueKey, id) => {
-    await axios.delete(`/${key}/${issueKey}/${id}`,{baseMsg: "Error while deleting worklog"});
-  },
 };
 
 export default worklogApi;

@@ -7,7 +7,7 @@ import {useState} from "react";
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import useAsyncCall from "../hooks/useAsyncCall.js";
 
-export default function Worklog({worklog, onCreate, onDelete}) {
+export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -16,7 +16,7 @@ export default function Worklog({worklog, onCreate, onDelete}) {
   })
 
   const {execute: handleCreateTimeLogFromWorklog, isExecuting: isCreateLoading} = useAsyncCall({
-    fn: onCreate,
+    fn: onTimeLogCreate,
   })
 
   return (
