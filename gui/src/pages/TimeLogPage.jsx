@@ -52,20 +52,6 @@ export default function TimeLogPage() {
   }, [mode, groupByDescription]);
 
   const {
-    data: notSyncedWorklogs,
-    isPending: isNotSyncedWorklogsListing,
-    error: listNotSyncedWorklogsError,
-  } = useQuery({
-    queryKey: [worklogApi.key, mode, date, offset],
-    queryFn: () => {
-      return worklogApi.list({mode, date: dateTimeService.getFormattedDate(date), offset});
-    },
-    initialData: () => [],
-    placeholderData: (prev) => prev,
-    retryDelay: 300,
-  });
-
-  const {
     data,
     isPending: isListing,
     error: listAllError,
@@ -73,7 +59,7 @@ export default function TimeLogPage() {
   } = useQuery({
     queryKey: [timeLogApi.key, mode, date, offset],
     queryFn: () => {
-      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date), offset});
+      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
     },
     placeholderData: (prev) => prev,
     retryDelay: 300,
@@ -140,12 +126,12 @@ export default function TimeLogPage() {
     }
   });
 
-  const {mutateAsync: createTimeLogFromWorklog} = useMutation({
-    mutationFn: (body) => timeLogApi.createFromWorklog(body),
+  const {mutateAsync: createWorklogFromTimeLog} = useMutation({
+    mutationFn: (body) => worklogApi.create(body),
     onSuccess: async (body) => {
-      queryClient.invalidateQueries(timeLogApi.key);
+      queryClient.invalidateQueries(worklogApi.key);
       addAlert({
-        text: "Time log is successfully created",
+        text: "Worklog is successfully created",
         type: "success"
       });
     },
@@ -154,7 +140,7 @@ export default function TimeLogPage() {
         text: error.displayMessage,
         type: "error"
       })
-      console.error("Creating time log from worklog failed:", error);
+      console.error("Creating worklog failed:", error);
     }
   });
 
@@ -303,42 +289,6 @@ export default function TimeLogPage() {
     }
   });
 
-  const {mutateAsync: createWorklogFromTimeLog} = useMutation({
-    mutationFn: (body) => worklogApi.create(body),
-    onSuccess: async (body) => {
-      queryClient.invalidateQueries(worklogApi.key);
-      addAlert({
-        text: "Worklog is successfully created",
-        type: "success"
-      });
-    },
-    onError: async (error, body) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      })
-      console.error("Creating worklog failed:", error);
-    }
-  });
-
-  const {mutateAsync: deleteWorklog} = useMutation({
-    mutationFn: (body) => worklogApi.delete(body.issueKey, body.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(worklogApi.key);
-      addAlert({
-        text: "You have successfully deleted worklog",
-        type: "success"
-      });
-    },
-    onError: (error) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      });
-      console.error("Deleting worklog failed:", error);
-    }
-  });
-
   const {
     data: progressInfo,
   } = useQuery({
@@ -372,13 +322,7 @@ export default function TimeLogPage() {
         type: "error"
       });
     }
-    if (listNotSyncedWorklogsError) {
-      addAlert({
-        text: `${listNotSyncedWorklogsError.displayMessage} Try agail later`,
-        type: "error"
-      });
-    }
-  }, [listAllError, listNotSyncedWorklogsError]);
+  }, [listAllError]);
 
   if (isListing) {
     return (
@@ -505,17 +449,8 @@ export default function TimeLogPage() {
           onSynchronize={synchronizeWorklogsForIssue}
           hoveredTimeLogIds={hoveredTimeLogIds}
         />
-        {isNotSyncedWorklogsListing ? (
-          <div className="text-center">
-          <CircularProgress />
-        </div>
-        ) : (
-          notSyncedWorklogs.length ? <WorklogList
-            worklogs={notSyncedWorklogs}
-            onDelete={deleteWorklog}
-            onTimeLogCreate={createTimeLogFromWorklog}
-          /> : null
-        )}
+        <WorklogList mode={mode} date={date} />
+
       </div>
     </div>
   )
