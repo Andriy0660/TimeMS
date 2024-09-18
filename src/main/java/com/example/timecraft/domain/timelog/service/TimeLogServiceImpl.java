@@ -37,7 +37,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
-import com.example.timecraft.domain.timelog.utils.TimeLogUtils;
+import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;

@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.timelog.utils;
+package com.example.timecraft.domain.timelog.util;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -11,7 +11,6 @@ import java.util.Objects;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
-import com.fasterxml.jackson.databind.JsonNode;
 
 public class TimeLogUtils {
   public static LocalDate[] calculateDateRange(final String mode, final LocalDate date) {
@@ -66,48 +65,5 @@ public class TimeLogUtils {
       }
     }
     return result.toString();
-  }
-
-  public static String getTextFromAdf(JsonNode node) {
-    StringBuilder text = new StringBuilder();
-
-    if (node.has("content")) {
-      for (JsonNode content : node.get("content")) {
-        String type = content.get("type").asText();
-
-        switch (type) {
-          case "hardBreak":
-            text.append("\n");
-            break;
-          case "paragraph":
-            if (!text.isEmpty()) {
-              text.append("\n");
-            }
-            break;
-          case "listItem":
-            text.append("\n- ");
-            break;
-          case "text":
-            String textContent = content.get("text").asText();
-            if (content.has("marks")) {
-              for (JsonNode mark : content.get("marks")) {
-                if (mark.get("type").asText().equals("code")) {
-                  textContent = "`" + textContent + "`";
-                  break;
-                }
-              }
-            }
-            text.append(textContent);
-            break;
-          default:
-            break;
-        }
-
-        if (content.has("content")) {
-          text.append(getTextFromAdf(content));
-        }
-      }
-    }
-    return text.toString().trim();
   }
 }
