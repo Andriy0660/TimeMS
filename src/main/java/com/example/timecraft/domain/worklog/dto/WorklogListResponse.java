@@ -26,6 +26,7 @@ public class WorklogListResponse {
     private LocalTime startTime;
     private String comment;
     private Integer timeSpentSeconds;
+    private boolean isSynced;
   }
 }
 

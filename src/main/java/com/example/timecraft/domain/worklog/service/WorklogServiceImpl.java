@@ -14,6 +14,7 @@ import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
+import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
@@ -29,6 +30,16 @@ public class WorklogServiceImpl implements WorklogService {
   private final JiraWorklogService jiraWorklogService;
   private final SyncProgressService syncProgressService;
   private final WorklogMapper mapper;
+  private final int offset = 3;
+
+  @Override
+  public WorklogListResponse list(final String mode, final LocalDate date) {
+    List<WorklogEntity> worklogEntityList = getAllWorklogEntitiesInMode("Day", date, offset);
+    final List<WorklogListResponse.WorklogDto> timeLogDtoList = worklogEntityList.stream()
+        .map(mapper::toListItem)
+        .toList();
+    return new WorklogListResponse(timeLogDtoList);
+  }
 
   @Override
   public List<WorklogEntity> getAllWorklogEntitiesInMode(final String mode, final LocalDate date, final int offset) {

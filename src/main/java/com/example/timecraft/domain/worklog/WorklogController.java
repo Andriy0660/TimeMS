@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.timecraft.domain.timelog.service.TimeLogService;
+import com.example.timecraft.domain.logsync.service.LogSyncService;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
@@ -24,11 +24,11 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/work-logs")
 public class WorklogController {
   private final WorklogService worklogService;
-  private final TimeLogService timeLogService;
+  private final LogSyncService logSyncService;
 
   @GetMapping()
   public WorklogListResponse listNotSyncedWorklogs(@RequestParam final String mode, @RequestParam final LocalDate date) {
-    return timeLogService.listNotSyncedWorklogs(mode, date);
+    return logSyncService.processWorklogDtos(worklogService.list(mode, date));
   }
 
   @PostMapping
