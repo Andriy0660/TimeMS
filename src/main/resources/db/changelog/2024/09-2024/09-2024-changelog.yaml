@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/2024/09-2024/TMC-30-fetching-worklogs.yaml
+  - include:
+      file: db/changelog/2024/09-2024/TMC-30-fetching-worklogs-add-updated.yaml

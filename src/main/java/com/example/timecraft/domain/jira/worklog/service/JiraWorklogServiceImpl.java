@@ -2,6 +2,7 @@ package com.example.timecraft.domain.jira.worklog.service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -138,14 +139,16 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
 
   private JiraWorklogDto parseJiraWorklog(final JsonNode rootNode) {
     JiraWorklogDto jiraWorklogDto = new JiraWorklogDto();
+    LocalTime startTime = LocalTime.parse(rootNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER);
+    LocalDateTime updated = LocalDateTime.parse(rootNode.path("updated").asText(), JIRA_DATE_TIME_FORMATTER);
 
     jiraWorklogDto.setId(Long.parseLong(rootNode.path("id").asText()));
     jiraWorklogDto.setAuthor(rootNode.path("author").path("displayName").asText());
     jiraWorklogDto.setDate(LocalDate.parse(rootNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER));
-    LocalTime startTime = LocalTime.parse(rootNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER);
     jiraWorklogDto.setStartTime(LocalTime.of(startTime.getHour(), startTime.getMinute()));
     jiraWorklogDto.setComment(JiraWorklogUtils.getTextFromAdf(rootNode.path("comment")));
     jiraWorklogDto.setTimeSpentSeconds(Integer.parseInt(rootNode.path("timeSpentSeconds").asText()));
+    jiraWorklogDto.setUpdated(updated);
     return jiraWorklogDto;
   }
 

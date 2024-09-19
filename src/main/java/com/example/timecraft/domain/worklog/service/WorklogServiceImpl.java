@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -85,21 +88,46 @@ public class WorklogServiceImpl implements WorklogService {
   @Override
   public void synchronizeWorklogs() {
     if (syncProgressService.getProgress() > 0) return;
-    worklogRepository.deleteAll();
-    worklogRepository.saveAll(jiraWorklogService.fetchAllWorkLogDtos()
+
+    List<WorklogEntity> currentWorklogs = worklogRepository.findAll();
+    List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchAllWorkLogDtos()
         .stream()
         .map(mapper::toWorklogEntity)
-        .toList());
+        .toList();
+
+    syncWorklogs(currentWorklogs, worklogEntitiesFromJira);
+
     syncProgressService.clearProgress();
   }
 
   @Override
   public void synchronizeWorklogsForIssue(final String issueKey) {
-    var list = jiraWorklogService.fetchWorklogDtosForIssue(issueKey)
+    List<WorklogEntity> currentWorklogs = worklogRepository.findAllByTicket(issueKey);
+    List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchWorklogDtosForIssue(issueKey)
         .stream()
         .map(mapper::toWorklogEntity)
         .toList();
-    worklogRepository.deleteAll(worklogRepository.findAllByTicket(issueKey));
-    worklogRepository.saveAll(list);
+
+    syncWorklogs(currentWorklogs, worklogEntitiesFromJira);
+  }
+
+  private void syncWorklogs(final List<WorklogEntity> currentWorklogs, final List<WorklogEntity> worklogEntitiesFromJira) {
+    for (WorklogEntity worklogEntityFromJira : worklogEntitiesFromJira) {
+      Optional<WorklogEntity> worklogOpt = worklogRepository.findById(worklogEntityFromJira.getId());
+      if (worklogOpt.isEmpty()
+          || worklogOpt.get().getUpdated() == null
+          || worklogOpt.get().getUpdated().isBefore(worklogEntityFromJira.getUpdated())) {
+        worklogRepository.save(worklogEntityFromJira);
+      }
+    }
+    Set<Long> jiraWorklogIds = worklogEntitiesFromJira.stream()
+        .map(WorklogEntity::getId)
+        .collect(Collectors.toSet());
+
+    for (WorklogEntity worklogEntity : currentWorklogs) {
+      if (!jiraWorklogIds.contains(worklogEntity.getId())) {
+        worklogRepository.delete(worklogEntity);
+      }
+    }
   }
 }

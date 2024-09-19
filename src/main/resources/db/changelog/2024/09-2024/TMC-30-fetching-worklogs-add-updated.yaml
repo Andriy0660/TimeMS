@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: TMC-30-fetching-worklogs-add-updated
+      author: Andrii Snovyda
+      changes:
+        - addColumn:
+            tableName: worklog
+            columns:
+              - column:
+                  name: updated
+                  type: datetime

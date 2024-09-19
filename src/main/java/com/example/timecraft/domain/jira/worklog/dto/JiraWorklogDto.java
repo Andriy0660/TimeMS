@@ -1,6 +1,7 @@
 package com.example.timecraft.domain.jira.worklog.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import lombok.AllArgsConstructor;
@@ -20,4 +21,5 @@ public class JiraWorklogDto {
   private LocalTime startTime;
   private String comment;
   private Integer timeSpentSeconds;
+  private LocalDateTime updated;
 }
