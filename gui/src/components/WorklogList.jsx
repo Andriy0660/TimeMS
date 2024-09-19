@@ -7,8 +7,9 @@ import {startHourOfDay} from "../config/timeConfig.js";
 import timeLogApi from "../api/timeLogApi.js";
 import {CircularProgress} from "@mui/material";
 import {useEffect} from "react";
+import worklogService from "../service/worklogService.js";
 
-export default function WorklogList({mode, date}) {
+export default function WorklogList({mode, date, selectedTickets}) {
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
   const offset = startHourOfDay;
@@ -26,6 +27,7 @@ export default function WorklogList({mode, date}) {
     placeholderData: (prev) => prev,
     retryDelay: 300,
   });
+  const filteredWorklogs = worklogService.filterByTickets(worklogs, selectedTickets);
 
   const {mutateAsync: createTimeLogFromWorklog} = useMutation({
     mutationFn: (body) => timeLogApi.createFromWorklog(body),
@@ -83,7 +85,7 @@ export default function WorklogList({mode, date}) {
       <div className="mb-2 p-2 bg-red-100 font-medium text-amber-900 w-fit rounded-2xl">Worklogs</div>
       <div className="flex flex-col items-center">
         <div className="w-full overflow-x-auto">
-          {worklogs.map(worklog => <Worklog key={worklog.id} worklog={worklog} onDelete={deleteWorklog} onTimeLogCreate={createTimeLogFromWorklog}/>)}
+          {filteredWorklogs.map(worklog => <Worklog key={worklog.id} worklog={worklog} onDelete={deleteWorklog} onTimeLogCreate={createTimeLogFromWorklog}/>)}
         </div>
       </div>
     </div>

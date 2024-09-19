@@ -449,7 +449,7 @@ export default function TimeLogPage() {
           onSynchronize={synchronizeWorklogsForIssue}
           hoveredTimeLogIds={hoveredTimeLogIds}
         />
-        <WorklogList mode={mode} date={date} />
+        <WorklogList mode={mode} date={date} selectedTickets={selectedTickets}/>
 
       </div>
     </div>
