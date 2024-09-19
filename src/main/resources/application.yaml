@@ -19,7 +19,7 @@ spring:
 
 app:
   time-config:
-    offset: 0
+    offset: 3
     startHourOfWorkingDay: 7
     endHourOfWorkingDay: 17
   cors:

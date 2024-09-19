@@ -37,6 +37,7 @@ public class TimeLogUtils {
   }
 
   public static LocalDate getProcessedDate(final LocalDate date, final LocalTime startTime, final int offset) {
+    if (startTime == null) return date;
     return startTime.isBefore(LocalTime.of(offset, 0))
         ? date.minusDays(1)
         : date;

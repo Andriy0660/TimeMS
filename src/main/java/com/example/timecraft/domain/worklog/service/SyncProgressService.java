@@ -4,14 +4,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.stereotype.Service;
 
-import lombok.Data;
-
 @Service
-@Data
 public class SyncProgressService {
   private final AtomicReference<Double> progress = new AtomicReference<>(0.0);
-  private String ticketOfCurrentWorklog;
-  private String commentOfCurrentWorklog;
+  private final AtomicReference<String> ticketOfCurrentWorklog = new AtomicReference<>(null);
+  private final AtomicReference<String> commentOfCurrentWorklog = new AtomicReference<>(null);
 
   public double getProgress() {
     return progress.get();
@@ -23,5 +20,21 @@ public class SyncProgressService {
 
   public void clearProgress() {
     progress.set(0.0);
+  }
+
+  public String getTicketOfCurrentWorklog() {
+    return ticketOfCurrentWorklog.get();
+  }
+
+  public void setTicketOfCurrentWorklog(final String ticketOfCurrentWorklog) {
+    this.ticketOfCurrentWorklog.set(ticketOfCurrentWorklog);
+  }
+
+  public String getCommentOfCurrentWorklog() {
+    return commentOfCurrentWorklog.get();
+  }
+
+  public void setCommentOfCurrentWorklog(final String commentOfCurrentWorklog) {
+    this.commentOfCurrentWorklog.set(commentOfCurrentWorklog);
   }
 }
