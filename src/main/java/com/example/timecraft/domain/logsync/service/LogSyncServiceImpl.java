@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
+import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.logsync.util.LogSyncUtil;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
@@ -23,9 +24,10 @@ import lombok.RequiredArgsConstructor;
 public class LogSyncServiceImpl implements LogSyncService {
   private final TimeLogService timeLogService;
   private final WorklogService worklogService;
-  private final int offset = 3;
+  private final AppProperties props;
 
   public TimeLogListResponse processTimeLogDtos(TimeLogListResponse response) {
+    final int offset = props.getTimeConfig().getOffset();
     List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
     return new TimeLogListResponse(
         timeLogDtos.stream().peek(timeLogDto ->
@@ -39,6 +41,7 @@ public class LogSyncServiceImpl implements LogSyncService {
   }
 
   public TimeLogHoursForWeekResponse processWeekDayInfos(TimeLogHoursForWeekResponse response) {
+    final int offset = props.getTimeConfig().getOffset();
     List<TimeLogHoursForWeekResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekResponse(
         dayInfos.stream().peek(dayInfo -> dayInfo.setSynchronized(
@@ -54,6 +57,7 @@ public class LogSyncServiceImpl implements LogSyncService {
   }
 
   public TimeLogHoursForMonthResponse processMonthDayInfos(TimeLogHoursForMonthResponse response) {
+    final int offset = props.getTimeConfig().getOffset();
     List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
         dayInfos.stream().peek(dayInfo -> dayInfo.setSynchronized(
@@ -112,10 +116,12 @@ public class LogSyncServiceImpl implements LogSyncService {
   }
 
   private List<TimeLogEntity> getTimeLogsForDay(final LocalDate date) {
+    final int offset = props.getTimeConfig().getOffset();
     return timeLogService.getAllTimeLogEntitiesInMode("Day", date, offset);
   }
 
   private List<WorklogEntity> getWorklogsForDay(final LocalDate date) {
+    final int offset = props.getTimeConfig().getOffset();
     return worklogService.getAllWorklogEntitiesInMode("Day", date, offset);
   }
 }

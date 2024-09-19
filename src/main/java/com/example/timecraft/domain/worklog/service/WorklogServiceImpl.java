@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
@@ -33,10 +34,11 @@ public class WorklogServiceImpl implements WorklogService {
   private final JiraWorklogService jiraWorklogService;
   private final SyncProgressService syncProgressService;
   private final WorklogMapper mapper;
-  private final int offset = 3;
+  private final AppProperties props;
 
   @Override
   public WorklogListResponse list(final String mode, final LocalDate date) {
+    final int offset = props.getTimeConfig().getOffset();
     List<WorklogEntity> worklogEntityList = getAllWorklogEntitiesInMode("Day", date, offset);
     final List<WorklogListResponse.WorklogDto> timeLogDtoList = worklogEntityList.stream()
         .map(mapper::toListItem)

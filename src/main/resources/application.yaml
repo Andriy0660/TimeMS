@@ -18,6 +18,10 @@ spring:
     change-log: db/changelog/main-changelog.yaml
 
 app:
+  time-config:
+    offset: 0
+    startHourOfWorkingDay: 7
+    endHourOfWorkingDay: 17
   cors:
     allowed-origins:
       - http://localhost:*
