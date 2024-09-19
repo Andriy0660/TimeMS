@@ -35,4 +35,10 @@ public class TimeLogUtils {
     int duration = (int) Duration.between(startTime, endTime).toSeconds();
     return duration < 0 ? 3600 * 24 + duration : duration;
   }
+
+  public static LocalDate getProcessedDate(final LocalDate date, final LocalTime startTime, final int offset) {
+    return startTime.isBefore(LocalTime.of(offset, 0))
+        ? date.minusDays(1)
+        : date;
+  }
 }

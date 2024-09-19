@@ -12,6 +12,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.service.TimeLogService;
+import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.service.WorklogService;
@@ -27,8 +28,13 @@ public class LogSyncServiceImpl implements LogSyncService {
   public TimeLogListResponse processTimeLogDtos(TimeLogListResponse response) {
     List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
     return new TimeLogListResponse(
-        timeLogDtos.stream().peek(timeLogDto -> timeLogDto.setSynced(
-            isTimeLogSynced(timeLogDto.getDate(), timeLogDto.getTicket(), timeLogDto.getDescription()))
+        timeLogDtos.stream().peek(timeLogDto ->
+            timeLogDto.setSynced(
+                isTimeLogSynced(
+                    TimeLogUtils.getProcessedDate(timeLogDto.getDate(), timeLogDto.getStartTime(), offset),
+                    timeLogDto.getTicket(),
+                    timeLogDto.getDescription())
+            )
         ).toList());
   }
 
@@ -37,7 +43,11 @@ public class LogSyncServiceImpl implements LogSyncService {
     return new TimeLogHoursForWeekResponse(
         dayInfos.stream().peek(dayInfo -> dayInfo.setSynchronized(
                 getTimeLogsForDay(dayInfo.getDate()).stream().anyMatch(
-                    timeLogEntity -> !isTimeLogSynced(timeLogEntity.getDate(), timeLogEntity.getTicket(), timeLogEntity.getDescription())
+                    timeLogEntity -> !isTimeLogSynced(
+                        TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
+                        timeLogEntity.getTicket(),
+                        timeLogEntity.getDescription()
+                    )
                 )
             )
         ).toList());
@@ -48,7 +58,11 @@ public class LogSyncServiceImpl implements LogSyncService {
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
         dayInfos.stream().peek(dayInfo -> dayInfo.setSynchronized(
                 getTimeLogsForDay(dayInfo.getStart().toLocalDate()).stream().anyMatch(
-                    timeLogEntity -> !isTimeLogSynced(timeLogEntity.getDate(), timeLogEntity.getTicket(), timeLogEntity.getDescription())
+                    timeLogEntity -> !isTimeLogSynced(
+                        TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
+                        timeLogEntity.getTicket(),
+                        timeLogEntity.getDescription()
+                    )
                 )
             )
         ).toList());
