@@ -73,10 +73,14 @@ public class LogSyncServiceImpl implements LogSyncService {
   }
 
   public WorklogListResponse processWorklogDtos(WorklogListResponse response) {
+    final int offset = props.getTimeConfig().getOffset();
     List<WorklogListResponse.WorklogDto> worklogDtos = response.getItems();
     return new WorklogListResponse(
         worklogDtos.stream().peek(worklogDto -> worklogDto.setSynced(
-            isWorklogSynced(worklogDto.getDate(), worklogDto.getTicket(), worklogDto.getComment())
+            isWorklogSynced(
+                TimeLogUtils.getProcessedDate(worklogDto.getDate(), worklogDto.getStartTime(), offset),
+                worklogDto.getTicket(),
+                worklogDto.getComment())
         )).toList()
     );
   }
