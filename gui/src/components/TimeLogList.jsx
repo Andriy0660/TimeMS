@@ -10,7 +10,7 @@ export default function TimeLogList({
   onWorklogCreate,
   setGroupDescription,
   changeDate,
-  onSynchronize,
+  onSync,
   hoveredTimeLogIds
 }) {
   const renderedTimeLogs = timeLogRenderingService.render({
@@ -23,7 +23,7 @@ export default function TimeLogList({
     onWorklogCreate,
     setGroupDescription,
     changeDate,
-    onSynchronize,
+    onSync,
     hoveredTimeLogIds
   })
   return (

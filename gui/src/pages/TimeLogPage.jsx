@@ -252,8 +252,8 @@ export default function TimeLogPage() {
     }
   });
 
-  const {mutateAsync: synchronizeWorklogs, isPending: isSynchronizing} = useMutation({
-    mutationFn: (body) => worklogApi.synchronizeWorklogs(),
+  const {mutateAsync: syncWorklogs, isPending: isSyncing} = useMutation({
+    mutationFn: (body) => worklogApi.syncWorklogs(),
     onSuccess: () => {
       queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
@@ -271,8 +271,8 @@ export default function TimeLogPage() {
     }
   });
 
-  const {mutateAsync: synchronizeWorklogsForIssue} = useMutation({
-    mutationFn: (issueKey) => worklogApi.synchronizeWorklogsForIssue(issueKey),
+  const {mutateAsync: syncWorklogsForIssue} = useMutation({
+    mutationFn: (issueKey) => worklogApi.syncWorklogsForIssue(issueKey),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
@@ -295,13 +295,13 @@ export default function TimeLogPage() {
     queryKey: [worklogApi.key, "progress"],
     queryFn: () => worklogApi.getProgress(),
     initialData: () => 0,
-    refetchInterval: (data) => isSynchronizing || data.state.data.progress > 0 ? 300 : false,
+    refetchInterval: (data) => isSyncing || data.state.data.progress > 0 ? 300 : false,
     refetchOnWindowFocus: false,
     retryDelay: 300
   });
 
   const progress = progressInfo.progress;
-  const isSynchronizingRunning = isSynchronizing || progress > 0;
+  const isSyncingRunning = isSyncing || progress > 0;
 
   const saveFile = async () => {
     const formattedText = fileService.convertToTxt(processedDataRef.current);
@@ -405,8 +405,8 @@ export default function TimeLogPage() {
         <div className="flex justify-between items-center">
           <TotalTimeLabel label={totalTimeLabel} />
           <div className="flex items-center mt-8">
-            <Button className="mr-4" disabled={isSynchronizing || progressInfo.progress > 0} variant="outlined" onClick={synchronizeWorklogs}>
-              {isSynchronizingRunning
+            <Button className="mr-4" disabled={isSyncing || progressInfo.progress > 0} variant="outlined" onClick={syncWorklogs}>
+              {isSyncingRunning
                 ? (
                   <>
                     {progress > 0 ? `${Math.floor(progress)}%` : <CircularProgress size={25} />}
@@ -446,7 +446,7 @@ export default function TimeLogPage() {
           onDelete={deleteTimeLog}
           setGroupDescription={setGroupDescription}
           changeDate={changeDate}
-          onSynchronize={synchronizeWorklogsForIssue}
+          onSync={syncWorklogsForIssue}
           hoveredTimeLogIds={hoveredTimeLogIds}
         />
         <WorklogList mode={mode} date={date} selectedTickets={selectedTickets}/>

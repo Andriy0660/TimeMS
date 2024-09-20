@@ -81,7 +81,7 @@ public class WorklogServiceImpl implements WorklogService {
     } catch (HttpClientErrorException.NotFound e) {
       throw new BadRequestException("Worklog is already deleted from jira");
     } finally {
-      synchronizeWorklogsForIssue(issueKey);
+      syncWorklogsForIssue(issueKey);
     }
   }
 
@@ -95,7 +95,7 @@ public class WorklogServiceImpl implements WorklogService {
   }
 
   @Override
-  public void synchronizeWorklogs() {
+  public void syncWorklogs() {
     if (syncProgressService.getProgress() > 0) return;
 
     List<WorklogEntity> currentWorklogs = worklogRepository.findAll();
@@ -110,7 +110,7 @@ public class WorklogServiceImpl implements WorklogService {
   }
 
   @Override
-  public void synchronizeWorklogsForIssue(final String issueKey) {
+  public void syncWorklogsForIssue(final String issueKey) {
     List<WorklogEntity> currentWorklogs = worklogRepository.findAllByTicket(issueKey);
     List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchWorklogDtosForIssue(issueKey)
         .stream()

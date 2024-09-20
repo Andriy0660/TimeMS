@@ -39,7 +39,7 @@ export default function TimeLog({
   changeDate,
   hovered,
   setGroupDescription,
-  onSynchronize
+  onSync
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -124,8 +124,8 @@ export default function TimeLog({
   const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
     fn: changeDate
   })
-  const {execute: handleSynchronize, isExecuting: isSynchronizing} = useAsyncCall({
-    fn: onSynchronize
+  const {execute: handleSync, isExecuting: isSyncing} = useAsyncCall({
+    fn: onSync
   })
 
   useEffect(() => {
@@ -525,7 +525,7 @@ export default function TimeLog({
                 <IconButton
                   className="mr-2 p-0"
                   color="primary"
-                  onClick={() => handleSynchronize(timeLog.ticket)}
+                  onClick={() => handleSync(timeLog.ticket)}
                 >
                   <SyncIcon fontSize="small" />
                 </IconButton>
@@ -553,7 +553,7 @@ export default function TimeLog({
       </div>
 
       {!groupByDescription && <Description className="mb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription}/>}
-      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSynchronizing || isCreatingWorklogLoading) && <LinearProgress />}
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading) && <LinearProgress />}
     </div>
   );
 }

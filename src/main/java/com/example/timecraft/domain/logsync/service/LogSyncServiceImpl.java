@@ -44,7 +44,7 @@ public class LogSyncServiceImpl implements LogSyncService {
     final int offset = props.getTimeConfig().getOffset();
     List<TimeLogHoursForWeekResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekResponse(
-        dayInfos.stream().peek(dayInfo -> dayInfo.setSynchronized(
+        dayInfos.stream().peek(dayInfo -> dayInfo.setSynced(
                 getTimeLogsForDay(dayInfo.getDate()).stream().anyMatch(
                     timeLogEntity -> !isTimeLogSynced(
                         TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
@@ -60,7 +60,7 @@ public class LogSyncServiceImpl implements LogSyncService {
     final int offset = props.getTimeConfig().getOffset();
     List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
-        dayInfos.stream().peek(dayInfo -> dayInfo.setSynchronized(
+        dayInfos.stream().peek(dayInfo -> dayInfo.setSynced(
                 getTimeLogsForDay(dayInfo.getStart().toLocalDate()).stream().anyMatch(
                     timeLogEntity -> !isTimeLogSynced(
                         TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),

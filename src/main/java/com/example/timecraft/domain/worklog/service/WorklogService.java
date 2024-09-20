@@ -20,7 +20,7 @@ public interface WorklogService {
 
   WorklogProgressResponse getProgress();
 
-  void synchronizeWorklogs();
+  void syncWorklogs();
 
-  void synchronizeWorklogsForIssue(final String issueKey);
+  void syncWorklogsForIssue(final String issueKey);
 }

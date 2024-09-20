@@ -75,7 +75,7 @@ export default function WeekPage() {
                 <CustomTableCell
                   key={dayInfo.date}
                   isHover
-                  isSynchronized={dayInfo.synchronized}
+                  isSynced={dayInfo.synced}
                   isConflicted={dayInfo.conflicted}
                   isInProgress={dayInfo.inProgress}
                   onClick={() => handleClick(dayInfo.date)}

@@ -27,7 +27,7 @@ public class WorklogController {
   private final LogSyncService logSyncService;
 
   @GetMapping()
-  public WorklogListResponse listNotSyncedWorklogs(@RequestParam final String mode, @RequestParam final LocalDate date) {
+  public WorklogListResponse listWorklogs(@RequestParam final String mode, @RequestParam final LocalDate date) {
     return logSyncService.processWorklogDtos(worklogService.list(mode, date));
   }
 
@@ -42,13 +42,13 @@ public class WorklogController {
   }
 
   @PostMapping("/synchronizeWorklogs")
-  public void synchronizeWorklogs() {
-    worklogService.synchronizeWorklogs();
+  public void syncWorklogs() {
+    worklogService.syncWorklogs();
   }
 
   @PostMapping("/{issueKey}")
-  public void synchronizeWorklogsForIssue(@PathVariable String issueKey) {
-    worklogService.synchronizeWorklogsForIssue(issueKey);
+  public void syncWorklogsForIssue(@PathVariable String issueKey) {
+    worklogService.syncWorklogsForIssue(issueKey);
   }
 
   @GetMapping("/progress")
