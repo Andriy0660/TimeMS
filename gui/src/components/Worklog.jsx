@@ -1,6 +1,6 @@
 import dateTimeService from "../service/dateTimeService.js";
 import Duration from "./Duration.jsx";
-import {IconButton, LinearProgress, Tooltip} from "@mui/material";
+import {Icon, IconButton, LinearProgress, Tooltip, Typography} from "@mui/material";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import {useState} from "react";
@@ -8,10 +8,17 @@ import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrow
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import DoneIcon from "@mui/icons-material/Done.js";
 import CloseIcon from "@mui/icons-material/Close.js";
+import {TiArrowForward} from "react-icons/ti";
+import dayjs from "dayjs";
+import VerticalDivider from "./VerticalDivider.jsx";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const startTime = dayjs(worklog.startTime, "HH:mm");
+  const endTime = startTime.add(worklog.timeSpentSeconds, "second")
+  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(startTime, endTime);
 
   const {execute: handleDeleteWorklog, isExecuting: isDeleteLoading} = useAsyncCall({
     fn: onDelete,
@@ -20,7 +27,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
   const {execute: handleCreateTimeLogFromWorklog, isExecuting: isCreateLoading} = useAsyncCall({
     fn: onTimeLogCreate,
   })
-
+  
   return (
     <div className="mb-2 px-4 shadow-md rounded-md bg-gray-50"
          onMouseEnter={() => setIsHovered(true)}
@@ -28,6 +35,32 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
     >
       <div className="flex justify-between">
         <div className="mt-1 flex items-center">
+          <div className="flex mr-4 my-1">
+            {isTimeLogInNextDay.startTime &&
+              <Tooltip className="flex items-center mr-1" title="Next day">
+                <Icon fontSize="small">
+                  <TiArrowForward />
+                </Icon>
+              </Tooltip>
+            }
+            <Typography className="text-sm font-bold">
+              {dateTimeService.getFormattedTime(startTime)}
+            </Typography>
+          </div>
+          -
+          <div className="flex mx-4 my-1">
+            {isTimeLogInNextDay.endTime &&
+              <Tooltip className="flex items-center mr-1" title="Next day">
+                <Icon fontSize="small">
+                  <TiArrowForward />
+                </Icon>
+              </Tooltip>
+            }
+            <Typography className={`text-sm font-bold`}>
+              {dateTimeService.getFormattedTime(endTime)}
+            </Typography>
+          </div>
+          <VerticalDivider />
           <div className="font-bold text-sm">
             {worklog.ticket}
           </div>

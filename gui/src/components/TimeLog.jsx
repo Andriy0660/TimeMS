@@ -26,6 +26,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import SyncIcon from '@mui/icons-material/Sync';
 import Duration from "./Duration.jsx";
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import VerticalDivider from "./VerticalDivider.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -278,7 +279,8 @@ export default function TimeLog({
       {ticket && (
         <>
           {(startTime || endTime) &&
-            <Divider className="bg-gray-500 my-0.5 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />}
+            <VerticalDivider />
+          }
           <div
             className="mr-4 hover:bg-blue-100"
             onClick={() => {
