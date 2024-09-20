@@ -8,6 +8,7 @@ import timeLogApi from "../api/timeLogApi.js";
 import {CircularProgress} from "@mui/material";
 import {useEffect} from "react";
 import worklogService from "../service/worklogService.js";
+import NoLogs from "./NoLogs.jsx";
 
 export default function WorklogList({mode, date, selectedTickets}) {
   const queryClient = useQueryClient();
@@ -75,7 +76,7 @@ export default function WorklogList({mode, date, selectedTickets}) {
     }
   }, [listWorklogsError]);
 
-  if(isWorklogsListing) {
+  if (isWorklogsListing) {
     return <div className="text-center">
       <CircularProgress />
     </div>
@@ -83,10 +84,18 @@ export default function WorklogList({mode, date, selectedTickets}) {
 
   return (
     <div className="m-4">
-      <div className="mb-2 p-2 bg-red-100 font-medium text-amber-900 w-fit rounded-2xl">Worklogs</div>
+      <div className="mb-2 p-2 bg-green-100 font-medium text-green-900 w-fit rounded-2xl">Worklogs</div>
       <div className="flex flex-col items-center">
         <div className="w-full overflow-x-auto">
-          {filteredWorklogs.map(worklog => <Worklog key={worklog.id} worklog={worklog} onDelete={deleteWorklog} onTimeLogCreate={createTimeLogFromWorklog}/>)}
+          {filteredWorklogs.length
+            ? filteredWorklogs.map(worklog =>
+              <Worklog
+                key={worklog.id}
+                worklog={worklog}
+                onDelete={deleteWorklog}
+                onTimeLogCreate={createTimeLogFromWorklog} />)
+            : <NoLogs />
+          }
         </div>
       </div>
     </div>
