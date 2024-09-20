@@ -283,7 +283,8 @@ public class TimeLogServiceImpl implements TimeLogService {
         .map(TimeLogEntity::getTicket)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
-    tickets.add("Without Ticket");
+    if (entities.stream().anyMatch(timeLogEntity -> timeLogEntity.getTicket() == null))
+      tickets.add("Without Ticket");
     return tickets;
   }
 
