@@ -57,6 +57,7 @@ export default function WorklogList({mode, date, selectedTickets}) {
       });
     },
     onError: (error) => {
+      queryClient.invalidateQueries(worklogApi.key);
       addAlert({
         text: error.displayMessage,
         type: "error"

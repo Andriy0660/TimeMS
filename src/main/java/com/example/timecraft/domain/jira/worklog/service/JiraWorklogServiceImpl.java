@@ -201,9 +201,6 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
     HttpHeaders headers = getHttpHeaders();
 
     HttpEntity<String> entity = new HttpEntity<>(headers);
-
-    RestTemplate restTemplate = new RestTemplate();
-
     ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, Void.class);
 
     if (!response.getStatusCode().is2xxSuccessful()) {

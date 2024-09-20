@@ -9,8 +9,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import com.example.timecraft.core.config.AppProperties;
+import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
@@ -74,8 +76,13 @@ public class WorklogServiceImpl implements WorklogService {
 
   @Override
   public void deleteUnsyncedWorklog(final String issueKey, final Long id) {
-    jiraWorklogService.delete(issueKey, id);
-    synchronizeWorklogsForIssue(issueKey);
+    try {
+      jiraWorklogService.delete(issueKey, id);
+    } catch (HttpClientErrorException.NotFound e) {
+      throw new BadRequestException("Worklog is already deleted from jira");
+    } finally {
+      synchronizeWorklogsForIssue(issueKey);
+    }
   }
 
   @Override
