@@ -103,6 +103,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
 
   @Override
   public List<JiraWorklogDto> fetchWorklogDtosForIssue(String issueKey) {
+    String accountId = getJiraAccountId();
     String url = appProperties.getJira().getUrl() + "/rest/api/3/issue/" + issueKey + "/worklog";
 
     HttpHeaders headers = getHttpHeaders();
@@ -113,13 +114,13 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
 
     if (response.getStatusCode().is2xxSuccessful()) {
       String jsonResponse = response.getBody();
-      return parseWorklogs(jsonResponse, issueKey);
+      return parseWorklogs(jsonResponse, issueKey, accountId);
     } else {
       throw new RuntimeException("Failed to fetch worklogs for " + issueKey + " : " + response.getStatusCode());
     }
   }
 
-  private List<JiraWorklogDto> parseWorklogs(String jsonData, String issueKey) {
+  private List<JiraWorklogDto> parseWorklogs(String jsonData, String issueKey, String accountId) {
     JsonNode rootNode = null;
     try {
       rootNode = objectMapper.readTree(jsonData);
@@ -129,6 +130,9 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
     List<JiraWorklogDto> jiraWorklogDtos = new ArrayList<>();
 
     for (JsonNode worklogNode : rootNode.path("worklogs")) {
+      if (!worklogNode.path("author").path("accountId").asText().equals(accountId)) {
+        continue;
+      }
       JiraWorklogDto jiraWorklogDto = parseJiraWorklog(worklogNode);
       jiraWorklogDto.setIssueKey(issueKey);
       jiraWorklogDtos.add(jiraWorklogDto);
@@ -150,6 +154,21 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
     jiraWorklogDto.setTimeSpentSeconds(Integer.parseInt(rootNode.path("timeSpentSeconds").asText()));
     jiraWorklogDto.setUpdated(updated);
     return jiraWorklogDto;
+  }
+
+  private String getJiraAccountId() {
+    String url = appProperties.getJira().getUrl() + "/rest/api/3/myself";
+    HttpHeaders headers = getHttpHeaders();
+    HttpEntity<String> entity = new HttpEntity<>(headers);
+
+    ResponseEntity<Author> response = restTemplate.exchange(url, HttpMethod.GET, entity, Author.class);
+
+    if (response.getStatusCode() == HttpStatus.OK) {
+      Author author = response.getBody();
+      return author.getAccountId();
+    } else {
+      throw new RuntimeException("Failed to fetch JIRA account id : " + response.getStatusCode());
+    }
   }
 
   @Override
@@ -203,5 +222,11 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
   @Setter
   public static class Issue {
     private String key;
+  }
+
+  @Getter
+  @Setter
+  public static class Author {
+    private String accountId;
   }
 }
