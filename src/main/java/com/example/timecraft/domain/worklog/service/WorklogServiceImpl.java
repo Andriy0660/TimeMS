@@ -41,7 +41,7 @@ public class WorklogServiceImpl implements WorklogService {
   @Override
   public WorklogListResponse list(final String mode, final LocalDate date) {
     final int offset = props.getTimeConfig().getOffset();
-    List<WorklogEntity> worklogEntityList = getAllWorklogEntitiesInMode("Day", date, offset);
+    List<WorklogEntity> worklogEntityList = getAllWorklogEntitiesInMode(mode, date, offset);
     final List<WorklogListResponse.WorklogDto> timeLogDtoList = worklogEntityList.stream()
         .map(mapper::toListItem)
         .toList();
