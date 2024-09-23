@@ -1,7 +1,7 @@
-export default function MonthPageDuration({title}) {
+export default function MonthPageDuration({duration}) {
   return (
     <div className="flex justify-center items-center w-full bg-transparent text-black text-lg font-medium ">
-      {title !== "0h 0m" ? title : ""}
+      {duration !== "0h 0m" ? duration : ""}
     </div>
   )
 }

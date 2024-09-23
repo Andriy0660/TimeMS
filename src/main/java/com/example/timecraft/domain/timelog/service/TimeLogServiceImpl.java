@@ -320,8 +320,8 @@ public class TimeLogServiceImpl implements TimeLogService {
       totalDuration = totalDuration.plus(durationForDay);
 
       dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
-          .start(LocalDateTime.of(currentDay, LocalTime.MIN))
-          .title(formatDuration(durationForDay))
+          .date(currentDay)
+          .duration(formatDuration(durationForDay))
           .isConflicted(hasConflictsForDay(entitiesForDay))
           .build());
 

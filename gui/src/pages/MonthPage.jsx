@@ -12,6 +12,7 @@ import {startHourOfDay} from "../config/timeConfig.js";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import StatusIcon from "../components/StatusIcon.jsx";
+import {CircularProgress} from "@mui/material";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -20,7 +21,7 @@ export default function MonthPage() {
   const {date, setDate, addAlert} = useAppContext();
   const {changeView} = useViewChanger();
 
-  const {data} = useQuery({
+  const {data, isPending} = useQuery({
     queryKey: [timeLogApi.key, "month", date, offset],
     queryFn: () => timeLogApi.getHoursForMonth({date: dateTimeService.getFormattedDate(date), offset}),
     onError: async (error) => {
@@ -30,7 +31,6 @@ export default function MonthPage() {
       });
       console.error("Getting hours for month failed:", error);
     },
-    initialData: () => [],
     retryDelay: 300,
   });
 
@@ -54,7 +54,7 @@ export default function MonthPage() {
   };
 
   const getDayCellClassNames = ({dow: dayOfWeek, date}) => {
-    const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.start).isSame(dayjs(date), "day"));
+    const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(date), "day"));
     const {synced, conflicted} = dayInfo || {};
     if (synced || conflicted) {
       return ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
@@ -66,7 +66,7 @@ export default function MonthPage() {
   }
 
   const getCellContent = ({dayNumberText, date}) => {
-    const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.start).isSame(dayjs(date), "day"));
+    const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(date), "day"));
     return (
       <div className="flex justify-between p-1">
         {dayInfo &&
@@ -82,8 +82,16 @@ export default function MonthPage() {
   }
 
   const getEventContent = (eventInfo) => {
-    const {title} = eventInfo.event;
-    return <MonthPageDuration title={title} />
+    const {duration} = eventInfo.event.extendedProps;
+    return <MonthPageDuration duration={duration} />
+  }
+
+  if(isPending) {
+    return (
+      <div className="absolute inset-1/2">
+        <CircularProgress />
+      </div>
+    );
   }
 
   return (
@@ -95,7 +103,10 @@ export default function MonthPage() {
       </div>
       <FullCalendar
         initialDate={new Date(date)}
-        events={data.items}
+        events={data.items?.map(item => {
+          item.extendedProps = {duration: item.duration}
+          return item;
+        })}
         ref={handleCalendarRef}
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"

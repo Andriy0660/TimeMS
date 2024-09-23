@@ -67,13 +67,13 @@ public class LogSyncServiceImpl implements LogSyncService {
     List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
         dayInfos.stream().peek(dayInfo -> dayInfo.setSynced(
-                getTimeLogsForDay(dayInfo.getStart().toLocalDate()).stream().anyMatch(
+                getTimeLogsForDay(dayInfo.getDate()).stream().anyMatch(
                     timeLogEntity -> !isSynced(
                         TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
                         timeLogEntity.getTicket(),
                         timeLogEntity.getDescription()
                     )
-                ) || getWorklogsForDay(dayInfo.getStart().toLocalDate()).stream().anyMatch(
+                ) || getWorklogsForDay(dayInfo.getDate()).stream().anyMatch(
                     worklogEntity -> !isSynced(
                         TimeLogUtils.getProcessedDate(worklogEntity.getDate(), worklogEntity.getStartTime(), offset),
                         worklogEntity.getTicket(),

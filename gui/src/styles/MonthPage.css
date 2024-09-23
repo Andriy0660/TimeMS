@@ -5,3 +5,7 @@
 .fc .fc-daygrid-day-number {
     padding: 0;
 }
+
+.fc-h-event {
+    border: none;
+}
