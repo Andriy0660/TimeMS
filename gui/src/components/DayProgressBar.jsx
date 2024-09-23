@@ -59,25 +59,19 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
     if (lastEnd.isBefore(end)) {
       inactiveSegments.push({startTime: lastEnd, endTime: end, color: "gray"});
     }
-    return inactiveSegments.concat(intervals).map((interval, index, array) => {
+    return inactiveSegments.concat(intervals).map((interval) => {
       let adjustedWidth = interval.endTime.diff(interval.startTime, "minute") / minutesInDay * 100;
       let adjustedLeft = interval.startTime.diff(start, "minute") / minutesInDay * 100;
 
-      const gap = 0.1;
-
-      if (index > 0) {
-        adjustedLeft += gap;
-        adjustedWidth -= gap;
-      }
-
-      if (index < array.length - 1) {
-        adjustedWidth -= gap;
-      }
+      const gap = 0.2;
+      adjustedWidth = interval.splittedByWorkingHours ? adjustedWidth + gap : adjustedWidth - gap;
+      adjustedLeft = interval.splittedByWorkingHours ? adjustedLeft : adjustedLeft + gap;
 
       return {
         ...interval,
         width: adjustedWidth,
         left: adjustedLeft,
+
       };
     })
   }
@@ -147,14 +141,14 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
   }
 
   function splitSegmentByWorkingHours(startTime, endTime, id) {
-    const segments = [];
+    let segments = [];
     const startOfNextDay = dateTimeService.getStartOfDay(startTime).add(1, "day");
     if (startTime.isBefore(startOfWorkingDay)) {
       segments.push({
         startTime: startTime,
         endTime: dayjs.min(endTime, startOfWorkingDay),
         id: [id],
-        thin: true
+        thin: true,
       });
     }
 
@@ -163,7 +157,8 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
         startTime: dayjs.max(startTime, startOfWorkingDay),
         endTime: dayjs.min(endTime, endOfWorkingDay),
         id: [id],
-        thin: false
+        thin: false,
+
       });
     }
 
@@ -172,7 +167,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
         startTime: dayjs.max(startTime, endOfWorkingDay),
         endTime: dayjs.min(endTime, startOfNextDay),
         id: [id],
-        thin: true
+        thin: true,
       });
     }
     if (endTime.isAfter(startOfNextDay)) {
@@ -181,8 +176,14 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
         endTime: endTime,
         id: [id],
         thin: true,
-        color: "red"
+        color: "red",
       });
+    }
+    if(segments.length > 1) {
+      segments = segments.map((segment, index) => {
+        if(index !== 1) segment.splittedByWorkingHours = true;
+        return segment;
+      })
     }
     return segments;
   }
