@@ -32,7 +32,7 @@ public class LogSyncServiceImpl implements LogSyncService {
     return new TimeLogListResponse(
         timeLogDtos.stream().peek(timeLogDto ->
             timeLogDto.setSynced(
-                isTimeLogSynced(
+                isSynced(
                     TimeLogUtils.getProcessedDate(timeLogDto.getDate(), timeLogDto.getStartTime(), offset),
                     timeLogDto.getTicket(),
                     timeLogDto.getDescription())
@@ -45,13 +45,19 @@ public class LogSyncServiceImpl implements LogSyncService {
     List<TimeLogHoursForWeekResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekResponse(
         dayInfos.stream().peek(dayInfo -> dayInfo.setSynced(
-                getTimeLogsForDay(dayInfo.getDate()).stream().anyMatch(
-                    timeLogEntity -> !isTimeLogSynced(
-                        TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
-                        timeLogEntity.getTicket(),
-                        timeLogEntity.getDescription()
-                    )
+            getTimeLogsForDay(dayInfo.getDate()).stream().anyMatch(
+                timeLogEntity -> !isSynced(
+                    TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
+                    timeLogEntity.getTicket(),
+                    timeLogEntity.getDescription()
                 )
+            ) || getWorklogsForDay(dayInfo.getDate()).stream().anyMatch(
+                worklogEntity -> !isSynced(
+                    TimeLogUtils.getProcessedDate(worklogEntity.getDate(), worklogEntity.getStartTime(), offset),
+                    worklogEntity.getTicket(),
+                    worklogEntity.getComment()
+                )
+            )
             )
         ).toList());
   }
@@ -62,10 +68,16 @@ public class LogSyncServiceImpl implements LogSyncService {
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
         dayInfos.stream().peek(dayInfo -> dayInfo.setSynced(
                 getTimeLogsForDay(dayInfo.getStart().toLocalDate()).stream().anyMatch(
-                    timeLogEntity -> !isTimeLogSynced(
+                    timeLogEntity -> !isSynced(
                         TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
                         timeLogEntity.getTicket(),
                         timeLogEntity.getDescription()
+                    )
+                ) || getWorklogsForDay(dayInfo.getStart().toLocalDate()).stream().anyMatch(
+                    worklogEntity -> !isSynced(
+                        TimeLogUtils.getProcessedDate(worklogEntity.getDate(), worklogEntity.getStartTime(), offset),
+                        worklogEntity.getTicket(),
+                        worklogEntity.getComment()
                     )
                 )
             )
@@ -77,7 +89,7 @@ public class LogSyncServiceImpl implements LogSyncService {
     List<WorklogListResponse.WorklogDto> worklogDtos = response.getItems();
     return new WorklogListResponse(
         worklogDtos.stream().peek(worklogDto -> worklogDto.setSynced(
-            isWorklogSynced(
+            isSynced(
                 TimeLogUtils.getProcessedDate(worklogDto.getDate(), worklogDto.getStartTime(), offset),
                 worklogDto.getTicket(),
                 worklogDto.getComment())
@@ -85,7 +97,7 @@ public class LogSyncServiceImpl implements LogSyncService {
     );
   }
 
-  private boolean isTimeLogSynced(final LocalDate date, final String ticket, final String description) {
+  private boolean isSynced(final LocalDate date, final String ticket, final String description) {
     List<TimeLogEntity> timeLogEntityList = getTimeLogsForDay(date);
     List<WorklogEntity> worklogEntityList = getWorklogsForDay(date);
     timeLogEntityList = timeLogEntityList
@@ -97,23 +109,6 @@ public class LogSyncServiceImpl implements LogSyncService {
     worklogEntityList = worklogEntityList
         .stream()
         .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getComment(), description))
-        .filter(entity -> Objects.equals(entity.getTicket(), ticket))
-        .toList();
-    return LogSyncUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
-  }
-
-  private boolean isWorklogSynced(final LocalDate date, final String ticket, final String comment) {
-    List<TimeLogEntity> timeLogEntityList = getTimeLogsForDay(date);
-    List<WorklogEntity> worklogEntityList = getWorklogsForDay(date);
-    timeLogEntityList = timeLogEntityList
-        .stream()
-        .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getDescription(), comment))
-        .filter(entity -> Objects.equals(entity.getTicket(), ticket))
-        .toList();
-
-    worklogEntityList = worklogEntityList
-        .stream()
-        .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getComment(), comment))
         .filter(entity -> Objects.equals(entity.getTicket(), ticket))
         .toList();
     return LogSyncUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
