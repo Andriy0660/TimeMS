@@ -333,10 +333,8 @@ export default function TimeLogPage() {
   }
 
   const modeDatePickerConfig = {
-    Week: <WeekPicker
-      isLoading={isPlaceholderData}/>,
-    Month: <MonthPicker
-      isLoading={isPlaceholderData}/>,
+    Week: <WeekPicker buttonColor="blue" isActive={isPlaceholderData}/>,
+    Month: <MonthPicker buttonColor="blue" isActive={isPlaceholderData}/>,
     All: null,
   };
 
