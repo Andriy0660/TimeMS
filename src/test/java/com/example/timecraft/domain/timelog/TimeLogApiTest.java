@@ -3,7 +3,6 @@ package com.example.timecraft.domain.timelog;
 import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +36,6 @@ import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.matc
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.matchTimeLogMergeDto;
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.matchTimeLogUpdateDto;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.time.temporal.TemporalAdjusters.firstDayOfMonth;
 import static java.time.temporal.TemporalAdjusters.firstDayOfNextMonth;
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
@@ -91,7 +89,6 @@ class TimeLogApiTest {
     mvc.perform(get("/time-logs")
             .param("mode", "Day")
             .param("date", LocalDate.now(clock).toString())
-            .param("offset", "3")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
@@ -105,7 +102,7 @@ class TimeLogApiTest {
     TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock).with(next(DayOfWeek.MONDAY)),
         LocalTime.of(2, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now(clock).with(next(DayOfWeek.TUESDAY)),
+    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now(clock).plusDays(8),
         LocalTime.of(10, 0, 0));
 
     timeLog1 = timeLogRepository.save(timeLog1);
@@ -115,7 +112,6 @@ class TimeLogApiTest {
     mvc.perform(get("/time-logs")
             .param("mode", "Week")
             .param("date", LocalDate.now(clock).toString())
-            .param("offset", "3")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
@@ -140,7 +136,6 @@ class TimeLogApiTest {
     mvc.perform(get("/time-logs")
             .param("mode", "Month")
             .param("date", LocalDate.now(clock).toString())
-            .param("offset", "3")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
@@ -154,7 +149,6 @@ class TimeLogApiTest {
     mvc.perform(get("/time-logs")
             .param("mode", "invalid")
             .param("date", LocalDate.now(clock).toString())
-            .param("offset", "3")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value("Invalid time mode"));
@@ -165,7 +159,6 @@ class TimeLogApiTest {
     mvc.perform(get("/time-logs")
             .param("mode", "Day")
             .param("date", "invalid-type")
-            .param("offset", "0")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value("Invalid argument type of parameter: date"));
@@ -255,7 +248,6 @@ class TimeLogApiTest {
     mvc.perform(get("/time-logs")
             .param("mode", "All")
             .param("date", LocalDate.now(clock).toString())
-            .param("offset", "3")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
@@ -276,7 +268,6 @@ class TimeLogApiTest {
 
     mvc.perform(get("/time-logs/hoursForWeek")
             .param("date", LocalDate.now(clock).toString())
-            .param("offset", "3")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items[?(@.dayName == 'Monday')].ticketDurations[*]", hasItem(
@@ -296,13 +287,12 @@ class TimeLogApiTest {
 
     mvc.perform(get("/time-logs/hoursForMonth")
             .param("date", LocalDate.now(clock).toString())
-            .param("offset", "3")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalHours").value("3h 0m"))
         .andExpect(jsonPath("$.items", hasItem(allOf(
-            hasEntry("title", "1h 0m"),
-            hasEntry("start", LocalDateTime.of(timeLog1.getDate(), LocalTime.MIN).format(ISO_LOCAL_DATE_TIME))
+            hasEntry("duration", "1h 0m"),
+            hasEntry("date", timeLog1.getDate().format(ISO_LOCAL_DATE))
         ))));
   }
 
@@ -325,7 +315,6 @@ class TimeLogApiTest {
     mvc.perform(get("/time-logs")
             .param("mode", "Day")
             .param("date", LocalDate.now(clock).toString())
-            .param("offset", "3")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items", not(matchTimeLog(cloneForCompare))))
@@ -393,7 +382,6 @@ class TimeLogApiTest {
     mvc.perform(get("/time-logs")
             .param("mode", "Day")
             .param("date", LocalDate.now(clock).toString())
-            .param("offset", "3")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items", not(matchTimeLog(timeLog1))));
