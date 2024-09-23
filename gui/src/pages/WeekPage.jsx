@@ -65,7 +65,7 @@ export default function WeekPage() {
 
   return (
     <div>
-      <TableContainer className="flex mx-auto my-6 w-2/3">
+      <TableContainer className="flex mx-auto my-6 w-fit">
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -79,7 +79,8 @@ export default function WeekPage() {
                   isConflicted={dayInfo.conflicted}
                   onClick={() => handleClick(dayInfo.date)}
                 >
-                  {dayInfo.dayName}
+                  <div className="mr-1">{dayjs(dayInfo.date).format("DD.MM")}</div>
+                  <div>{dayInfo.dayName}</div>
                 </CustomTableCell>
               ))}
               <CustomTableCell isBold>Total</CustomTableCell>
