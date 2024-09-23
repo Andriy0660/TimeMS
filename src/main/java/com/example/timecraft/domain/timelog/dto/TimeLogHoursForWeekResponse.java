@@ -22,7 +22,6 @@ public class TimeLogHoursForWeekResponse {
     private LocalDate date;
     private boolean isSynced;
     private boolean isConflicted;
-    private boolean isInProgress;
     private List<TicketDuration> ticketDurations;
   }
 

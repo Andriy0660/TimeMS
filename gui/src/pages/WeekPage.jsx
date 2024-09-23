@@ -77,7 +77,6 @@ export default function WeekPage() {
                   isHover
                   isSynced={dayInfo.synced}
                   isConflicted={dayInfo.conflicted}
-                  isInProgress={dayInfo.inProgress}
                   onClick={() => handleClick(dayInfo.date)}
                 >
                   {dayInfo.dayName}

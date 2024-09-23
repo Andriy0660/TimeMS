@@ -23,6 +23,5 @@ public class TimeLogHoursForMonthResponse {
     private String title;
     private boolean isSynced;
     private boolean isConflicted;
-    private boolean isInProgress;
   }
 }

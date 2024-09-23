@@ -250,7 +250,6 @@ public class TimeLogServiceImpl implements TimeLogService {
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
           .date(currentDay)
           .isConflicted(hasConflictsForDay(entitiesForDay))
-          .isInProgress(hasInProgressTimeLogs(entitiesForDay))
           .ticketDurations(getTicketDurationsForDay(entitiesForDay, tickets))
           .build());
 
@@ -267,16 +266,6 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
     return false;
   }
-
-  public boolean hasInProgressTimeLogs(List<TimeLogEntity> entitiesForDay) {
-    for (TimeLogEntity entity : entitiesForDay) {
-      if (entity.getStartTime() != null && entity.getEndTime() == null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
 
   private Set<String> getTicketsForWeek(final List<TimeLogEntity> entities) {
     final Set<String> tickets = entities.stream()
@@ -334,7 +323,6 @@ public class TimeLogServiceImpl implements TimeLogService {
           .start(LocalDateTime.of(currentDay, LocalTime.MIN))
           .title(formatDuration(durationForDay))
           .isConflicted(hasConflictsForDay(entitiesForDay))
-          .isInProgress(hasInProgressTimeLogs(entitiesForDay))
           .build());
 
       currentDay = currentDay.plusDays(1);
