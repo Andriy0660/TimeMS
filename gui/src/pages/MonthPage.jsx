@@ -12,13 +12,18 @@ import {startHourOfDay} from "../config/timeConfig.js";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import StatusIcon from "../components/StatusIcon.jsx";
-import {CircularProgress} from "@mui/material";
+import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
+import TimeLogList from "../components/TimeLogList.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
   const [calendarApi, setCalendarApi] = useState(null);
-
-  const {date, setDate, addAlert} = useAppContext();
+  const [isCalendarView, setIsCalendarView] = useState(true);
+  const {
+    date, setDate, addAlert, mode, groupByDescription, setGroupByDescription,
+    timeLogs, create, divide, update, createWorklogFromTimeLog, deleteTimeLog,
+    setGroupDescription, changeDate, syncWorklogsForIssue
+  } = useAppContext();
   const {changeView} = useViewChanger();
 
   const {data, isPending} = useQuery({
@@ -99,31 +104,71 @@ export default function MonthPage() {
   return (
     <div className="mt-6 w-2/3 mx-auto">
       <div className="flex items-center">
-        <div className="w-1/3 font-medium">
+        <div className="font-medium mr-10">
           Month: {data.totalHours}
         </div>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={isCalendarView}
+              onChange={(event) => setIsCalendarView((event.target.checked))}
+            />
+          }
+          label="List"
+          labelPlacement="start"
+          className="mr-0.5"
+        />
+        <div>
+          Calendar
+        </div>
+        {!isCalendarView && <FormControlLabel
+          control={
+            <Switch
+              checked={groupByDescription}
+              onChange={(event) => setGroupByDescription((event.target.checked))}
+            />
+          }
+          label="Group"
+          labelPlacement="start"
+          className="ml-10"
+        />
+        }
       </div>
-      <FullCalendar
-        initialDate={new Date(date)}
-        events={data.items?.map(item => {
-          item.extendedProps = {duration: item.duration}
-          return item;
-        })}
-        ref={handleCalendarRef}
-        plugins={[dayGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        fixedWeekCount={false}
-        firstDay={1}
-        headerToolbar={null}
-        aspectRatio={1.75}
-        dayCellClassNames={getDayCellClassNames}
-        dayCellDidMount={({el, date}) => {
-          el.addEventListener("click", () => handleClickDate(date));
-        }}
-        dayCellContent={getCellContent}
-        eventContent={getEventContent}
-        eventClassNames={() => ["bg-transparent"]}
-      />
+      {isCalendarView &&
+        <FullCalendar
+          initialDate={new Date(date)}
+          events={data.items?.map(item => {
+            item.extendedProps = {duration: item.duration}
+            return item;
+          })}
+          ref={handleCalendarRef}
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          fixedWeekCount={false}
+          firstDay={1}
+          headerToolbar={null}
+          aspectRatio={1.75}
+          dayCellClassNames={getDayCellClassNames}
+          dayCellDidMount={({el, date}) => {
+            el.addEventListener("click", () => handleClickDate(date));
+          }}
+          dayCellContent={getCellContent}
+          eventContent={getEventContent}
+          eventClassNames={() => ["bg-transparent"]}
+        />
+      }
+      {!isCalendarView && <TimeLogList
+        timeLogs={timeLogs}
+        mode={mode}
+        onCreate={create}
+        onDivide={divide}
+        onUpdate={update}
+        onWorklogCreate={createWorklogFromTimeLog}
+        onDelete={deleteTimeLog}
+        setGroupDescription={setGroupDescription}
+        changeDate={changeDate}
+        onSync={syncWorklogsForIssue}
+      />}
     </div>
   );
 }

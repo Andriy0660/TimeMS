@@ -47,7 +47,7 @@ export default function NavBar() {
     <Box sx={{width: 250}} onClick={toggleMenu(false)}>
       <List>
         <ListItem disablePadding>
-          <Link to="/app/timelog" className="text-inherit no-underline w-full">
+          <Link to="/app/timelog" onClick={() => changeView("Day")} className="text-inherit no-underline w-full">
             <ListItemButton>
               <ListItemText primary="TimeLog" />
             </ListItemButton>

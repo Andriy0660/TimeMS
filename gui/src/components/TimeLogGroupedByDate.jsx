@@ -23,7 +23,7 @@ export default function TimeLogGroupedByDate({
             timeLog={timeLog}
             {...rest}
             setGroupDescription={setGroupDescription}
-            hovered={hoveredTimeLogIds.includes(timeLog.id)}
+            hovered={hoveredTimeLogIds?.includes(timeLog.id)}
           />
           <Divider />
         </div>

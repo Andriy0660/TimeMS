@@ -27,7 +27,7 @@ export default function TimeLogGroupedByDescription({
             {...rest}
             groupByDescription={true}
             setGroupDescription={setGroupDescription}
-            hovered={hoveredTimeLogIds.includes(timeLog.id)} />
+            hovered={hoveredTimeLogIds?.includes(timeLog.id)} />
         </div>
       ))}
       <div className="flex items-center mb-1">
