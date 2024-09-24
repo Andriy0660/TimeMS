@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.timecraft.domain.logsync.service.LogSyncService;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -33,15 +36,21 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/time-logs")
 public class TimeLogController {
   private final TimeLogService timeLogService;
+  private final LogSyncService logSyncService;
 
   @GetMapping
   public TimeLogListResponse list(@RequestParam final String mode, @RequestParam final LocalDate date) {
-    return timeLogService.list(mode, date);
+    return logSyncService.processTimeLogDtos(timeLogService.list(mode, date));
   }
 
   @PostMapping
   public TimeLogCreateResponse create(@RequestBody final TimeLogCreateRequest request) {
     return timeLogService.create(request);
+  }
+
+  @PostMapping("/fromWorklog")
+  public TimeLogCreateFormWorklogResponse createFromWorklog(@RequestBody final TimeLogCreateFromWorklogRequest request) {
+    return timeLogService.createFromWorklog(request);
   }
 
   @PostMapping("/importTimeLogs")
@@ -66,12 +75,12 @@ public class TimeLogController {
 
   @GetMapping("/hoursForWeek")
   public TimeLogHoursForWeekResponse getHoursForWeek(@RequestParam final LocalDate date) {
-    return timeLogService.getHoursForWeek(date);
+    return logSyncService.processWeekDayInfos(timeLogService.getHoursForWeek(date));
   }
 
   @GetMapping("/hoursForMonth")
   public TimeLogHoursForMonthResponse getHoursForMonth(@RequestParam final LocalDate date) {
-    return timeLogService.getHoursForMonth(date);
+    return logSyncService.processMonthDayInfos(timeLogService.getHoursForMonth(date));
   }
 
   @PutMapping("/{timeLogId}")

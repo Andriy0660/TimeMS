@@ -18,7 +18,16 @@ spring:
     change-log: db/changelog/main-changelog.yaml
 
 app:
+  time-config:
+    offset: 3
+    startHourOfWorkingDay: 7
+    endHourOfWorkingDay: 17
   cors:
     allowed-origins:
       - http://localhost:*
       - http://127.0.0.1:*
+  jira:
+    url: https://craftcodelab.atlassian.net
+    email: andrii@craftcodelab.com
+    token: ATATT3xFfGF0sMt4mhbcVyi_9h-YSNKI1R6VqCT43Ramds_f2o_huMXHWcBHxLe2JNmh1vhpbvi8GiSCypHVws1mZLEO7A72K4SDidQkOnDF7wSZlxKa3IVazt3u-ilB01bBdTrQzCd5X72pUp-vmnBbd07PHim2ywBLOz3WsnxuM6texmAdDiM=D4E04AFB
+

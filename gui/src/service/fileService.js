@@ -64,20 +64,13 @@ const fileService = {
 
 }
 
-const igorRegex = /[+-] {2}(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*) \(.*\) - \[(.+)\] (.*)/;
-const andriiRegex = /(\d{1,2}(?:\.\d{1,2})?) -\s?(?:(\d{1,2}(?:\.\d{1,2})?)\(.*\) - (.*)\s*)?$/;
+const igorRegex = /[+-] {2}(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*) \(.*\) - \[(.+)\]\s?(.*)/;
 const parsers = [
   {
     isValid: isValidIgorFormat,
     parse: parseIgorFormat,
     getDate: getIgorDate,
     regex: igorRegex
-  },
-  {
-    isValid: isValidAndriiFormat,
-    parse: parseAndriiFormat,
-    getDate: getAndriiDate,
-    regex: andriiRegex
   }
 ];
 
@@ -108,46 +101,6 @@ function getIgorDate(line) {
   const dateMatch = line.match(datePattern);
   if (dateMatch) {
     const date = dayjs(dateMatch[0], "ddd DD.MM.YYYY");
-    return date.isValid() ? date : null;
-  }
-
-  return null;
-}
-
-function parseAndriiFormat(currentDate, match) {
-  const startTime = parseAndriiTime(match[1]);
-  const endTime = parseAndriiTime(match[2]);
-  const description = match[3] || null;
-  let date = currentDate;
-  if (dateTimeService.isNextDay(startTime)) {
-    date = date.add(1, "day");
-  }
-  return {
-    date: dateTimeService.getFormattedDate(date),
-    startTime: dateTimeService.getFormattedTime(startTime),
-    endTime: dateTimeService.getFormattedTime(endTime),
-    description
-  }
-}
-
-function parseAndriiTime(timeString) {
-  if (!timeString) return null;
-  if (!timeString.includes(".")) {
-    timeString += ".00";
-  }
-  return dayjs(timeString, "H:m");
-}
-
-function isValidAndriiFormat(line) {
-  return andriiRegex.test(line);
-}
-
-function getAndriiDate(line) {
-  const datePattern = /-{14}\d{2}\.\d{2}\.\d{4}/;
-
-  const dateMatch = line.match(datePattern);
-  if (dateMatch) {
-    const date = dayjs(line.substring(14, 24), "DD.MM.YYYY");
     return date.isValid() ? date : null;
   }
 

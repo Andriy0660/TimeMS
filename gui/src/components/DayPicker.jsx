@@ -4,14 +4,14 @@ import Button from "@mui/material/Button";
 import {MobileDatePicker} from "@mui/x-date-pickers";
 import useAppContext from "../context/useAppContext.js";
 
-export default function DayPicker({isOnNavBar, isLoading}) {
+export default function DayPicker({buttonColor, isActive}) {
   const {date, setDate} = useAppContext()
   return (
     <div className="flex items-center justify-center ">
       <Button
-        className={`${isOnNavBar ? "text-white" : ""}`}
+        className={`text-${buttonColor}`}
         onClick={() => setDate(date.subtract(1, "day"))}
-        disabled={isLoading}
+        disabled={isActive}
       >
         <ArrowBackIosIcon />
       </Button>
@@ -23,9 +23,9 @@ export default function DayPicker({isOnNavBar, isLoading}) {
         onChange={(newValue) => setDate(newValue)}
       />
       <Button
-        className={`${isOnNavBar ? "text-white" : ""}`}
+        className={`text-${buttonColor}`}
         onClick={() => setDate(date.add(1, "day"))}
-        disabled={isLoading}
+        disabled={isActive}
       >
         <ArrowForwardIosIcon />
       </Button>

@@ -18,10 +18,13 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -35,6 +38,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
+import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import lombok.RequiredArgsConstructor;
 
 import static com.example.timecraft.domain.timelog.service.DurationService.formatDuration;
@@ -46,43 +50,35 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final TimeLogRepository repository;
   private final TimeLogMapper mapper;
   private final Clock clock;
-  private final int offset = 3;
-  private final int startHourOfWorkingDay = 7;
-  private final int endHourOfWorkingDay = 17;
+  private final AppProperties props;
 
   @Override
   public TimeLogListResponse list(final String mode, final LocalDate date) {
+    final int offset = props.getTimeConfig().getOffset();
     if(offset < 0 || offset > 23) {
       throw new BadRequestException("Offset must be between 0 and 23");
     }
     final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date, offset);
+
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
-        .map(mapper::toListItem)
-        .peek(timeLogDto -> timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime())))
+        .map(timeLogEntity -> {
+          TimeLogListResponse.TimeLogDto timeLogDto = mapper.toListItem(timeLogEntity);
+          timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime()));
+          return timeLogDto;
+        })
         .toList();
     return new TimeLogListResponse(timeLogDtoList);
   }
 
-  private List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
+  @Override
+  public List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
     final LocalTime startTime = LocalTime.of(offset, 0);
-    switch (mode) {
-      case "Day" -> {
-        return repository.findAllInRange(date, date.plusDays(1), startTime);
-      }
-      case "Week" -> {
-        LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        return repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startTime);
-      }
-      case "Month" -> {
-        LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
-        return repository.findAllInRange(startOfMonth, endOfMonth.plusDays(1), startTime);
-      }
-      case "All" -> {
-        return repository.findAll();
-      }
-      default -> throw new BadRequestException("Invalid time mode");
+    final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
+
+    if ("All".equals(mode)) {
+      return repository.findAll();
+    } else {
+      return repository.findAllInRange(dateRange[0], dateRange[1], startTime);
     }
   }
 
@@ -118,6 +114,14 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   @Override
+  public TimeLogCreateFormWorklogResponse createFromWorklog(final TimeLogCreateFromWorklogRequest request) {
+    TimeLogEntity entity = mapper.fromCreateFromWorklogRequest(request);
+    entity.setEndTime(request.getStartTime().plusSeconds(request.getTimeSpentSeconds()));
+    entity = repository.save(entity);
+    return mapper.toCreateFromWorklogResponse(entity);
+  }
+
+  @Override
   public void importTimeLogs(final TimeLogImportRequest request) {
     List<TimeLogImportRequest.TimeLogDateGroup> timeLogDateGroups = request.getDateGroups();
     for(TimeLogImportRequest.TimeLogDateGroup timeLogDateGroup : timeLogDateGroups) {
@@ -136,6 +140,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public void divide(final long timeLogId) {
+    final int offset = props.getTimeConfig().getOffset();
     LocalTime startOfDay = LocalTime.of(offset, 0);
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
     TimeLogEntity secondEntity = TimeLogEntity.builder()
@@ -211,11 +216,17 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogConfigResponse getConfig() {
-    return new TimeLogConfigResponse(offset, startHourOfWorkingDay, endHourOfWorkingDay);
+    return new TimeLogConfigResponse(
+        props.getTimeConfig().getOffset(),
+        props.getTimeConfig().getStartHourOfWorkingDay(),
+        props.getTimeConfig().getEndHourOfWorkingDay()
+    );
   }
 
   @Override
   public TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date) {
+    final int offset = props.getTimeConfig().getOffset();
+
     LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
@@ -227,6 +238,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   private List<TimeLogHoursForWeekResponse.DayInfo> getDayInfoList(final List<TimeLogEntity> entities, final LocalDate startOfWeek,
                                                                    final LocalDate endOfWeek) {
+    final int offset = props.getTimeConfig().getOffset();
     final Set<String> tickets = getTicketsForWeek(entities);
 
     final List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
@@ -238,7 +250,6 @@ public class TimeLogServiceImpl implements TimeLogService {
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
           .date(currentDay)
           .isConflicted(hasConflictsForDay(entitiesForDay))
-          .isInProgress(hasInProgressTimeLogs(entitiesForDay))
           .ticketDurations(getTicketDurationsForDay(entitiesForDay, tickets))
           .build());
 
@@ -256,22 +267,13 @@ public class TimeLogServiceImpl implements TimeLogService {
     return false;
   }
 
-  public boolean hasInProgressTimeLogs(List<TimeLogEntity> entitiesForDay) {
-    for (TimeLogEntity entity : entitiesForDay) {
-      if (entity.getStartTime() != null && entity.getEndTime() == null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
   private Set<String> getTicketsForWeek(final List<TimeLogEntity> entities) {
     final Set<String> tickets = entities.stream()
         .map(TimeLogEntity::getTicket)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
-    tickets.add("Without Ticket");
+    if (entities.stream().anyMatch(timeLogEntity -> timeLogEntity.getTicket() == null))
+      tickets.add("Without Ticket");
     return tickets;
   }
 
@@ -304,6 +306,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date) {
+    final int offset = props.getTimeConfig().getOffset();
     final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
     final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
 
@@ -317,10 +320,9 @@ public class TimeLogServiceImpl implements TimeLogService {
       totalDuration = totalDuration.plus(durationForDay);
 
       dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
-          .start(LocalDateTime.of(currentDay, LocalTime.MIN))
-          .title(formatDuration(durationForDay))
+          .date(currentDay)
+          .duration(formatDuration(durationForDay))
           .isConflicted(hasConflictsForDay(entitiesForDay))
-          .isInProgress(hasInProgressTimeLogs(entitiesForDay))
           .build());
 
       currentDay = currentDay.plusDays(1);

@@ -7,8 +7,10 @@ export default function TimeLogList({
   onDivide,
   onUpdate,
   onDelete,
+  onWorklogCreate,
   setGroupDescription,
   changeDate,
+  onSync,
   hoveredTimeLogIds
 }) {
   const renderedTimeLogs = timeLogRenderingService.render({
@@ -18,8 +20,10 @@ export default function TimeLogList({
     onDivide,
     onUpdate,
     onDelete,
+    onWorklogCreate,
     setGroupDescription,
     changeDate,
+    onSync,
     hoveredTimeLogIds
   })
   return (

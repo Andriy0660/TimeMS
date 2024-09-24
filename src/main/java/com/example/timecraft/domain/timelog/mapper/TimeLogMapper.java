@@ -3,6 +3,8 @@ package com.example.timecraft.domain.timelog.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
@@ -27,5 +29,7 @@ public interface TimeLogMapper {
 
   TimeLogUpdateResponse toUpdateResponse(TimeLogEntity entity);
 
+  TimeLogEntity fromCreateFromWorklogRequest(final TimeLogCreateFromWorklogRequest request);
 
+  TimeLogCreateFormWorklogResponse toCreateFromWorklogResponse(final TimeLogEntity entity);
 }

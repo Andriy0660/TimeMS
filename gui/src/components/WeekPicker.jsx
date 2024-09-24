@@ -62,7 +62,7 @@ function Day({day, selectedDay, hoveredDay, ...other}) {
   );
 }
 
-export default function WeekPicker({isOnNavBar, isLoading}) {
+export default function WeekPicker({buttonColor, isActive}) {
   const {date, setDate} = useAppContext()
   const [hoveredDay, setHoveredDay] = React.useState(null);
 
@@ -74,9 +74,9 @@ export default function WeekPicker({isOnNavBar, isLoading}) {
   return (
     <div className={`flex items-center justify-center`}>
       <Button
-        className={`${isOnNavBar ? "text-white" : ""}`}
+        className={`text-${buttonColor}`}
         onClick={() => setDate(date.subtract(1, "week"))}
-        disabled={isLoading}
+        disabled={isActive}
       >
         <ArrowBackIosIcon />
       </Button>
@@ -102,9 +102,9 @@ export default function WeekPicker({isOnNavBar, isLoading}) {
         }}
       />
       <Button
-        className={`${isOnNavBar ? "text-white" : ""}`}
+        className={`text-${buttonColor}`}
         onClick={() => setDate(date.add(1, "week"))}
-        disabled={isLoading}
+        disabled={isActive}
       >
         <ArrowForwardIosIcon />
       </Button>

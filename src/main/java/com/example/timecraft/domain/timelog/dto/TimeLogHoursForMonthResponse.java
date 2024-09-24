@@ -1,6 +1,6 @@
 package com.example.timecraft.domain.timelog.dto;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -19,9 +19,9 @@ public class TimeLogHoursForMonthResponse {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class DayInfo {
-    private LocalDateTime start;
-    private String title;
+    private LocalDate date;
+    private String duration;
+    private boolean isSynced;
     private boolean isConflicted;
-    private boolean isInProgress;
   }
 }

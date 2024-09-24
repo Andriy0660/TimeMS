@@ -1,15 +1,20 @@
 package com.example.timecraft.core.config;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import java.time.Clock;
 
-@Configuration
-public class ClockConfig {
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
+@Configuration
+public class AppConfig {
   @Bean
   public Clock clock() {
     return Clock.systemDefaultZone();
+  }
+
+  @Bean
+  public RestTemplate restTemplate() {
+    return new RestTemplate();
   }
 }

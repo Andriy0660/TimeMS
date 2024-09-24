@@ -1,3 +1,4 @@
+import "../styles/MonthPage.css"
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from "@fullcalendar/interaction"
@@ -10,6 +11,8 @@ import timeLogApi from "../api/timeLogApi.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
+import StatusIcon from "../components/StatusIcon.jsx";
+import {CircularProgress} from "@mui/material";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -18,7 +21,7 @@ export default function MonthPage() {
   const {date, setDate, addAlert} = useAppContext();
   const {changeView} = useViewChanger();
 
-  const {data} = useQuery({
+  const {data, isPending} = useQuery({
     queryKey: [timeLogApi.key, "month", date, offset],
     queryFn: () => timeLogApi.getHoursForMonth({date: dateTimeService.getFormattedDate(date), offset}),
     onError: async (error) => {
@@ -28,7 +31,6 @@ export default function MonthPage() {
       });
       console.error("Getting hours for month failed:", error);
     },
-    initialData: () => [],
     retryDelay: 300,
   });
 
@@ -51,23 +53,47 @@ export default function MonthPage() {
     changeView("Day")
   };
 
-  const getEventContent = (eventInfo) => {
-    const {start, title} = eventInfo.event;
-    const {conflicted, inProgress} = eventInfo.event.extendedProps;
-    return <MonthPageDuration isConflicted={conflicted} isInProgress={inProgress} title={title} handleClickDate={() => handleClickDate(start)} />
-  }
-
-  const getEventClassNames = (eventInfo) => {
-    const {conflicted, inProgress} = eventInfo.event.extendedProps;
-
-    if (conflicted) {
-      return ["bg-red-200 hover:bg-transparent"];
-    } else if (inProgress) {
-      return ["bg-blue-200 hover:bg-transparent"];
+  const getDayCellClassNames = ({dow: dayOfWeek, date}) => {
+    const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(date), "day"));
+    const {synced, conflicted} = dayInfo || {};
+    if (synced || conflicted) {
+      return ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
+    } else if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"];
     } else {
-      return ["bg-transparent"];
+      return ["bg-transparent hover:bg-blue-100 hover:cursor-pointer"];
     }
   }
+
+  const getCellContent = ({dayNumberText, date}) => {
+    const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(date), "day"));
+    return (
+      <div className="flex justify-between p-1">
+        {dayInfo &&
+          <div>
+            <StatusIcon isSynced={dayInfo.synced} isConflicted={dayInfo.conflicted} />
+          </div>
+        }
+        <div>
+          {dayNumberText}
+        </div>
+      </div>
+    );
+  }
+
+  const getEventContent = (eventInfo) => {
+    const {duration} = eventInfo.event.extendedProps;
+    return <MonthPageDuration duration={duration} />
+  }
+
+  if(isPending) {
+    return (
+      <div className="absolute inset-1/2">
+        <CircularProgress />
+      </div>
+    );
+  }
+
   return (
     <div className="mt-6 w-2/3 mx-auto">
       <div className="flex items-center">
@@ -77,7 +103,10 @@ export default function MonthPage() {
       </div>
       <FullCalendar
         initialDate={new Date(date)}
-        events={data.items}
+        events={data.items?.map(item => {
+          item.extendedProps = {duration: item.duration}
+          return item;
+        })}
         ref={handleCalendarRef}
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -85,15 +114,13 @@ export default function MonthPage() {
         firstDay={1}
         headerToolbar={null}
         aspectRatio={1.75}
-        dayCellClassNames={({dow: dayOfWeek}) => {
-          if (dayOfWeek === 0 || dayOfWeek === 6) {
-            return ["bg-red-50"];
-          } else {
-            return ["bg-white hover:bg-blue"];
-          }
+        dayCellClassNames={getDayCellClassNames}
+        dayCellDidMount={({el, date}) => {
+          el.addEventListener("click", () => handleClickDate(date));
         }}
+        dayCellContent={getCellContent}
         eventContent={getEventContent}
-        eventClassNames={getEventClassNames}
+        eventClassNames={() => ["bg-transparent"]}
       />
     </div>
   );

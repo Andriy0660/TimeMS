@@ -1,14 +1,4 @@
-import {
-  Chip,
-  Icon,
-  IconButton,
-  LinearProgress,
-  Menu,
-  MenuItem,
-  TextField,
-  Tooltip,
-  Typography
-} from "@mui/material";
+import {Icon, IconButton, LinearProgress, Menu, MenuItem, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useMemo, useRef, useState} from "react";
@@ -31,6 +21,12 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Description from "./Description.jsx";
 import {deepOrange} from "@mui/material/colors";
+import DoneIcon from '@mui/icons-material/Done';
+import CloseIcon from '@mui/icons-material/Close';
+import SyncIcon from '@mui/icons-material/Sync';
+import Duration from "./Duration.jsx";
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import VerticalDivider from "./VerticalDivider.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -39,9 +35,11 @@ export default function TimeLog({
   onUpdate,
   onDelete,
   groupByDescription,
+  onWorklogCreate,
   changeDate,
   hovered,
-  setGroupDescription
+  setGroupDescription,
+  onSync
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -120,8 +118,14 @@ export default function TimeLog({
   const {execute: handleDeleteTimeLog, isExecuting: isDeleteLoading} = useAsyncCall({
     fn: onDelete,
   })
+  const {execute: handleCreateWorklog, isExecuting: isCreatingWorklogLoading} = useAsyncCall({
+    fn: onWorklogCreate,
+  })
   const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
     fn: changeDate
+  })
+  const {execute: handleSync, isExecuting: isSyncing} = useAsyncCall({
+    fn: onSync
   })
 
   useEffect(() => {
@@ -239,7 +243,7 @@ export default function TimeLog({
           }}
         >
           {startTime && isTimeLogInNextDay.startTime &&
-            <Tooltip className="flex items-center mr-1" title="next day">
+            <Tooltip className="flex items-center mr-1" title="Next day">
               <Icon fontSize="small">
                 <TiArrowForward />
               </Icon>
@@ -261,7 +265,7 @@ export default function TimeLog({
             }}
           >
             {endTime && isTimeLogInNextDay.endTime > 0 &&
-              <Tooltip className="flex items-center" title="next day">
+              <Tooltip className="flex items-center" title="Next day">
                 <Icon fontSize="small">
                   <TiArrowForward/>
                 </Icon>
@@ -275,7 +279,8 @@ export default function TimeLog({
       {ticket && (
         <>
           {(startTime || endTime) &&
-            <Divider className="bg-gray-500 my-0.5 mr-4" orientation="vertical" variant="middle" sx={{borderRightWidth: 2}} flexItem />}
+            <VerticalDivider />
+          }
           <div
             className="mr-4 hover:bg-blue-100"
             onClick={() => {
@@ -294,7 +299,7 @@ export default function TimeLog({
   const getDateChanger = () => {
     return (
       <div className="mr-2">
-        <Tooltip title="move to previous day">
+        <Tooltip title="Move to previous day">
           <Button
             className="py-0 pl-1.5 pr-0 min-w-0"
             size="small"
@@ -306,7 +311,7 @@ export default function TimeLog({
             <ArrowBackIosIcon fontSize="small" />
           </Button>
         </Tooltip>
-        <Tooltip title="move to next day">
+        <Tooltip title="Move to next day">
           <Button
             className="py-0 pl-1.5 pr-0 min-w-0"
             size="small"
@@ -328,7 +333,7 @@ export default function TimeLog({
     Done: {
       label: totalTime,
       action: (isHovered || isEditing) && (
-        <Tooltip title="continue">
+        <Tooltip title="Continue">
           <IconButton
             onClick={() => handleCreateTimeLog(
               {ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description})}
@@ -345,7 +350,7 @@ export default function TimeLog({
       label: progressTime,
       action: ((isHovered || isEditing) && progressTime)
       && (
-        <Tooltip title="stop">
+        <Tooltip title="Stop">
           <IconButton
             onClick={() => {
               handleUpdateTimeLog({
@@ -367,7 +372,7 @@ export default function TimeLog({
     Pending: {
       label: 'Pending',
       action: ((isHovered || isEditing) && dateTimeService.isSameDate(dayjs(timeLog.date), currentTime)) && (
-        <Tooltip title="start">
+        <Tooltip title="Start">
           <IconButton
             onClick={() => {
               handleUpdateTimeLog({
@@ -397,24 +402,33 @@ export default function TimeLog({
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
 
-          {statusConfig[status].label ? <Chip
-            label={statusConfig[status].label}
-            color="primary"
-            variant="outlined"
-            size="small"
-            className="shadow-md mr-2"
-          /> : null}
+          {statusConfig[status].label ? <Duration duration={statusConfig[status].label} /> : null}
+
+          {timeLog.synced && timeLog.startTime && timeLog.endTime
+            ? (
+              <Tooltip title="Synchronized">
+                <DoneIcon color="success" />
+              </Tooltip>
+            )
+            : (
+              <Tooltip title="Not synchronized">
+                <CloseIcon color="error" />
+              </Tooltip>
+            )
+          }
+
           {timeLog.isConflicted && (
-            <Tooltip title="conflicted">
+            <Tooltip title="Conflicted">
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
           )}
+
           {timeLog.endTime?.isAfter(isTimeLogInNextDay.startTime
               ? dateTimeService.getStartOfDay(timeLog.startTime)
               : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day"))) &&
             <div>
               <Button onClick={(event) => setMenuEl(event.currentTarget)}>
-                <Tooltip title="timelog continues tomorrow">
+                <Tooltip title="Timelog continues tomorrow">
                   <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
                 </Tooltip>
               </Button>
@@ -435,8 +449,8 @@ export default function TimeLog({
           <div className="flex ">
             {(isEditing) && (
               <div>
-                <Tooltip onClick={() => resetChanges()} title="Reset">
-                  <IconButton className="mr-1">
+                <Tooltip title="Reset">
+                  <IconButton onClick={() => resetChanges()} className="mr-1">
                     <BackspaceOutlinedIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
@@ -506,12 +520,40 @@ export default function TimeLog({
                 </IconButton>
               </Tooltip>
             )}
+            {(isHovered && !isEditing && timeLog.ticket) && (
+              <Tooltip title="Synchronize">
+                <IconButton
+                  className="mr-2 p-0"
+                  color="primary"
+                  onClick={() => handleSync(timeLog.ticket)}
+                >
+                  <SyncIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {(isHovered && !isEditing && timeLog.ticket && timeLog.startTime && timeLog.endTime && !timeLog.synced) && (
+              <Tooltip title="Save to worklogs">
+                <IconButton
+                  className="mr-2 p-0"
+                  color="primary"
+                  onClick={() => handleCreateWorklog({
+                    ticket: timeLog.ticket,
+                    date: dateTimeService.getFormattedDate(timeLog.date),
+                    startTime: dateTimeService.getFormattedDateTime(timeLog.startTime),
+                    endTime: dateTimeService.getFormattedDateTime(timeLog.endTime),
+                    description: timeLog.description
+                  })}
+                >
+                  <KeyboardDoubleArrowRightIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
           </div>
         </div>
       </div>
 
       {!groupByDescription && <Description className="mb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription}/>}
-      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading) && <LinearProgress />}
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading) && <LinearProgress />}
     </div>
   );
 }

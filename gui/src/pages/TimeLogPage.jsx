@@ -17,6 +17,8 @@ import ClearIcon from '@mui/icons-material/Clear';
 import fileService from "../service/fileService.js";
 import Button from "@mui/material/Button";
 import ImportButton from "../components/ImportButton.jsx";
+import worklogApi from "../api/worklogApi.js";
+import WorklogList from "../components/WorklogList.jsx";
 
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
@@ -57,7 +59,7 @@ export default function TimeLogPage() {
   } = useQuery({
     queryKey: [timeLogApi.key, mode, date, offset],
     queryFn: () => {
-      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date), offset});
+      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
     },
     placeholderData: (prev) => prev,
     retryDelay: 300,
@@ -121,6 +123,24 @@ export default function TimeLogPage() {
         type: "error"
       })
       console.error("Creating time log failed:", error);
+    }
+  });
+
+  const {mutateAsync: createWorklogFromTimeLog} = useMutation({
+    mutationFn: (body) => worklogApi.create(body),
+    onSuccess: async (body) => {
+      queryClient.invalidateQueries(worklogApi.key);
+      addAlert({
+        text: "Worklog is successfully created",
+        type: "success"
+      });
+    },
+    onError: async (error, body) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      })
+      console.error("Creating worklog failed:", error);
     }
   });
 
@@ -232,6 +252,57 @@ export default function TimeLogPage() {
     }
   });
 
+  const {mutateAsync: syncWorklogs, isPending: isSyncing} = useMutation({
+    mutationFn: (body) => worklogApi.syncWorklogs(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(timeLogApi.key);
+      addAlert({
+        text: "You have successfully synchronized worklogs",
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      queryClient.setQueryData([worklogApi.key, "progress"], {progress: 0});
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("synchronizing worklogs failed:", error);
+    }
+  });
+
+  const {mutateAsync: syncWorklogsForIssue} = useMutation({
+    mutationFn: (issueKey) => worklogApi.syncWorklogsForIssue(issueKey),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries(timeLogApi.key);
+      addAlert({
+        text: `You have successfully synchronized worklogs for issue ${variables}`,
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("synchronizing worklogs for issue failed:", error);
+    }
+  });
+
+  const {
+    data: progressInfo,
+  } = useQuery({
+    queryKey: [worklogApi.key, "progress"],
+    queryFn: () => worklogApi.getProgress(),
+    initialData: () => 0,
+    refetchInterval: (data) => isSyncing || data.state.data.progress > 0 ? 300 : false,
+    refetchOnWindowFocus: false,
+    retryDelay: 300
+  });
+
+  const progress = progressInfo.progress;
+  const isSyncingRunning = isSyncing || progress > 0;
+
   const saveFile = async () => {
     const formattedText = fileService.convertToTxt(processedDataRef.current);
     const blob = new Blob([formattedText], {type: "text/plain"});
@@ -262,10 +333,8 @@ export default function TimeLogPage() {
   }
 
   const modeDatePickerConfig = {
-    Week: <WeekPicker
-      isLoading={isPlaceholderData}/>,
-    Month: <MonthPicker
-      isLoading={isPlaceholderData}/>,
+    Week: <WeekPicker buttonColor="blue" isActive={isPlaceholderData}/>,
+    Month: <MonthPicker buttonColor="blue" isActive={isPlaceholderData}/>,
     All: null,
   };
 
@@ -333,8 +402,19 @@ export default function TimeLogPage() {
         </div>
         <div className="flex justify-between items-center">
           <TotalTimeLabel label={totalTimeLabel} />
-          <div className="mt-8">
-            <ImportButton className="mr-4" onImport={importTimeLogs}/>
+          <div className="flex items-center mt-8">
+            <Button className="mr-4" disabled={isSyncing || progressInfo.progress > 0} variant="outlined" onClick={syncWorklogs}>
+              {isSyncingRunning
+                ? (
+                  <>
+                    {progress > 0 ? `${Math.floor(progress)}%` : <CircularProgress size={25} />}
+                    <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
+                  </>
+                )
+                : "synchronize worklogs"}
+            </Button>
+
+            <ImportButton className="mr-4" onImport={importTimeLogs} />
             <Button
               className="mr-4"
               variant="outlined"
@@ -345,6 +425,13 @@ export default function TimeLogPage() {
           </div>
 
         </div>
+        {progress > 0 &&
+          <div className="m-4 flex justify-center">
+            <div className="text-center p-2 h-16 w-full overflow-x-auto shadow-md bg-gray-50">
+              <div className="text-center">{progressInfo.ticketOfCurrentWorklog} {progressInfo.commentOfCurrentWorklog}</div>
+            </div>
+          </div>
+        }
         {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds} />}
 
         <TimeLogList
@@ -353,11 +440,15 @@ export default function TimeLogPage() {
           onCreate={create}
           onDivide={divide}
           onUpdate={update}
+          onWorklogCreate={createWorklogFromTimeLog}
           onDelete={deleteTimeLog}
           setGroupDescription={setGroupDescription}
           changeDate={changeDate}
+          onSync={syncWorklogsForIssue}
           hoveredTimeLogIds={hoveredTimeLogIds}
         />
+        <WorklogList mode={mode} date={date} selectedTickets={selectedTickets}/>
+
       </div>
     </div>
   )

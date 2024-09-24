@@ -120,7 +120,31 @@
       <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
+
+    <dependency>
+      <groupId>com.atlassian.adf</groupId>
+      <artifactId>adf-builder-java</artifactId>
+      <version>0.48.0</version>
+    </dependency>
+
   </dependencies>
+
+  <!-- Enable Atlassian Maven repository -->
+  <repositories>
+    <repository>
+      <id>atlassian-public</id>
+      <url>https://packages.atlassian.com/mvn/maven-external/</url>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+    </repository>
+  </repositories>
 
   <build>
     <plugins>

@@ -12,7 +12,23 @@ import lombok.Data;
 @Component
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
-  private Cors cors = new Cors();
+  private TimeConfig timeConfig;
+  private Cors cors;
+  private Jira jira;
+
+  @Data
+  public static class TimeConfig {
+    private Integer offset;
+    private Integer startHourOfWorkingDay;
+    private Integer endHourOfWorkingDay;
+  }
+
+  @Data
+  public static class Jira {
+    private String url;
+    private String email;
+    private String token;
+  }
 
   @Data
   public static class Cors {

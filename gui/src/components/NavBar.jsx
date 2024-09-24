@@ -33,9 +33,9 @@ export default function NavBar() {
   const {changeView} = useViewChanger();
 
   const modeDatePickerConfig = {
-    Day: <DayPicker isOnNavBar />,
-    Week: <WeekPicker isOnNavBar />,
-    Month: <MonthPicker isOnNavBar />,
+    Day: <DayPicker buttonColor="white" />,
+    Week: <WeekPicker buttonColor="white" />,
+    Month: <MonthPicker buttonColor="white" />,
     All: null,
   };
 
@@ -96,7 +96,7 @@ export default function NavBar() {
           <MenuItem value="Month">Month</MenuItem>
         </Select>
         {modeDatePickerConfig[view]}
-        <Tooltip title="reset">
+        <Tooltip title="Reset">
           <IconButton
             onClick={() => setDate(dayjs())}
             variant="outlined"
