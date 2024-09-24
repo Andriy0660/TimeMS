@@ -24,6 +24,7 @@ export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
   const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
+  const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);
 
   const queryParams = new URLSearchParams(location.search);
   const {date, setDate, addAlert} = useAppContext();
@@ -450,6 +451,8 @@ export default function TimeLogPage() {
           onSync={syncWorklogsForIssue}
           hoveredTimeLogIds={hoveredTimeLogIds}
           setHoveredProgressIntervalId={setHoveredProgressIntervalId}
+          hoveredConflictedIds={hoveredConflictedIds}
+          setHoveredConflictedIds={setHoveredConflictedIds}
         />
         <WorklogList mode={mode} date={date} selectedTickets={selectedTickets}/>
 

@@ -40,6 +40,8 @@ export default function TimeLog({
   hovered,
   setGroupDescription,
   setHoveredProgressIntervalId,
+  hoveredConflictedIds,
+  setHoveredConflictedIds,
   onSync
 }) {
   const currentTime = dayjs();
@@ -395,14 +397,17 @@ export default function TimeLog({
 
   return (
     <div
-      className={`px-4  ${status === "InProgress" ? "bg-blue-50" : ""} ${hovered ? "bg-blue-100" : ""}`}
+      className={`px-4  
+      ${status === "InProgress" ? "bg-blue-50" : ""} 
+      ${hovered ? "bg-blue-100" : ""} 
+      ${hoveredConflictedIds.includes(timeLog.id) ? "bg-rose-100" : ""}`}
       onMouseEnter={() => {
         setIsHovered(true);
         setHoveredProgressIntervalId(timeLog.id)
       }}
       onMouseLeave={() => {
         setIsHovered(false);
-        setHoveredProgressIntervalId(0)
+        setHoveredProgressIntervalId(null)
       }}
     >
       <div ref={timeLogRef} className="flex justify-between">
@@ -425,7 +430,17 @@ export default function TimeLog({
           }
 
           {timeLog.isConflicted && (
-            <Tooltip title="Conflicted">
+            <Tooltip
+              title="Conflicted"
+              onMouseEnter={() => {
+                setHoveredConflictedIds(timeLog.conflictedIds);
+                setHoveredProgressIntervalId(null)
+              }}
+              onMouseLeave={() => {
+                setHoveredConflictedIds([]);
+                setHoveredProgressIntervalId(timeLog.id)
+              }}
+            >
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
           )}
