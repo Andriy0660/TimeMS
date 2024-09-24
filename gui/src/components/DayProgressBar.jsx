@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import '../styles/ProgressBar.css';
 import dateTimeService from "../service/dateTimeService.js";
 import minMax from "dayjs/plugin/minMax";
+import classNames from "classnames";
 
 dayjs.extend(minMax);
 
@@ -98,9 +99,6 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIn
   }
 
   function getColor(interval) {
-    if(interval.id.includes(hoveredProgressIntervalId)) {
-      return "rgb(117, 141, 235)";
-    }
     const overlapCount = interval.id.length;
     switch (overlapCount) {
       case 1:
@@ -189,6 +187,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIn
   }
 
   function buildUIPosition(intervals) {
+    intervals.sort((a, b) => a.startTime.diff(b.startTime));
     return intervals.map((interval, index, array) => {
       let adjustedWidth = interval.endTime.diff(interval.startTime, "minute") / minutesInDay * 100;
       let adjustedLeft = interval.startTime.diff(start, "minute") / minutesInDay * 100;
@@ -216,10 +215,17 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIn
 
   return (
     <div className="progress-bar">
-      {intervals.map((interval, index) => (
-        <div
+      {intervals.map((interval, index) => {
+        const isHovered = interval.id?.includes(hoveredProgressIntervalId);
+        const intervalClass = classNames({
+          'progress-interval' : !isHovered,
+          'hovered-progress-interval': isHovered,
+          'thin': interval.thin && !isHovered,
+          'hovered-thin': interval.thin && isHovered,
+        });
+        return <div
           key={index}
-          className={`progress-interval ${interval.thin ? "thin" : ""}`}
+          className={intervalClass}
           style={{
             width: `${interval.width}%`,
             left: `${interval.left}%`,
@@ -228,7 +234,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIn
           onMouseEnter={() => setHoveredTimeLogIds(Array.from(interval.id || []))}
           onMouseLeave={() => setHoveredTimeLogIds([])}
         />
-      ))}
+      })}
     </div>
   );
 };
