@@ -11,7 +11,7 @@ import WeekPicker from "../components/WeekPicker.jsx";
 import {useNavigate} from "react-router-dom";
 import timeLogProcessingService from "../service/timeLogProcessingService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
-import TotalTimeLabel from "../components/TotalTimeLabel.jsx";
+import Label from "../components/Label.jsx";
 import DayProgressBar from "../components/DayProgressBar.jsx";
 import ClearIcon from '@mui/icons-material/Clear';
 import fileService from "../service/fileService.js";
@@ -61,7 +61,7 @@ export default function TimeLogPage() {
     queryFn: () => {
       return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
     },
-    placeholderData: (prev) => prev,
+    // placeholderData: (prev) => prev,
     retryDelay: 300,
   });
   const processedDataRef = useRef([]);
@@ -401,7 +401,8 @@ export default function TimeLogPage() {
 
         </div>
         <div className="flex justify-between items-center">
-          <TotalTimeLabel label={totalTimeLabel} />
+          <Label label={date.format("dddd")}/>
+          <Label label={totalTimeLabel} />
           <div className="flex items-center mt-8">
             <Button className="mr-4" disabled={isSyncing || progressInfo.progress > 0} variant="outlined" onClick={syncWorklogs}>
               {isSyncingRunning

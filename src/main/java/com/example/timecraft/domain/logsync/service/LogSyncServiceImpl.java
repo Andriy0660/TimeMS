@@ -45,14 +45,14 @@ public class LogSyncServiceImpl implements LogSyncService {
     List<TimeLogHoursForWeekResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekResponse(
         dayInfos.stream().peek(dayInfo -> dayInfo.setSynced(
-            getTimeLogsForDay(dayInfo.getDate()).stream().anyMatch(
-                timeLogEntity -> !isSynced(
+            getTimeLogsForDay(dayInfo.getDate()).stream().allMatch(
+                timeLogEntity -> isSynced(
                     TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
                     timeLogEntity.getTicket(),
                     timeLogEntity.getDescription()
                 )
-            ) || getWorklogsForDay(dayInfo.getDate()).stream().anyMatch(
-                worklogEntity -> !isSynced(
+            ) && getWorklogsForDay(dayInfo.getDate()).stream().allMatch(
+                worklogEntity -> isSynced(
                     TimeLogUtils.getProcessedDate(worklogEntity.getDate(), worklogEntity.getStartTime(), offset),
                     worklogEntity.getTicket(),
                     worklogEntity.getComment()
@@ -67,14 +67,14 @@ public class LogSyncServiceImpl implements LogSyncService {
     List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
         dayInfos.stream().peek(dayInfo -> dayInfo.setSynced(
-                getTimeLogsForDay(dayInfo.getDate()).stream().anyMatch(
-                    timeLogEntity -> !isSynced(
+                getTimeLogsForDay(dayInfo.getDate()).stream().allMatch(
+                    timeLogEntity -> isSynced(
                         TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
                         timeLogEntity.getTicket(),
                         timeLogEntity.getDescription()
                     )
-                ) || getWorklogsForDay(dayInfo.getDate()).stream().anyMatch(
-                    worklogEntity -> !isSynced(
+                ) && getWorklogsForDay(dayInfo.getDate()).stream().allMatch(
+                    worklogEntity -> isSynced(
                         TimeLogUtils.getProcessedDate(worklogEntity.getDate(), worklogEntity.getStartTime(), offset),
                         worklogEntity.getTicket(),
                         worklogEntity.getComment()
