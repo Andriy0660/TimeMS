@@ -122,7 +122,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIn
     intervals.sort((a, b) => a.startTime.diff(b.startTime));
     intervals.forEach(interval => {
       if (lastEnd.isBefore(interval.startTime)) {
-        inactiveIntervals.push({...interval, startTime: lastEnd, endTime: interval.startTime, color: "gray"})
+        inactiveIntervals.push({startTime: lastEnd, endTime: interval.startTime, color: "gray"})
       }
       lastEnd = interval.endTime;
     });
@@ -195,7 +195,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIn
 
       const gap = 0.2;
       const prev = array[index - 1];
-      if (JSON.stringify(prev?.id) !== JSON.stringify(interval.id)) {
+      if (!interval.id || JSON.stringify(prev?.id) !== JSON.stringify(interval.id)) {
         adjustedWidth -= gap
         adjustedLeft += gap;
       }
