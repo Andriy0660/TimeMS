@@ -23,6 +23,7 @@ import WorklogList from "../components/WorklogList.jsx";
 export default function TimeLogPage() {
   const [timeLogs, setTimeLogs] = useState([]);
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
+  const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
 
   const queryParams = new URLSearchParams(location.search);
   const {date, setDate, addAlert} = useAppContext();
@@ -433,7 +434,8 @@ export default function TimeLogPage() {
             </div>
           </div>
         }
-        {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds} />}
+        {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
+                                           hoveredProgressIntervalId={hoveredProgressIntervalId}/>}
 
         <TimeLogList
           timeLogs={timeLogs}
@@ -447,6 +449,7 @@ export default function TimeLogPage() {
           changeDate={changeDate}
           onSync={syncWorklogsForIssue}
           hoveredTimeLogIds={hoveredTimeLogIds}
+          setHoveredProgressIntervalId={setHoveredProgressIntervalId}
         />
         <WorklogList mode={mode} date={date} selectedTickets={selectedTickets}/>
 
