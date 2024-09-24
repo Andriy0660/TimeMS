@@ -7,7 +7,7 @@ import {useState} from "react";
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import DoneIcon from "@mui/icons-material/Done.js";
-import CloseIcon from "@mui/icons-material/Close.js";
+import SyncDisabledIcon from '@mui/icons-material/SyncDisabled';
 import {TiArrowForward} from "react-icons/ti";
 import dayjs from "dayjs";
 import VerticalDivider from "./VerticalDivider.jsx";
@@ -73,7 +73,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
             )
             : (
               <Tooltip title="Not synchronized">
-                <CloseIcon color="error" />
+                <SyncDisabledIcon color="error" />
               </Tooltip>
             )
           }

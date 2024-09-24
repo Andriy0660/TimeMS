@@ -22,7 +22,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Description from "./Description.jsx";
 import {deepOrange} from "@mui/material/colors";
 import DoneIcon from '@mui/icons-material/Done';
-import CloseIcon from '@mui/icons-material/Close';
+import SyncDisabledIcon from '@mui/icons-material/SyncDisabled';
 import SyncIcon from '@mui/icons-material/Sync';
 import Duration from "./Duration.jsx";
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
@@ -424,7 +424,7 @@ export default function TimeLog({
             )
             : (
               <Tooltip title="Not synchronized">
-                <CloseIcon color="error" />
+                <SyncDisabledIcon color="error" />
               </Tooltip>
             )
           }
