@@ -10,7 +10,7 @@ export default function TimeLogGroupedByDate({
   mode,
   hoveredTimeLogIds,
   setGroupDescription,
-  ...apiCalls
+  ...rest
 }) {
 
   return (
@@ -21,7 +21,7 @@ export default function TimeLogGroupedByDate({
         <div key={timeLog.id}>
           <TimeLog
             timeLog={timeLog}
-            {...apiCalls}
+            {...rest}
             setGroupDescription={setGroupDescription}
             hovered={hoveredTimeLogIds.includes(timeLog.id)}
           />

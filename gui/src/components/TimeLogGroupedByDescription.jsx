@@ -9,7 +9,7 @@ export default function TimeLogGroupedByDescription({
   logsForDescription,
   setGroupDescription,
   hoveredTimeLogIds,
-  ...apiCalls
+  ...rest
 }) {
   const totalTimeLabel = dateTimeService.formatDuration(dateTimeService.getTotalTimeForTimeLogs(logsForDescription))
 
@@ -24,7 +24,7 @@ export default function TimeLogGroupedByDescription({
         <div key={timeLog.id}>
           <TimeLog
             timeLog={timeLog}
-            {...apiCalls}
+            {...rest}
             groupByDescription={true}
             setGroupDescription={setGroupDescription}
             hovered={hoveredTimeLogIds.includes(timeLog.id)} />
