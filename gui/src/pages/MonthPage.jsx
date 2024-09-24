@@ -14,16 +14,14 @@ import useViewChanger from "../hooks/useViewChanger.js";
 import StatusIcon from "../components/StatusIcon.jsx";
 import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import TimeLogList from "../components/TimeLogList.jsx";
+import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
+import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
   const [calendarApi, setCalendarApi] = useState(null);
   const [isCalendarView, setIsCalendarView] = useState(true);
-  const {
-    date, setDate, addAlert, mode, groupByDescription, setGroupByDescription,
-    timeLogs, create, divide, update, createWorklogFromTimeLog, deleteTimeLog,
-    setGroupDescription, changeDate, syncWorklogsForIssue
-  } = useAppContext();
+  const {date, setDate, addAlert, mode} = useAppContext();
   const {changeView} = useViewChanger();
 
   const {data, isPending} = useQuery({
@@ -38,6 +36,11 @@ export default function MonthPage() {
     },
     retryDelay: 300,
   });
+
+  const timeLogMutations = useTimeLogMutations();
+  const {
+    groupByDescription, setGroupByDescription, timeLogs
+  } = useProcessedTimeLogs();
 
   useEffect(() => {
     if(calendarApi && calendarApi.currentData.currentDate.getMonth() !== date.get("month")) {
@@ -160,14 +163,7 @@ export default function MonthPage() {
       {!isCalendarView && <TimeLogList
         timeLogs={timeLogs}
         mode={mode}
-        onCreate={create}
-        onDivide={divide}
-        onUpdate={update}
-        onWorklogCreate={createWorklogFromTimeLog}
-        onDelete={deleteTimeLog}
-        setGroupDescription={setGroupDescription}
-        changeDate={changeDate}
-        onSync={syncWorklogsForIssue}
+        {...timeLogMutations}
       />}
     </div>
   );

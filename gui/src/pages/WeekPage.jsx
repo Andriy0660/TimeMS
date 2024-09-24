@@ -14,17 +14,15 @@ import CustomTableCell from "../components/CustomTableCell.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import TimeLogList from "../components/TimeLogList.jsx";
 import {useState} from "react";
+import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
+import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
   const {changeView} = useViewChanger();
   const [isTableView, setIsTableView] = useState(true);
-  const {
-    date, setDate, addAlert, mode, groupByDescription, setGroupByDescription,
-    timeLogs, create, divide, update, createWorklogFromTimeLog, deleteTimeLog,
-    setGroupDescription, changeDate, syncWorklogsForIssue
-  } = useAppContext();
+  const {date, setDate, addAlert, mode} = useAppContext();
 
   const {
     data,
@@ -44,6 +42,12 @@ export default function WeekPage() {
     },
     retryDelay: 300,
   });
+
+  const timeLogMutations = useTimeLogMutations();
+
+  const {
+    groupByDescription, setGroupByDescription, timeLogs
+  } = useProcessedTimeLogs();
 
   const handleClick = (date) => {
     setDate(dayjs(date))
@@ -152,14 +156,7 @@ export default function WeekPage() {
         <TimeLogList
           timeLogs={timeLogs}
           mode={mode}
-          onCreate={create}
-          onDivide={divide}
-          onUpdate={update}
-          onWorklogCreate={createWorklogFromTimeLog}
-          onDelete={deleteTimeLog}
-          setGroupDescription={setGroupDescription}
-          changeDate={changeDate}
-          onSync={syncWorklogsForIssue}
+          {...timeLogMutations}
         />
       </div>}
     </div>

@@ -9,7 +9,7 @@ export default function useViewChanger() {
   useEffect(() => {
     setMode(view)
   }, [view]);
-  console.log(view)
+
   const changeView = (newView) => {
     if(view === newView) return;
     setView(newView);
@@ -30,7 +30,6 @@ export default function useViewChanger() {
     }
     const params = new URLSearchParams(location.search);
     params.set("view", newView);
-    // setMode(newView);
     navigate({pathname: viewUrl, search: params.toString()});
   }
   return {changeView}

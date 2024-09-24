@@ -15,17 +15,25 @@ import Button from "@mui/material/Button";
 import ImportButton from "../components/ImportButton.jsx";
 import worklogApi from "../api/worklogApi.js";
 import WorklogList from "../components/WorklogList.jsx";
+import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
+import {useState} from "react";
+import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 
 export default function TimeLogPage() {
-  const {
-    date, addAlert, mode, groupByDescription, setGroupByDescription, filterTickets, selectedTickets, setSelectedTickets,
-    timeLogs, processedDataRef, isListing, isPlaceholderData, totalTimeLabel,
-    create, divide, importTimeLogs, update, createWorklogFromTimeLog, deleteTimeLog,
-    setGroupDescription, changeDate, syncWorklogsForIssue,
-    hoveredTimeLogIds, setHoveredTimeLogIds, setHoveredProgressIntervalId, hoveredConflictedIds,
-    setHoveredConflictedIds, hoveredProgressIntervalId,
-  } = useAppContext();
+  const {date, addAlert, mode} = useAppContext();
+
   const queryClient = useQueryClient();
+
+  const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
+  const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
+  const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);
+
+  const {
+    groupByDescription, setGroupByDescription, timeLogs, processedDataRef, isListing, isPlaceholderData,
+    totalTimeLabel, filterTickets, selectedTickets, setSelectedTickets,
+  } = useProcessedTimeLogs();
+
+  const timeLogMutations = useTimeLogMutations();
 
   const {mutateAsync: syncWorklogs, isPending: isSyncing} = useMutation({
     mutationFn: (body) => worklogApi.syncWorklogs(),
@@ -89,7 +97,7 @@ export default function TimeLogPage() {
   return (
     <div className="w-3/5 mx-auto">
       <TimeLogCreateBar
-        onCreate={create}
+        onCreate={timeLogMutations.onCreate}
         date={date}
         canCreate={mode === "Day"}
       />
@@ -148,7 +156,7 @@ export default function TimeLogPage() {
                 : "synchronize worklogs"}
             </Button>
 
-            <ImportButton className="mr-4" onImport={importTimeLogs} />
+            <ImportButton className="mr-4" onImport={timeLogMutations.onImport} />
             <Button
               className="mr-4"
               variant="outlined"
@@ -172,14 +180,7 @@ export default function TimeLogPage() {
         <TimeLogList
           timeLogs={timeLogs}
           mode={mode}
-          onCreate={create}
-          onDivide={divide}
-          onUpdate={update}
-          onWorklogCreate={createWorklogFromTimeLog}
-          onDelete={deleteTimeLog}
-          setGroupDescription={setGroupDescription}
-          changeDate={changeDate}
-          onSync={syncWorklogsForIssue}
+          {...timeLogMutations}
           hoveredTimeLogIds={hoveredTimeLogIds}
           setHoveredProgressIntervalId={setHoveredProgressIntervalId}
           hoveredConflictedIds={hoveredConflictedIds}
