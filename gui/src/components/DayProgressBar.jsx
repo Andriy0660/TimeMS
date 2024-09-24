@@ -6,6 +6,8 @@ import minMax from "dayjs/plugin/minMax";
 dayjs.extend(minMax);
 
 const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
+  const startOfDay = dateTimeService.getStartOfDay(date);
+  const endOfDay = startOfDay.add(1, "day");
   const startOfWorkingDay = dateTimeService.getStartOfWorkingDay(date);
   const endOfWorkingDay = dateTimeService.getEndOfWorkingDay(date);
 
@@ -24,62 +26,75 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
   end = end.isBefore(endOfWorkingDay) ? endOfWorkingDay : end;
   const minutesInDay = end.diff(start, "minutes");
 
-  function createIntervals() {
+  function buildIntervals(timeLogs) {
     const intervals = [];
-
     timeLogs.forEach(timeLog => {
-        if (timeLog.startTime && timeLog.endTime) {
-          const segments = splitIntoSegments(timeLog);
-          segments.forEach(segment => {
-            const interval = {
-              id: segment.id,
-              startTime: segment.startTime.isBefore(start) ? start : segment.startTime,
-              endTime: segment.endTime.isAfter(end) ? end : segment.endTime,
-              color: getColor(segment.id.length),
-              ...segment,
-            }
-            intervals.push(interval);
+      if (timeLog.startTime && timeLog.endTime) {
+        splitTimeLogIntoIntervals(timeLog).forEach(interval => {
+          intervals.push({
+            ...interval,
+            color: getColor(interval.id.length),
           });
-        }
+        });
       }
-    );
-    const inactiveSegments = [];
-    let lastEnd = start;
-    intervals.sort((a, b) => a.startTime.diff(b.startTime));
-    intervals.forEach(interval => {
-      if (lastEnd.isBefore(interval.startTime)) {
-          inactiveSegments.push(...splitSegmentByWorkingHours(lastEnd, interval.startTime).map(segment => ({
-            ...segment,
-            color: "gray"
-          })));
-      }
-        lastEnd = interval.endTime;
+    });
+    return intervals;
+  }
+
+  function splitTimeLogIntoIntervals(timeLog) {
+    const startTime = timeLog.startTime;
+    const endTime = timeLog.endTime;
+    let intervals = [{startTime, endTime, id: [timeLog.id]}];
+
+    timeLogs.forEach(otherTimeLog => {
+      if (timeLog === otherTimeLog) return;
+      if (!isOverlapping(timeLog, otherTimeLog)) return;
+
+      intervals = splitAndMergeIntervals(intervals, otherTimeLog);
     });
 
-    if (lastEnd.isBefore(end)) {
-      inactiveSegments.push({startTime: lastEnd, endTime: end, color: "gray"});
-    }
-    return inactiveSegments.concat(intervals).map((interval, index, array) => {
-      let adjustedWidth = interval.endTime.diff(interval.startTime, "minute") / minutesInDay * 100;
-      let adjustedLeft = interval.startTime.diff(start, "minute") / minutesInDay * 100;
+    return intervals;
+  }
 
-      const gap = 0.1;
+  function isOverlapping(timeLog1, timeLog2) {
+    return timeLog1.startTime.isBefore(timeLog2.endTime) && timeLog1.endTime.isAfter(timeLog2.startTime);
+  }
 
-      if (index > 0) {
-        adjustedLeft += gap;
-        adjustedWidth -= gap;
+  function splitAndMergeIntervals(intervals, otherTimeLog) {
+    const newIntervals = [];
+    const otherStartTime = otherTimeLog.startTime;
+    const otherEndTime = otherTimeLog.endTime;
+
+    intervals.forEach(interval => {
+
+      if (!isOverlapping(interval, otherTimeLog)) {
+        newIntervals.push(interval);
+        return;
       }
 
-      if (index < array.length - 1) {
-        adjustedWidth -= gap;
+      if (interval.startTime.isBefore(otherStartTime)) {
+        newIntervals.push({
+          ...interval,
+          endTime: otherStartTime,
+        });
       }
 
-      return {
+      newIntervals.push({
         ...interval,
-        width: adjustedWidth,
-        left: adjustedLeft,
-      };
-    })
+        id: [...interval.id, otherTimeLog.id],
+        startTime: dayjs.max(interval.startTime, otherStartTime),
+        endTime: dayjs.min(interval.endTime, otherEndTime),
+      });
+
+      if (interval.endTime.isAfter(otherEndTime)) {
+        newIntervals.push({
+          ...interval,
+          startTime: otherEndTime,
+        });
+      }
+    });
+
+    return newIntervals;
   }
 
   function getColor(overlapCount) {
@@ -97,102 +112,110 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
     }
   }
 
-  function splitIntoSegments(timeLog) {
-    const startTime = timeLog.startTime;
-    const endTime = timeLog.endTime;
-    let segments = [...splitSegmentByWorkingHours(startTime, endTime, timeLog.id)];
-
-    timeLogs.forEach(otherTimeLog => {
-      if (timeLog !== otherTimeLog) {
-        const otherStartTime = otherTimeLog.startTime;
-        const otherEndTime = otherTimeLog.endTime;
-
-        if (startTime.isBefore(otherEndTime) && endTime.isAfter(otherStartTime)) {
-          const newSegments = [];
-          segments.forEach(segment => {
-            if (segment.startTime.isBefore(otherEndTime) && segment.endTime.isAfter(otherStartTime)) {
-              if (segment.startTime.isBefore(otherStartTime) && segment.endTime.isAfter(otherStartTime)) {
-                newSegments.push({
-                  ...segment,
-                  id: [...segment.id],
-                  startTime: segment.startTime,
-                  endTime: otherStartTime,
-                });
-              }
-
-              newSegments.push({
-                ...segment,
-                id: [...segment.id, otherTimeLog.id],
-                startTime: dayjs.max(segment.startTime, otherStartTime),
-                endTime: dayjs.min(segment.endTime, otherEndTime),
-              });
-
-              if (segment.endTime.isAfter(otherEndTime)) {
-                newSegments.push({
-                  ...segment,
-                  id: [...segment.id],
-                  startTime: dayjs.max(segment.startTime, otherEndTime),
-                  endTime: segment.endTime,
-                });
-              }
-            } else {
-              newSegments.push(segment);
-            }
-          });
-          segments = newSegments;
-        }
+  function appendInactiveIntervals(intervals) {
+    const inactiveIntervals = [];
+    let lastEnd = start;
+    intervals.sort((a, b) => a.startTime.diff(b.startTime));
+    intervals.forEach(interval => {
+      if (lastEnd.isBefore(interval.startTime)) {
+        inactiveIntervals.push({...interval, startTime: lastEnd, endTime: interval.startTime, color: "gray"})
       }
+      lastEnd = interval.endTime;
     });
-    return segments;
+
+    if (lastEnd.isBefore(end)) {
+      inactiveIntervals.push({startTime: lastEnd, endTime: end, color: "gray"});
+    }
+    return intervals.concat(inactiveIntervals);
   }
 
-  function splitSegmentByWorkingHours(startTime, endTime, id) {
-    const segments = [];
-    const startOfNextDay = dateTimeService.getStartOfDay(startTime).add(1, "day");
+  function splitIntervalsByWorkingHours(intervals) {
+    const newIntervals = [];
+    intervals.forEach(interval => {
+      newIntervals.push(...splitIntervalByWorkingHours(interval));
+    })
+
+    return newIntervals;
+  }
+
+  function splitIntervalByWorkingHours(interval) {
+    const startTime = interval.startTime;
+    const endTime = interval.endTime;
+
+    let intervals = [];
     if (startTime.isBefore(startOfWorkingDay)) {
-      segments.push({
+      intervals.push({
+        ...interval,
         startTime: startTime,
         endTime: dayjs.min(endTime, startOfWorkingDay),
-        id: [id],
-        thin: true
+        thin: true,
       });
     }
 
     if (startTime.isBefore(endOfWorkingDay) && endTime.isAfter(startOfWorkingDay)) {
-      segments.push({
+      intervals.push({
+        ...interval,
         startTime: dayjs.max(startTime, startOfWorkingDay),
         endTime: dayjs.min(endTime, endOfWorkingDay),
-        id: [id],
-        thin: false
+        thin: false,
+
       });
     }
 
     if (endTime.isAfter(endOfWorkingDay)) {
-      segments.push({
+      intervals.push({
+        ...interval,
         startTime: dayjs.max(startTime, endOfWorkingDay),
-        endTime: dayjs.min(endTime, startOfNextDay),
-        id: [id],
-        thin: true
-      });
-    }
-    if (endTime.isAfter(startOfNextDay)) {
-      segments.push({
-        startTime: dayjs.max(startTime, startOfNextDay),
-        endTime: endTime,
-        id: [id],
+        endTime: dayjs.min(endTime, endOfDay),
         thin: true,
-        color: "red"
       });
     }
-    return segments;
+
+    if (endTime.isAfter(endOfDay)) {
+      intervals.push({
+        ...interval,
+        startTime: dayjs.max(startTime, endOfDay),
+        endTime: endTime,
+        thin: true,
+        color: "red",
+      });
+    }
+
+    return intervals;
   }
+
+  function buildUIPosition(intervals) {
+    return intervals.map((interval, index, array) => {
+      let adjustedWidth = interval.endTime.diff(interval.startTime, "minute") / minutesInDay * 100;
+      let adjustedLeft = interval.startTime.diff(start, "minute") / minutesInDay * 100;
+
+      const gap = 0.2;
+      const prev = array[index - 1];
+      if (JSON.stringify(prev?.id) !== JSON.stringify(interval.id)) {
+        adjustedWidth -= gap
+        adjustedLeft += gap;
+      }
+
+      return {
+        ...interval,
+        width: adjustedWidth,
+        left: adjustedLeft,
+
+      };
+    })
+  }
+
+  let intervals = buildIntervals(timeLogs);
+  intervals = appendInactiveIntervals(intervals)
+  intervals = splitIntervalsByWorkingHours(intervals)
+  intervals = buildUIPosition(intervals)
 
   return (
     <div className="progress-bar">
-      {createIntervals().map((interval, index) =>
+      {intervals.map((interval, index) => (
         <div
           key={index}
-          className={`progress-segment ${interval.thin ? "thin" : ""}`}
+          className={`progress-interval ${interval.thin ? "thin" : ""}`}
           style={{
             width: `${interval.width}%`,
             left: `${interval.left}%`,
@@ -201,7 +224,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
           onMouseEnter={() => setHoveredTimeLogIds(Array.from(interval.id || []))}
           onMouseLeave={() => setHoveredTimeLogIds([])}
         />
-      )}
+      ))}
     </div>
   );
 };

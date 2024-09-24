@@ -9,7 +9,7 @@
     overflow: hidden;
 }
 
-.progress-segment {
+.progress-interval {
     position: absolute;
     height: 100%;
 }
