@@ -8,17 +8,23 @@ import dateTimeService from "../service/dateTimeService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress} from "@mui/material";
+import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import CustomTableCell from "../components/CustomTableCell.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
+import TimeLogList from "../components/TimeLogList.jsx";
+import {useState} from "react";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
-  const {date, setDate, addAlert} = useAppContext();
   const {changeView} = useViewChanger();
-
+  const [isTableView, setIsTableView] = useState(true);
+  const {
+    date, setDate, addAlert, mode, groupByDescription, setGroupByDescription,
+    timeLogs, create, divide, update, createWorklogFromTimeLog, deleteTimeLog,
+    setGroupDescription, changeDate, syncWorklogsForIssue
+  } = useAppContext();
 
   const {
     data,
@@ -36,7 +42,6 @@ export default function WeekPage() {
       })
       console.error("Getting hours for week failed:", error);
     },
-    placeholderData: (prev) => prev,
     retryDelay: 300,
   });
 
@@ -65,7 +70,35 @@ export default function WeekPage() {
 
   return (
     <div>
-      <TableContainer className="flex mx-auto my-6 w-fit">
+      <div className="w-3/5 mx-auto flex items-center">
+        <FormControlLabel
+          control={
+            <Switch
+              checked={isTableView}
+              onChange={(event) => setIsTableView((event.target.checked))}
+            />
+          }
+          label="List"
+          labelPlacement="start"
+          className="mr-0.5"
+        />
+        <div>
+          Table
+        </div>
+        {!isTableView && <FormControlLabel
+          control={
+            <Switch
+              checked={groupByDescription}
+              onChange={(event) => setGroupByDescription((event.target.checked))}
+            />
+          }
+          label="Group"
+          labelPlacement="start"
+          className="ml-10"
+        />
+        }
+      </div>
+      {isTableView && <TableContainer className="flex mx-auto mb-3 w-fit">
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -114,6 +147,21 @@ export default function WeekPage() {
           </TableBody>
         </Table>
       </TableContainer>
+      }
+      {!isTableView && <div className="w-3/5 mx-auto">
+        <TimeLogList
+          timeLogs={timeLogs}
+          mode={mode}
+          onCreate={create}
+          onDivide={divide}
+          onUpdate={update}
+          onWorklogCreate={createWorklogFromTimeLog}
+          onDelete={deleteTimeLog}
+          setGroupDescription={setGroupDescription}
+          changeDate={changeDate}
+          onSync={syncWorklogsForIssue}
+        />
+      </div>}
     </div>
   )
 }
