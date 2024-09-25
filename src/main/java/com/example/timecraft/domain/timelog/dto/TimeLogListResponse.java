@@ -27,6 +27,7 @@ public class TimeLogListResponse {
     private String description;
     private String totalTime;
     private boolean isSynced;
+    private String color;
   }
 }
 

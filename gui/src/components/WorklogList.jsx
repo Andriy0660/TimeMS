@@ -93,7 +93,9 @@ export default function WorklogList({mode, date, selectedTickets, isJiraEditMode
                 key={worklog.id}
                 worklog={worklog}
                 onDelete={deleteWorklog}
-                onTimeLogCreate={createTimeLogFromWorklog} />)
+                onTimeLogCreate={createTimeLogFromWorklog}
+                isJiraEditMode={isJiraEditMode}
+              />)
             : <NoLogs />
           }
         </div>

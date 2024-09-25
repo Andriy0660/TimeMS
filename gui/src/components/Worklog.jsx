@@ -12,7 +12,7 @@ import {TiArrowForward} from "react-icons/ti";
 import dayjs from "dayjs";
 import VerticalDivider from "./VerticalDivider.jsx";
 
-export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
+export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -30,6 +30,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
   
   return (
     <div className="mb-2 px-4 shadow-md rounded-md bg-gray-50"
+         style={isJiraEditMode ? {backgroundColor: worklog.color} : {}}
          onMouseEnter={() => setIsHovered(true)}
          onMouseLeave={() => setIsHovered(false)}
     >

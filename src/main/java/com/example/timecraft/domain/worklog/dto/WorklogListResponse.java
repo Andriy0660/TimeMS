@@ -27,6 +27,7 @@ public class WorklogListResponse {
     private String comment;
     private Integer timeSpentSeconds;
     private boolean isSynced;
+    private String color;
   }
 }
 

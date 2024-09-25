@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
+import com.example.timecraft.domain.logsync.util.LogSyncUtil;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
@@ -64,6 +65,10 @@ public class TimeLogServiceImpl implements TimeLogService {
         .map(timeLogEntity -> {
           TimeLogListResponse.TimeLogDto timeLogDto = mapper.toListItem(timeLogEntity);
           timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime()));
+          timeLogDto.setColor(TimeLogUtils.generateColor(
+              timeLogEntity.getTicket(),
+              LogSyncUtil.removeNonLetterAndDigitCharacters(timeLogEntity.getDescription())
+          ));
           return timeLogDto;
         })
         .toList();

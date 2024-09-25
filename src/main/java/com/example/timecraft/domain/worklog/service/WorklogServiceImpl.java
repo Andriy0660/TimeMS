@@ -17,6 +17,7 @@ import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
+import com.example.timecraft.domain.logsync.util.LogSyncUtil;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
@@ -43,7 +44,14 @@ public class WorklogServiceImpl implements WorklogService {
     final int offset = props.getTimeConfig().getOffset();
     List<WorklogEntity> worklogEntityList = getAllWorklogEntitiesInMode(mode, date, offset);
     final List<WorklogListResponse.WorklogDto> timeLogDtoList = worklogEntityList.stream()
-        .map(mapper::toListItem)
+        .map(worklogEntity -> {
+          WorklogListResponse.WorklogDto worklogDto = mapper.toListItem(worklogEntity);
+          worklogDto.setColor(TimeLogUtils.generateColor(
+              worklogEntity.getTicket(),
+              LogSyncUtil.removeNonLetterAndDigitCharacters(worklogEntity.getComment())
+          ));
+          return worklogDto;
+        })
         .toList();
     return new WorklogListResponse(timeLogDtoList);
   }

@@ -25,7 +25,8 @@ public class LogSyncUtil {
     return totalTimeLogDurationInSeconds == totalWorklogDurationInSeconds;
   }
 
-  private static String removeNonLetterAndDigitCharacters(String input) {
+  public static String removeNonLetterAndDigitCharacters(String input) {
+    if(input == null) return null;
     StringBuilder result = new StringBuilder();
     for (char c : input.toCharArray()) {
       if (Character.isLetter(c) || Character.isDigit(c)) {

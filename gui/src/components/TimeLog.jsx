@@ -28,6 +28,7 @@ import Duration from "./Duration.jsx";
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import VerticalDivider from "./VerticalDivider.jsx";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import classNames from "classnames";
 
 export default function TimeLog({
   timeLog,
@@ -351,10 +352,14 @@ export default function TimeLog({
 
   return (
     <div
-      className={`px-4  
-      ${status === "InProgress" ? "bg-blue-50" : ""} 
-      ${hovered ? "bg-blue-100" : ""} 
-      ${hoveredConflictedIds?.includes(timeLog.id) ? "bg-rose-100" : ""}`}
+      className={classNames("px-4", {
+        "bg-blue-50" : status === "InProgress",
+        "bg-blue-100" : hovered,
+        "bg-rose-100": hoveredConflictedIds?.includes(timeLog.id)
+      })}
+      style={isJiraEditMode ? {backgroundColor: timeLog.color} : {}}
+
+
       onMouseEnter={() => {
         setIsHovered(true);
         setHoveredProgressIntervalId && setHoveredProgressIntervalId(timeLog.id)
@@ -560,7 +565,7 @@ export default function TimeLog({
       </div>
 
       {!groupByDescription &&
-        <Description className="mb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription} />}
+        <Description className="pb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription} />}
       {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading || isChangingDate) &&
         <LinearProgress />}
     </div>
