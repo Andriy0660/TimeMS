@@ -1,36 +1,10 @@
 import timeLogRenderingService from "../service/timeLogRenderingService.jsx";
 
 export default function TimeLogList({
-  timeLogs,
-  mode,
-  onCreate,
-  onDivide,
-  onUpdate,
-  onDelete,
-  onWorklogCreate,
-  setGroupDescription,
-  changeDate,
-  onSync,
-  hoveredTimeLogIds,
-  setHoveredProgressIntervalId,
-  hoveredConflictedIds,
-  setHoveredConflictedIds
+  ...props
 }) {
   const renderedTimeLogs = timeLogRenderingService.render({
-    timeLogs,
-    mode,
-    onCreate,
-    onDivide,
-    onUpdate,
-    onDelete,
-    onWorklogCreate,
-    setGroupDescription,
-    changeDate,
-    onSync,
-    hoveredTimeLogIds,
-    setHoveredProgressIntervalId,
-    hoveredConflictedIds,
-    setHoveredConflictedIds
+    ...props
   })
   return (
     <div className="m-4 flex flex-col items-center">

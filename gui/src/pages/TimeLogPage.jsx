@@ -28,6 +28,8 @@ export default function TimeLogPage() {
   const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
   const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);
 
+  const [isJiraEditMode, setIsJiraEditMode] = useState(false);
+
   const {
     groupByDescription, setGroupByDescription, timeLogs, processedDataRef, isListing,
     totalTimeLabel, filterTickets, selectedTickets, setSelectedTickets,
@@ -95,99 +97,137 @@ export default function TimeLogPage() {
   };
 
   return (
-    <div className="w-3/5 mx-auto">
-      <TimeLogCreateBar
-        onCreate={timeLogMutations.onCreate}
-        date={date}
-        canCreate={mode === "Day"}
-      />
-      <div className="flex flex-col">
-        <div className="flex justify-center">
-          <FormControlLabel
-            control={
-              <Switch
-                checked={groupByDescription}
-                onChange={(event) => setGroupByDescription((event.target.checked))}
-              />
-            }
-            label="Group"
-            labelPlacement="start"
-            className="mx-2"
-          />
-
-          <FormControl className="mx-2">
-            <Select
-              size="small"
-              multiple
-              value={selectedTickets}
-              onChange={(event) => setSelectedTickets(event.target.value)}
-              renderValue={(selected) => (
-                selected.length > 0 ? selected.join(", ") : <em>Select tickets</em>
-              )}
-              displayEmpty
-            >
-              {filterTickets.map((ticket) => (
-                <MenuItem key={ticket} value={ticket}>
-                  <Checkbox size="small" checked={selectedTickets.indexOf(ticket) > -1} />
-                  <ListItemText primary={ticket} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <IconButton className="mr-2" onClick={() => setSelectedTickets([])}>
-            <ClearIcon />
-          </IconButton>
-
-          {modeDatePickerConfig[mode]}
-
-        </div>
-        <div className="flex justify-between items-center">
-          <Label label={date.format("dddd")}/>
-          <Label label={totalTimeLabel} />
-          <div className="flex items-center mt-8">
-            <Button className="mr-4" disabled={isSyncing || progressInfo.progress > 0} variant="outlined" onClick={syncWorklogs}>
-              {isSyncingRunning
-                ? (
-                  <>
-                    {progress > 0 ? `${Math.floor(progress)}%` : <CircularProgress size={25} />}
-                    <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
-                  </>
-                )
-                : "synchronize worklogs"}
-            </Button>
-
-            <ImportButton className="mr-4" onImport={timeLogMutations.onImport} />
-            <Button
-              className="mr-4"
-              variant="outlined"
-              onClick={saveFile}
-            >
-              Export
-            </Button>
-          </div>
-
-        </div>
-        {progress > 0 &&
-          <div className="m-4 flex justify-center">
-            <div className="text-center p-2 h-16 w-full overflow-x-auto shadow-md bg-gray-50">
-              <div className="text-center">{progressInfo.ticketOfCurrentWorklog} {progressInfo.commentOfCurrentWorklog}</div>
-            </div>
-          </div>
-        }
-        {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
-                                           hoveredProgressIntervalId={hoveredProgressIntervalId}/>}
-
-        <TimeLogList
-          timeLogs={timeLogs}
-          mode={mode}
-          {...timeLogMutations}
-          hoveredTimeLogIds={hoveredTimeLogIds}
-          setHoveredProgressIntervalId={setHoveredProgressIntervalId}
-          hoveredConflictedIds={hoveredConflictedIds}
-          setHoveredConflictedIds={setHoveredConflictedIds}
+    <div>
+      <div className="w-3/5 mx-auto">
+        <TimeLogCreateBar
+          onCreate={timeLogMutations.onCreate}
+          date={date}
+          canCreate={mode === "Day"}
         />
-        <WorklogList mode={mode} date={date} selectedTickets={selectedTickets}/>
+        <div className="flex flex-col">
+          <div className="flex justify-center">
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={groupByDescription}
+                  onChange={(event) => setGroupByDescription((event.target.checked))}
+                />
+              }
+              label="Group"
+              labelPlacement="start"
+              className="mx-2"
+            />
 
+            <FormControl className="mx-2">
+              <Select
+                size="small"
+                multiple
+                value={selectedTickets}
+                onChange={(event) => setSelectedTickets(event.target.value)}
+                renderValue={(selected) => (
+                  selected.length > 0 ? selected.join(", ") : <em>Select tickets</em>
+                )}
+                displayEmpty
+              >
+                {filterTickets.map((ticket) => (
+                  <MenuItem key={ticket} value={ticket}>
+                    <Checkbox size="small" checked={selectedTickets.indexOf(ticket) > -1} />
+                    <ListItemText primary={ticket} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <IconButton className="mr-2" onClick={() => setSelectedTickets([])}>
+              <ClearIcon />
+            </IconButton>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isJiraEditMode}
+                  onChange={(event) => setIsJiraEditMode((event.target.checked))}
+                />
+              }
+              label="Jira Edit Mode"
+              labelPlacement="start"
+              className="ml-12"
+            />
+            {modeDatePickerConfig[mode]}
+
+          </div>
+          <div className="flex justify-between items-center">
+            <Label label={date.format("dddd")} />
+            <Label label={totalTimeLabel} />
+            <div className="flex items-center mt-8">
+              <Button className="mr-4" disabled={isSyncing || progressInfo.progress > 0} variant="outlined" onClick={syncWorklogs}>
+                {isSyncingRunning
+                  ? (
+                    <>
+                      {progress > 0 ? `${Math.floor(progress)}%` : <CircularProgress size={25} />}
+                      <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
+                    </>
+                  )
+                  : "synchronize worklogs"}
+              </Button>
+
+              <ImportButton className="mr-4" onImport={timeLogMutations.onImport} />
+              <Button
+                className="mr-4"
+                variant="outlined"
+                onClick={saveFile}
+              >
+                Export
+              </Button>
+            </div>
+
+          </div>
+          {progress > 0 &&
+            <div className="m-4 flex justify-center">
+              <div className="text-center p-2 h-16 w-full overflow-x-auto shadow-md bg-gray-50">
+                <div className="text-center">{progressInfo.ticketOfCurrentWorklog} {progressInfo.commentOfCurrentWorklog}</div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+      <div className={`${isJiraEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
+        {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
+                                           hoveredProgressIntervalId={hoveredProgressIntervalId} />}
+
+        {!isJiraEditMode && (
+          <>
+            <TimeLogList
+              timeLogs={timeLogs}
+              mode={mode}
+              {...timeLogMutations}
+              hoveredTimeLogIds={hoveredTimeLogIds}
+              setHoveredProgressIntervalId={setHoveredProgressIntervalId}
+              hoveredConflictedIds={hoveredConflictedIds}
+              setHoveredConflictedIds={setHoveredConflictedIds}
+            />
+            <WorklogList mode={mode} date={date} selectedTickets={selectedTickets} />
+          </>
+        )}
+        {isJiraEditMode && (
+          <>
+            <div className="flex">
+              <div className="w-1/2">
+                <TimeLogList
+                  timeLogs={timeLogs}
+                  mode={mode}
+                  isJiraEditMode
+                  {...timeLogMutations}
+                  hoveredTimeLogIds={hoveredTimeLogIds}
+                  setHoveredProgressIntervalId={setHoveredProgressIntervalId}
+                  hoveredConflictedIds={hoveredConflictedIds}
+                  setHoveredConflictedIds={setHoveredConflictedIds}
+                />
+              </div>
+              <div className="w-1/2">
+                <WorklogList isJiraEditMode={isJiraEditMode} mode={mode} date={date} selectedTickets={selectedTickets} />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
