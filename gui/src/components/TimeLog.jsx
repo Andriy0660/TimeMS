@@ -150,6 +150,7 @@ export default function TimeLog({
   function handleClickOutside(event) {
     if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
       setIsEditing(false);
+      setMoreActionsMenuEl(null)
       if (isModified) {
         handleUpdateTimeLog({
           id: timeLog.id,
@@ -446,7 +447,7 @@ export default function TimeLog({
           {(isHovered && !isEditing) && <div>
             <Tooltip title="More">
               <IconButton
-                onClick={(event) => setMoreActionsMenuEl(event.currentTarget)}
+                onMouseDown={(event) => setMoreActionsMenuEl(event.currentTarget)}
                 color="primary"
                 className="p-0"
               >
@@ -458,7 +459,7 @@ export default function TimeLog({
               anchorEl={moreActionsMenuEl}
               open={!!moreActionsMenuEl}
               onClose={() => {
-                setIsHovered(false);
+                setMoreActionsMenuEl(null);
               }}
             >
               <MenuItem onClick={() => setIsEditing(true)}>
