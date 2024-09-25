@@ -73,8 +73,8 @@ export default function WeekPage() {
 
 
   return (
-    <div>
-      <div className="w-3/5 mx-auto flex items-center">
+    <div className="w-3/5 mx-auto">
+      <div className="flex items-center">
         <FormControlLabel
           control={
             <Switch
@@ -102,7 +102,7 @@ export default function WeekPage() {
         />
         }
       </div>
-      {isTableView && <TableContainer className="flex mx-auto mb-3 w-fit">
+      {isTableView && <TableContainer className="flex mx-auto mb-3">
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -111,12 +111,12 @@ export default function WeekPage() {
               {data.map(dayInfo => (
                 <CustomTableCell
                   key={dayInfo.date}
+                  date={dayInfo.date}
                   isHover
                   isSynced={dayInfo.synced}
                   isConflicted={dayInfo.conflicted}
                   onClick={() => handleClick(dayInfo.date)}
                 >
-                  <div className="mr-1">{dayjs(dayInfo.date).format("DD.MM")}</div>
                   <div>{dayInfo.dayName}</div>
                 </CustomTableCell>
               ))}
@@ -152,13 +152,13 @@ export default function WeekPage() {
         </Table>
       </TableContainer>
       }
-      {!isTableView && <div className="w-3/5 mx-auto">
+      {!isTableView && (
         <TimeLogList
           timeLogs={timeLogs}
           mode={mode}
           {...timeLogMutations}
         />
-      </div>}
+      )}
     </div>
   )
 }
