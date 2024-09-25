@@ -20,8 +20,7 @@ export default function useProcessedTimeLogs() {
   const {
     data,
     isPending: isListing,
-    error: listAllError,
-    isPlaceholderData
+    error: listAllError
   } = useQuery({
     queryKey: [timeLogApi.key, mode, date, offset],
     queryFn: () => {
@@ -88,7 +87,6 @@ export default function useProcessedTimeLogs() {
     timeLogs,
     processedDataRef,
     isListing,
-    isPlaceholderData,
     totalTimeLabel,
     filterTickets,
     selectedTickets,

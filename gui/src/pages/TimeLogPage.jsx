@@ -29,7 +29,7 @@ export default function TimeLogPage() {
   const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);
 
   const {
-    groupByDescription, setGroupByDescription, timeLogs, processedDataRef, isListing, isPlaceholderData,
+    groupByDescription, setGroupByDescription, timeLogs, processedDataRef, isListing,
     totalTimeLabel, filterTickets, selectedTickets, setSelectedTickets,
   } = useProcessedTimeLogs();
 
@@ -89,8 +89,8 @@ export default function TimeLogPage() {
   }
 
   const modeDatePickerConfig = {
-    Week: <WeekPicker buttonColor="blue" isActive={isPlaceholderData} />,
-    Month: <MonthPicker buttonColor="blue" isActive={isPlaceholderData} />,
+    Week: <WeekPicker buttonColor="blue"/>,
+    Month: <MonthPicker buttonColor="blue"/>,
     All: null,
   };
 

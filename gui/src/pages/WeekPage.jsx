@@ -26,8 +26,7 @@ export default function WeekPage() {
 
   const {
     data,
-    isPending,
-    isPlaceholderData,
+    isPending
   } = useQuery({
     queryKey: [timeLogApi.key, "week", date, offset],
     queryFn: () => {
