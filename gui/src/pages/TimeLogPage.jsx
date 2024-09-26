@@ -194,18 +194,15 @@ export default function TimeLogPage() {
                                            hoveredProgressIntervalId={hoveredProgressIntervalId} />}
 
         {!isJiraEditMode && (
-          <>
-            <TimeLogList
-              timeLogs={timeLogs}
-              mode={mode}
-              {...timeLogMutations}
-              hoveredTimeLogIds={hoveredTimeLogIds}
-              setHoveredProgressIntervalId={setHoveredProgressIntervalId}
-              hoveredConflictedIds={hoveredConflictedIds}
-              setHoveredConflictedIds={setHoveredConflictedIds}
-            />
-            <WorklogList mode={mode} date={date} selectedTickets={selectedTickets} />
-          </>
+          <TimeLogList
+            timeLogs={timeLogs}
+            mode={mode}
+            {...timeLogMutations}
+            hoveredTimeLogIds={hoveredTimeLogIds}
+            setHoveredProgressIntervalId={setHoveredProgressIntervalId}
+            hoveredConflictedIds={hoveredConflictedIds}
+            setHoveredConflictedIds={setHoveredConflictedIds}
+          />
         )}
         {isJiraEditMode && (
           <>
