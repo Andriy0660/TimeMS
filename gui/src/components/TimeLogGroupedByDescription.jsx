@@ -33,7 +33,7 @@ export default function TimeLogGroupedByDescription({
         </div>
       ))}
       <div className="flex items-center pb-1"
-           style={isJiraEditMode ? {backgroundColor: logsForDescription[0]?.color} : {}}
+           style={isJiraEditMode && logsForDescription[0]?.synced? {backgroundColor: logsForDescription[0]?.color} : {}}
       >
         <Description className="mx-4" description={description} ids={ids} setGroupDescription={setGroupDescription} />
         {logsForDescription.length > 1 &&

@@ -14,7 +14,6 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import useAsyncCall from "../hooks/useAsyncCall.js";
-import Button from "@mui/material/Button";
 import {TiArrowForward} from "react-icons/ti";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos.js";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
@@ -425,11 +424,11 @@ export default function TimeLog({
               ? dateTimeService.getStartOfDay(timeLog.startTime)
               : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day"))) &&
             <div>
-              <Button onClick={(event) => setDivideMenuEl(event.currentTarget)}>
+              <IconButton onClick={(event) => setDivideMenuEl(event.currentTarget)}>
                 <Tooltip title="Timelog continues tomorrow">
                   <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
                 </Tooltip>
-              </Button>
+              </IconButton>
               <Menu
                 anchorEl={divideMenuEl}
                 open={!!divideMenuEl}
@@ -566,25 +565,25 @@ export default function TimeLog({
                   <Typography className="text-sm">Delete</Typography>
                 </ListItemText>
               </MenuItem>
-              <ConfirmationModal
-                open={showDeleteModal}
-                type="error"
-                actionText="Delete"
-                onConfirm={() => handleDeleteTimeLog(timeLog.id)}
-                onClose={() => {
-                  setShowDeleteModal(false);
-                  setIsHovered(false);
-                }}
-              >
-                Are you sure you want to delete this time log?
-              </ConfirmationModal>
+
             </Menu>
 
           </div>
           }
         </div>
       </div>
-
+      <ConfirmationModal
+        open={showDeleteModal}
+        type="error"
+        actionText="Delete"
+        onConfirm={() => handleDeleteTimeLog(timeLog.id)}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setIsHovered(false);
+        }}
+      >
+        Are you sure you want to delete this time log?
+      </ConfirmationModal>
       {!groupByDescription &&
         <Description className="pb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription} />}
       {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading || isChangingDate) &&
