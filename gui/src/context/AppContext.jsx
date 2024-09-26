@@ -1,4 +1,4 @@
-import {createContext, useState} from "react";
+import {createContext, useEffect, useState} from "react";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dayjs from "dayjs";
@@ -10,6 +10,11 @@ export const AppProvider = ({children}) => {
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs())
   const [view, setView] = useState(queryParams.get("view") || "Day")
+
+  const [timeLogRefs, setTimeLogRefs] = useState([]);
+  useEffect(() => {
+    setTimeLogRefs([])
+  }, [date]);
 
   const addAlert = ({type, text}) => {
     return toast[type](text);
@@ -38,7 +43,9 @@ export const AppProvider = ({children}) => {
         setView,
         addAlert,
         mode,
-        setMode
+        setMode,
+        timeLogRefs,
+        setTimeLogRefs
       }}>
         {children}
       </AppContext.Provider>

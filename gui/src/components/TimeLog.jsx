@@ -63,18 +63,41 @@ export default function TimeLog({
 
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
+  const {addAlert, setTimeLogRefs} = useAppContext();
 
   const timeLogRef = useRef(null);
-  const [menuEl, setMenuEl] = useState(null);
+  const timeLogUpperPartRef = useRef(null);
 
+  useEffect(() => {
+    if (timeLogRef.current && isJiraEditMode) {
+      setTimeLogRefs((prev) => {
+        const existingIndex = prev.findIndex(({timeLog: {id}}) => id === timeLog.id);
+        if (existingIndex !== -1) {
+          const updatedRefs = [...prev];
+          updatedRefs[existingIndex] = {timeLog, ref: timeLogRef};
+          return updatedRefs;
+        } else {
+          return [...prev, {timeLog, ref: timeLogRef}];
+        }
+      });
+    }
+  }, [timeLogRef])
+
+  const [divideMenuEl, setDivideMenuEl] = useState(null);
   const [moreActionsMenuEl, setMoreActionsMenuEl] = useState(null);
 
   useEffect(() => {
-    if(!isHovered || !isEditing) {
+    if (!isHovered || !isEditing) {
       setMoreActionsMenuEl(null)
     }
   }, [isHovered, isEditing]);
-  const {addAlert} = useAppContext();
+
+  function handleCloseMoreActionsMenu() {
+    setMoreActionsMenuEl(null);
+    setHoveredProgressIntervalId?.(null);
+    setIsHovered(false);
+  }
+
   useEffect(() => {
     initializeState();
   }, [timeLog]);
@@ -146,12 +169,11 @@ export default function TimeLog({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [timeLogRef.current, startTime, endTime, ticket, description, timeLog]);
+  }, [timeLogUpperPartRef.current, startTime, endTime, ticket, description, timeLog]);
 
   function handleClickOutside(event) {
-    if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
+    if (timeLogUpperPartRef.current && !timeLogUpperPartRef.current.contains(event.target)) {
       setIsEditing(false);
-      setMoreActionsMenuEl(null)
       if (isModified) {
         handleUpdateTimeLog({
           id: timeLog.id,
@@ -173,7 +195,7 @@ export default function TimeLog({
 
   useEffect(() => {
     if (isEditing && editedField) {
-      timeLogRef.current.querySelector(`[name="${editedField}"]`).focus();
+      timeLogUpperPartRef.current.querySelector(`[name="${editedField}"]`).focus();
     }
   }, [isEditing, editedField]);
 
@@ -352,24 +374,25 @@ export default function TimeLog({
 
   return (
     <div
-      className={classNames("px-4", {
+      ref={timeLogRef}
+      className={classNames("px-4 pt-1", {
         "bg-blue-50" : status === "InProgress",
         "bg-blue-100" : hovered,
         "bg-rose-100": hoveredConflictedIds?.includes(timeLog.id)
       })}
-      style={isJiraEditMode ? {backgroundColor: timeLog.color} : {}}
+      style={isJiraEditMode && timeLog.synced ? {backgroundColor: timeLog.color} : {}}
 
 
       onMouseEnter={() => {
         setIsHovered(true);
-        setHoveredProgressIntervalId && setHoveredProgressIntervalId(timeLog.id)
+        setHoveredProgressIntervalId?.(timeLog.id);
       }}
       onMouseLeave={() => {
         setIsHovered(false);
-        setHoveredProgressIntervalId && setHoveredProgressIntervalId(null)
+        setHoveredProgressIntervalId?.(null);
       }}
     >
-      <div ref={timeLogRef} className="flex justify-between">
+      <div ref={timeLogUpperPartRef} className="flex justify-between">
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
 
@@ -402,19 +425,19 @@ export default function TimeLog({
               ? dateTimeService.getStartOfDay(timeLog.startTime)
               : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day"))) &&
             <div>
-              <Button onClick={(event) => setMenuEl(event.currentTarget)}>
+              <Button onClick={(event) => setDivideMenuEl(event.currentTarget)}>
                 <Tooltip title="Timelog continues tomorrow">
                   <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
                 </Tooltip>
               </Button>
               <Menu
-                anchorEl={menuEl}
-                open={!!menuEl}
-                onClose={() => setMenuEl(null)}
+                anchorEl={divideMenuEl}
+                open={!!divideMenuEl}
+                onClose={() => setDivideMenuEl(null)}
               >
                 <MenuItem className="py-0 px-2" onClick={() => handleDivideTimeLog(timeLog.id)}>Divide into two days</MenuItem>
-                <Divider/>
-                <MenuItem className="py-0 px-2" onClick={() => setMenuEl(null)}>Cancel</MenuItem>
+                <Divider />
+                <MenuItem className="py-0 px-2" onClick={() => setDivideMenuEl(null)}>Cancel</MenuItem>
               </Menu>
             </div>
           }
@@ -447,9 +470,9 @@ export default function TimeLog({
                   </span>
               </Tooltip>
             </div>
-            )}
+          )}
 
-          {(isHovered && !isEditing) && <div>
+          {(isHovered && !isEditing) && <div onClick={() => handleCloseMoreActionsMenu()}>
             <Tooltip title="More">
               <IconButton
                 onMouseDown={(event) => setMoreActionsMenuEl(event.currentTarget)}
@@ -463,9 +486,7 @@ export default function TimeLog({
             <Menu
               anchorEl={moreActionsMenuEl}
               open={!!moreActionsMenuEl}
-              onClose={() => {
-                setMoreActionsMenuEl(null);
-              }}
+              onClose={() => handleCloseMoreActionsMenu()}
             >
               <MenuItem onClick={() => setIsEditing(true)}>
                 <ListItemIcon>

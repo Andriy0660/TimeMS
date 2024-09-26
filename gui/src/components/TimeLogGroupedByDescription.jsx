@@ -9,6 +9,7 @@ export default function TimeLogGroupedByDescription({
   logsForDescription,
   setGroupDescription,
   hoveredTimeLogIds,
+  isJiraEditMode,
   ...rest
 }) {
   const totalTimeLabel = dateTimeService.formatDuration(dateTimeService.getTotalTimeForTimeLogs(logsForDescription))
@@ -25,12 +26,15 @@ export default function TimeLogGroupedByDescription({
           <TimeLog
             timeLog={timeLog}
             {...rest}
+            isJiraEditMode={isJiraEditMode}
             groupByDescription={true}
             setGroupDescription={setGroupDescription}
             hovered={hoveredTimeLogIds?.includes(timeLog.id)} />
         </div>
       ))}
-      <div className="flex items-center mb-1">
+      <div className="flex items-center pb-1"
+           style={isJiraEditMode ? {backgroundColor: logsForDescription[0]?.color} : {}}
+      >
         <Description className="mx-4" description={description} ids={ids} setGroupDescription={setGroupDescription} />
         {logsForDescription.length > 1 &&
           <Chip label={totalTimeLabel} className="shadow-md mr-2" color="primary" variant="outlined" size="small" />
