@@ -474,7 +474,10 @@ export default function TimeLog({
           {(isHovered && !isEditing) && <div onClick={() => handleCloseMoreActionsMenu()}>
             <Tooltip title="More">
               <IconButton
-                onMouseDown={(event) => setMoreActionsMenuEl(event.currentTarget)}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  setMoreActionsMenuEl(event.currentTarget);
+                }}
                 color="primary"
                 className="p-0"
               >
