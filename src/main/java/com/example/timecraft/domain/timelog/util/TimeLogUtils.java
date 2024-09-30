@@ -1,6 +1,7 @@
 package com.example.timecraft.domain.timelog.util;
 
-import java.nio.charset.StandardCharsets;
+import java.awt.*;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.DayOfWeek;
@@ -8,6 +9,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.stream.Collectors;
 
 import com.example.timecraft.core.exception.BadRequestException;
 
@@ -47,22 +49,40 @@ public class TimeLogUtils {
   }
 
   public static String generateColor(String ticket, String descr) {
+    String input = descr + ticket.chars()
+        .filter(Character::isDigit)
+        .mapToObj(c -> String.valueOf((char) c))
+        .collect(Collectors.joining());
+
+    MessageDigest digest = null;
     try {
-      String input = ticket + descr;
-
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-
-      int red = (Byte.toUnsignedInt(hash[0]) + Byte.toUnsignedInt(hash[13]) + Byte.toUnsignedInt(hash[29])) % 256;
-      int green = (Byte.toUnsignedInt(hash[1]) + Byte.toUnsignedInt(hash[14]) + Byte.toUnsignedInt(hash[30])) % 256;
-      int blue = (Byte.toUnsignedInt(hash[2]) + Byte.toUnsignedInt(hash[15]) + Byte.toUnsignedInt(hash[31])) % 256;
-
-      int alpha = (int) (0.075 * 255);
-
-      return String.format("#%02x%02x%02x%02x", red, green, blue, alpha);
+      digest = MessageDigest.getInstance("SHA-512");
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException("Error generating color", e);
+      throw new RuntimeException(e);
+    }
+    byte[] hashBytes = digest.digest(input.getBytes());
+
+    int hueSum = 0;
+    int saturationSum = 0;
+    int brightnessSum = 0;
+
+    for (int i = 0; i < hashBytes.length; i++) {
+      int value = hashBytes[i] & 0xFF;
+      hueSum += value * (i + 1);
+      if (i % 3 == 0) saturationSum += value;
+      if (i % 5 == 0) brightnessSum += value;
     }
 
+    float hue = (hueSum % 360) / 360f;
+    float saturation = 0.2f + (saturationSum % 500) / 1000f;
+    float brightness = 0.5f + (brightnessSum % 300) / 1000f;
+
+    int rgb = Color.HSBtoRGB(hue, saturation, brightness);
+
+    int red = (rgb >> 16) & 0xFF;
+    int green = (rgb >> 8) & 0xFF;
+    int blue = rgb & 0xFF;
+
+    return String.format("#%02x%02x%02x", red, green, blue);
   }
 }
