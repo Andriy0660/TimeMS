@@ -8,7 +8,7 @@ import dateTimeService from "../service/dateTimeService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress, FormControlLabel, IconButton, Switch, Tooltip} from "@mui/material";
+import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import CustomTableCell from "../components/CustomTableCell.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
@@ -19,7 +19,7 @@ import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from '@mui/icons-material/Reorder';
 import {weekViewMode} from "../consts/weekViewMode.js";
-import {viewMode} from "../consts/viewMode.js";
+import IconModeIcon from "../components/IconModeIcon.jsx";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
@@ -74,21 +74,22 @@ export default function WeekPage() {
     );
   }
 
-  const activeIconClasses = "border-blue-400 border-solid border rounded";
   return (
     <div className="w-3/5 mx-auto">
       <div className="flex justify-start my-2">
-        <Tooltip title="Table">
-          <IconButton
-            onClick={() => setViewMode(weekViewMode.TABLE)}
-            className={`${viewMode === weekViewMode.TABLE ? activeIconClasses : ""}`}><GoTable /></IconButton>
-        </Tooltip>
-        <Tooltip title="List">
-          <IconButton
-            onClick={() => setViewMode(weekViewMode.LIST)}
-            className={`${viewMode === weekViewMode.LIST ? activeIconClasses : ""}`}><ReorderIcon /></IconButton>
-        </Tooltip>
-        {viewMode === "List" && <FormControlLabel
+        <IconModeIcon
+          title={weekViewMode.TABLE}
+          icon={<GoTable />}
+          isActive={viewMode === weekViewMode.TABLE}
+          onClick={() => setViewMode(weekViewMode.TABLE)}
+        />
+        <IconModeIcon
+          title={weekViewMode.LIST}
+          icon={<ReorderIcon />}
+          isActive={viewMode === weekViewMode.LIST}
+          onClick={() => setViewMode(weekViewMode.LIST)}
+        />
+        {viewMode === weekViewMode && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}

@@ -12,14 +12,14 @@ import {startHourOfDay} from "../config/timeConfig.js";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import StatusIcon from "../components/StatusIcon.jsx";
-import {CircularProgress, FormControlLabel, IconButton, Switch, Tooltip} from "@mui/material";
+import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import TimeLogList from "../components/TimeLogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from "@mui/icons-material/Reorder.js";
 import {monthViewMode} from "../consts/monthViewMode.js";
-import {viewMode} from "../consts/viewMode.js";
+import IconModeIcon from "../components/IconModeIcon.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -106,24 +106,25 @@ export default function MonthPage() {
     );
   }
 
-  const activeIconClasses = "border-blue-400 border-solid border rounded";
   return (
     <div className="my-6 w-2/3 mx-auto">
       <div className="flex items-center mb-2">
-        <Tooltip title="Calendar">
-          <IconButton
-            onClick={() => setViewMode(monthViewMode.CALENDAR)}
-            className={`${viewMode === monthViewMode.CALENDAR ? activeIconClasses : ""}`}><GoTable /></IconButton>
-        </Tooltip>
-        <Tooltip title="List">
-          <IconButton
-            onClick={() => setViewMode(monthViewMode.LIST)}
-            className={`${viewMode === monthViewMode.LIST ? activeIconClasses : ""}`}><ReorderIcon /></IconButton>
-        </Tooltip>
+        <IconModeIcon
+          title={monthViewMode.CALENDAR}
+          icon={<GoTable />}
+          isActive={viewMode === monthViewMode.CALENDAR}
+          onClick={() => setViewMode(monthViewMode.CALENDAR)}
+        />
+        <IconModeIcon
+          title={monthViewMode.LIST}
+          icon={<ReorderIcon />}
+          isActive={viewMode === monthViewMode.LIST}
+          onClick={() => setViewMode(monthViewMode.LIST)}
+        />
         <div className="font-medium ml-10">
           Month: {data.totalHours}
         </div>
-        {viewMode === "List" && <FormControlLabel
+        {viewMode === monthViewMode.LIST && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
