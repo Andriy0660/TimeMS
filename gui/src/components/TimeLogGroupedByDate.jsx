@@ -1,7 +1,7 @@
 import dateTimeService from "../service/dateTimeService.js";
 import TimeLog from "./TimeLog.jsx";
-import Divider from "@mui/material/Divider";
 import dayjs from "dayjs";
+import TimeLogGroup from "./TimeLogGroup.jsx";
 
 export default function TimeLogGroupedByDate({
   date,
@@ -10,24 +10,28 @@ export default function TimeLogGroupedByDate({
   mode,
   hoveredTimeLogIds,
   setGroupDescription,
+  isJiraEditMode,
   ...rest
 }) {
 
   return (
-    <div className="mb-2 shadow-md bg-gray-50">
+    <div>
       {mode !== "Day" &&
         <div className="ml-1 font-semibold text-gray-500 text-xs font-mono">{dateTimeService.getFormattedDate(dayjs(date))}</div>}
-      {renderedInner ? renderedInner : logsForDate.map((timeLog) =>
-        <div key={timeLog.id}>
-          <TimeLog
-            timeLog={timeLog}
-            {...rest}
-            setGroupDescription={setGroupDescription}
-            hovered={hoveredTimeLogIds?.includes(timeLog.id)}
-          />
-          <Divider />
-        </div>
-      )}
+      <div>
+        {renderedInner ? renderedInner : logsForDate.map((timeLog) =>
+
+          <TimeLogGroup key={timeLog.id} isJiraEditMode={isJiraEditMode} isSynced={timeLog.synced} color={timeLog.color}>
+            <TimeLog
+              timeLog={timeLog}
+              isJiraEditMode={isJiraEditMode}
+              {...rest}
+              setGroupDescription={setGroupDescription}
+              hovered={hoveredTimeLogIds?.includes(timeLog.id)}
+            />
+          </TimeLogGroup>
+        )}
+      </div>
     </div>
   )
 }

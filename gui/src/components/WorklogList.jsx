@@ -83,8 +83,7 @@ export default function WorklogList({mode, date, selectedTickets, isJiraEditMode
   }
 
   return (
-    <div className={`m-4 ${isJiraEditMode ? "ml-12" : ""}`}>
-      {!isJiraEditMode && <div className="mb-2 p-2 bg-green-100 font-medium text-green-900 w-fit rounded-2xl">Worklogs</div>}
+    <div className={`m-4`}>
       <div className="flex flex-col items-center">
         <div className="w-full overflow-x-auto">
           {filteredWorklogs.length

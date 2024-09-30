@@ -12,20 +12,25 @@ import {TiArrowForward} from "react-icons/ti";
 import dayjs from "dayjs";
 import VerticalDivider from "./VerticalDivider.jsx";
 import useAppContext from "../context/useAppContext.js";
-import Connector from "./Connector.jsx";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
-  const [isWorklogAvailable, setIsWorklogAvailable] = useState(false);
-  const {timeLogRefs} = useAppContext();
+  const {setWorklogRefs} = useAppContext();
 
   useEffect(() => {
-    if (worklogRef.current) {
-      setIsWorklogAvailable(true);
-    } else {
-      setIsWorklogAvailable(false);
+    if (worklogRef.current && isJiraEditMode) {
+      setWorklogRefs((prev) => {
+        const existingIndex = prev.findIndex(({worklog: {id}}) => id === worklog.id);
+        if (existingIndex !== -1) {
+          const updatedRefs = [...prev];
+          updatedRefs[existingIndex] = {worklog, ref: worklogRef};
+          return updatedRefs;
+        } else {
+          return [...prev, {worklog, ref: worklogRef}];
+        }
+      });
     }
-  }, [worklogRef]);
+  }, [worklogRef])
 
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -148,19 +153,6 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
         </div>
       </div>
       {isDeleteLoading || isCreateLoading && <LinearProgress />}
-      {isJiraEditMode && isWorklogAvailable && timeLogRefs.map((timeLogRef, index) => {
-        if (timeLogRef.timeLog.color === worklog.color) {
-          return (
-            <Connector
-              key={index}
-              startElement={timeLogRef.ref.current}
-              endElement={worklogRef.current}
-              color={timeLogRef.timeLog.color}
-            />
-          );
-        }
-        return null;
-      })}
     </div>
   )
 }
