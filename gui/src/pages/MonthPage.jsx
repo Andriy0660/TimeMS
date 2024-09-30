@@ -64,10 +64,9 @@ export default function MonthPage() {
   };
 
   const getDayCellClassNames = ({dow: dayOfWeek, date: cellDate}) => {
-    if (dayjs(cellDate).$M !== date.$M) return;
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
     const {synced, conflicted} = dayInfo || {};
-    if (!synced || conflicted) {
+    if ((!synced || conflicted) && dayjs(cellDate).$M === date.$M) {
       return ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
     } else if (dayOfWeek === 0 || dayOfWeek === 6) {
       return ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"];
@@ -77,15 +76,14 @@ export default function MonthPage() {
   }
 
   const getCellContent = ({dayNumberText, date: cellDate}) => {
-    if(dayjs(cellDate).$M !== date.$M) return;
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
     return (
       <div className="flex justify-between p-1">
-        {dayInfo &&
           <div>
-            <StatusIcon isSynced={dayInfo.synced} isConflicted={dayInfo.conflicted} />
+            {dayInfo && dayjs(cellDate).$M === date.$M && (
+              <StatusIcon isSynced={dayInfo.synced} isConflicted={dayInfo.conflicted} />
+            )}
           </div>
-        }
         <div>
           {dayNumberText}
         </div>
