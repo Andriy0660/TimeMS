@@ -2,12 +2,13 @@ import {createContext, useState} from "react";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dayjs from "dayjs";
+import {viewMode} from "../consts/viewMode.js";
 
 const AppContext = createContext();
 
 export const AppProvider = ({children}) => {
   const queryParams = new URLSearchParams(location.search);
-  const [mode, setMode] = useState(queryParams.get("mode") || "Day");
+  const [mode, setMode] = useState(queryParams.get("mode") || viewMode.DAY);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs())
 
   const addAlert = ({type, text}) => {

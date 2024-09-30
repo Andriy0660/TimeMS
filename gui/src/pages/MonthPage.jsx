@@ -19,6 +19,7 @@ import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from "@mui/icons-material/Reorder.js";
 import {monthViewMode} from "../consts/monthViewMode.js";
+import {viewMode} from "../consts/viewMode.js";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -61,7 +62,7 @@ export default function MonthPage() {
 
   const handleClickDate = (date) => {
     setDate(dayjs(date));
-    changeView("Day")
+    changeView(viewMode.DAY)
   };
 
   const getDayCellClassNames = ({dow: dayOfWeek, date: cellDate}) => {
@@ -158,7 +159,7 @@ export default function MonthPage() {
           eventClassNames={() => ["bg-transparent"]}
         />
       }
-      {monthViewMode.LIST && <TimeLogList
+      {viewMode === monthViewMode.LIST && <TimeLogList
         timeLogs={timeLogs}
         mode={mode}
         {...timeLogMutations}

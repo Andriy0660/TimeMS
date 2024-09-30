@@ -19,6 +19,7 @@ import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from '@mui/icons-material/Reorder';
 import {weekViewMode} from "../consts/weekViewMode.js";
+import {viewMode} from "../consts/viewMode.js";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
@@ -53,7 +54,7 @@ export default function WeekPage() {
 
   const handleClick = (date) => {
     setDate(dayjs(date))
-    changeView("Day")
+    changeView(viewMode.DAY)
   }
 
   const getTotalTimeForTicket = (ticket) => {

@@ -1,5 +1,6 @@
 import {useNavigate} from "react-router-dom";
 import useAppContext from "../context/useAppContext.js";
+import {viewMode} from "../consts/viewMode.js";
 
 export default function useViewChanger() {
   const navigate = useNavigate();
@@ -10,13 +11,13 @@ export default function useViewChanger() {
     setMode(newViewMode);
     let viewUrl;
     switch (newViewMode) {
-      case "Day" :
+      case viewMode.DAY :
         viewUrl = "/app/timelog";
         break;
-      case "Week" :
+      case viewMode.WEEK :
         viewUrl = "/app/weekview";
         break;
-      case "Month" :
+      case viewMode.MONTH :
         viewUrl = "/app/monthview";
         break;
       default :
