@@ -8,7 +8,7 @@ import dateTimeService from "../service/dateTimeService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
+import {CircularProgress, FormControlLabel, IconButton, Switch, Tooltip} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import CustomTableCell from "../components/CustomTableCell.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
@@ -16,12 +16,14 @@ import TimeLogList from "../components/TimeLogList.jsx";
 import {useState} from "react";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
+import {GoTable} from "react-icons/go";
+import ReorderIcon from '@mui/icons-material/Reorder';
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
   const {changeView} = useViewChanger();
-  const [isTableView, setIsTableView] = useState(true);
+  const [weekViewMode, setWeekViewMode] = useState("Table");
   const {date, setDate, addAlert, mode} = useAppContext();
 
   const {
@@ -70,25 +72,21 @@ export default function WeekPage() {
     );
   }
 
-
+  const activeIconClasses = "border-blue-400 border-solid border rounded";
   return (
     <div className="w-3/5 mx-auto">
-      <div className="flex items-center">
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isTableView}
-              onChange={(event) => setIsTableView((event.target.checked))}
-            />
-          }
-          label="List"
-          labelPlacement="start"
-          className="mr-0.5"
-        />
-        <div>
-          Table
-        </div>
-        {!isTableView && <FormControlLabel
+      <div className="flex justify-start my-2">
+        <Tooltip title="Table">
+          <IconButton
+            onClick={() => setWeekViewMode("Table")}
+            className={`${weekViewMode === "Table" ? activeIconClasses : ""}`}><GoTable /></IconButton>
+        </Tooltip>
+        <Tooltip title="List">
+          <IconButton
+            onClick={() => setWeekViewMode("List")}
+            className={`${weekViewMode === "List" ? activeIconClasses : ""}`}><ReorderIcon /></IconButton>
+        </Tooltip>
+        {weekViewMode === "List" && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
@@ -101,7 +99,7 @@ export default function WeekPage() {
         />
         }
       </div>
-      {isTableView && <TableContainer className="flex mx-auto mb-3">
+      {weekViewMode === "Table" && <TableContainer className="flex mx-auto mb-3">
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -151,7 +149,7 @@ export default function WeekPage() {
         </Table>
       </TableContainer>
       }
-      {!isTableView && (
+      {weekViewMode === "List" && (
         <TimeLogList
           timeLogs={timeLogs}
           mode={mode}
