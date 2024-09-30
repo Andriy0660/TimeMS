@@ -18,11 +18,12 @@ import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from "@mui/icons-material/Reorder.js";
+import {monthViewMode} from "../consts/monthViewMode.js";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
   const [calendarApi, setCalendarApi] = useState(null);
-  const [monthViewMode, setMonthViewMode] = useState("Calendar");
+  const [viewMode, setViewMode] = useState(monthViewMode.CALENDAR);
   const {date, setDate, addAlert, mode} = useAppContext();
   const {changeView} = useViewChanger();
 
@@ -108,20 +109,20 @@ export default function MonthPage() {
   return (
     <div className="my-6 w-2/3 mx-auto">
       <div className="flex items-center mb-2">
-        <div className="font-medium mr-10">
-          Month: {data.totalHours}
-        </div>
         <Tooltip title="Calendar">
           <IconButton
-            onClick={() => setMonthViewMode("Calendar")}
-            className={`${monthViewMode === "Calendar" ? activeIconClasses : ""}`}><GoTable /></IconButton>
+            onClick={() => setViewMode(monthViewMode.CALENDAR)}
+            className={`${viewMode === "Calendar" ? activeIconClasses : ""}`}><GoTable /></IconButton>
         </Tooltip>
         <Tooltip title="List">
           <IconButton
-            onClick={() => setMonthViewMode("List")}
-            className={`${monthViewMode === "List" ? activeIconClasses : ""}`}><ReorderIcon /></IconButton>
+            onClick={() => setViewMode(monthViewMode.LIST)}
+            className={`${viewMode === "List" ? activeIconClasses : ""}`}><ReorderIcon /></IconButton>
         </Tooltip>
-        {monthViewMode === "List" && <FormControlLabel
+        <div className="font-medium ml-10">
+          Month: {data.totalHours}
+        </div>
+        {viewMode === "List" && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
@@ -134,7 +135,7 @@ export default function MonthPage() {
         />
         }
       </div>
-      {monthViewMode === "Calendar" &&
+      {viewMode === monthViewMode.CALENDAR &&
         <FullCalendar
           initialDate={new Date(date)}
           events={data.items?.map(item => {
@@ -157,7 +158,7 @@ export default function MonthPage() {
           eventClassNames={() => ["bg-transparent"]}
         />
       }
-      {monthViewMode === "List" && <TimeLogList
+      {monthViewMode.LIST && <TimeLogList
         timeLogs={timeLogs}
         mode={mode}
         {...timeLogMutations}
