@@ -12,15 +12,17 @@ import {startHourOfDay} from "../config/timeConfig.js";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import StatusIcon from "../components/StatusIcon.jsx";
-import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
+import {CircularProgress, FormControlLabel, IconButton, Switch, Tooltip} from "@mui/material";
 import TimeLogList from "../components/TimeLogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
+import {GoTable} from "react-icons/go";
+import ReorderIcon from "@mui/icons-material/Reorder.js";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
   const [calendarApi, setCalendarApi] = useState(null);
-  const [isCalendarView, setIsCalendarView] = useState(true);
+  const [monthViewMode, setMonthViewMode] = useState("Calendar");
   const {date, setDate, addAlert, mode} = useAppContext();
   const {changeView} = useViewChanger();
 
@@ -104,27 +106,24 @@ export default function MonthPage() {
     );
   }
 
+  const activeIconClasses = "border-blue-400 border-solid border rounded";
   return (
-    <div className="mt-6 w-2/3 mx-auto">
-      <div className="flex items-center">
+    <div className="my-6 w-2/3 mx-auto">
+      <div className="flex items-center mb-2">
         <div className="font-medium mr-10">
           Month: {data.totalHours}
         </div>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isCalendarView}
-              onChange={(event) => setIsCalendarView((event.target.checked))}
-            />
-          }
-          label="List"
-          labelPlacement="start"
-          className="mr-0.5"
-        />
-        <div>
-          Calendar
-        </div>
-        {!isCalendarView && <FormControlLabel
+        <Tooltip title="Calendar">
+          <IconButton
+            onClick={() => setMonthViewMode("Calendar")}
+            className={`${monthViewMode === "Calendar" ? activeIconClasses : ""}`}><GoTable /></IconButton>
+        </Tooltip>
+        <Tooltip title="List">
+          <IconButton
+            onClick={() => setMonthViewMode("List")}
+            className={`${monthViewMode === "List" ? activeIconClasses : ""}`}><ReorderIcon /></IconButton>
+        </Tooltip>
+        {monthViewMode === "List" && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
@@ -137,7 +136,7 @@ export default function MonthPage() {
         />
         }
       </div>
-      {isCalendarView &&
+      {monthViewMode === "Calendar" &&
         <FullCalendar
           initialDate={new Date(date)}
           events={data.items?.map(item => {
@@ -160,7 +159,7 @@ export default function MonthPage() {
           eventClassNames={() => ["bg-transparent"]}
         />
       }
-      {!isCalendarView && <TimeLogList
+      {monthViewMode === "List" && <TimeLogList
         timeLogs={timeLogs}
         mode={mode}
         {...timeLogMutations}
