@@ -9,7 +9,6 @@ export const AppProvider = ({children}) => {
   const queryParams = new URLSearchParams(location.search);
   const [mode, setMode] = useState(queryParams.get("mode") || "Day");
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs())
-  const [view, setView] = useState(queryParams.get("view") || "Day")
 
   const addAlert = ({type, text}) => {
     return toast[type](text);
@@ -34,8 +33,6 @@ export const AppProvider = ({children}) => {
       <AppContext.Provider value={{
         date,
         setDate,
-        view,
-        setView,
         addAlert,
         mode,
         setMode

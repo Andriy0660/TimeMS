@@ -1,20 +1,15 @@
 import {useNavigate} from "react-router-dom";
 import useAppContext from "../context/useAppContext.js";
-import {useEffect} from "react";
 
 export default function useViewChanger() {
   const navigate = useNavigate();
-  const {view, setView, setMode} = useAppContext();
+  const {mode, setMode} = useAppContext();
 
-  useEffect(() => {
-    setMode(view)
-  }, [view]);
-
-  const changeView = (newView) => {
-    if(view === newView) return;
-    setView(newView);
+  const changeView = (newViewMode) => {
+    if(mode === newViewMode) return;
+    setMode(newViewMode);
     let viewUrl;
-    switch (newView) {
+    switch (newViewMode) {
       case "Day" :
         viewUrl = "/app/timelog";
         break;
@@ -25,11 +20,11 @@ export default function useViewChanger() {
         viewUrl = "/app/monthview";
         break;
       default :
-        console.error("No such view:", newView);
+        console.error("No such view:", newViewMode);
         return null;
     }
     const params = new URLSearchParams(location.search);
-    params.set("view", newView);
+    params.set("mode", newViewMode);
     navigate({pathname: viewUrl, search: params.toString()});
   }
   return {changeView}

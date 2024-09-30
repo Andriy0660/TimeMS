@@ -27,7 +27,7 @@ import useViewChanger from "../hooks/useViewChanger.js";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
-  const {date, setDate, view} = useAppContext();
+  const {date, setDate, mode} = useAppContext();
 
   useDateInUrl(date);
   const {changeView} = useViewChanger();
@@ -85,7 +85,7 @@ export default function NavBar() {
           className="mx-8 bg-white"
           size="small"
           inputProps={{"aria-label": "Without label"}}
-          value={view}
+          value={mode}
           onChange={(event) => {
             changeView(event.target.value);
           }}
@@ -95,7 +95,7 @@ export default function NavBar() {
           <MenuItem value="Week">Week</MenuItem>
           <MenuItem value="Month">Month</MenuItem>
         </Select>
-        {modeDatePickerConfig[view]}
+        {modeDatePickerConfig[mode]}
         <Tooltip title="Reset">
           <IconButton
             onClick={() => setDate(dayjs())}
