@@ -112,12 +112,12 @@ export default function MonthPage() {
         <Tooltip title="Calendar">
           <IconButton
             onClick={() => setViewMode(monthViewMode.CALENDAR)}
-            className={`${viewMode === "Calendar" ? activeIconClasses : ""}`}><GoTable /></IconButton>
+            className={`${viewMode === monthViewMode.CALENDAR ? activeIconClasses : ""}`}><GoTable /></IconButton>
         </Tooltip>
         <Tooltip title="List">
           <IconButton
             onClick={() => setViewMode(monthViewMode.LIST)}
-            className={`${viewMode === "List" ? activeIconClasses : ""}`}><ReorderIcon /></IconButton>
+            className={`${viewMode === monthViewMode.LIST ? activeIconClasses : ""}`}><ReorderIcon /></IconButton>
         </Tooltip>
         <div className="font-medium ml-10">
           Month: {data.totalHours}

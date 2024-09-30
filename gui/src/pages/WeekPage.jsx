@@ -18,12 +18,13 @@ import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from '@mui/icons-material/Reorder';
+import {weekViewMode} from "../consts/weekViewMode.js";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
   const {changeView} = useViewChanger();
-  const [weekViewMode, setWeekViewMode] = useState("Table");
+  const [viewMode, setViewMode] = useState(weekViewMode.TABLE);
   const {date, setDate, addAlert, mode} = useAppContext();
 
   const {
@@ -78,15 +79,15 @@ export default function WeekPage() {
       <div className="flex justify-start my-2">
         <Tooltip title="Table">
           <IconButton
-            onClick={() => setWeekViewMode("Table")}
-            className={`${weekViewMode === "Table" ? activeIconClasses : ""}`}><GoTable /></IconButton>
+            onClick={() => setViewMode(weekViewMode.TABLE)}
+            className={`${viewMode === weekViewMode.TABLE ? activeIconClasses : ""}`}><GoTable /></IconButton>
         </Tooltip>
         <Tooltip title="List">
           <IconButton
-            onClick={() => setWeekViewMode("List")}
-            className={`${weekViewMode === "List" ? activeIconClasses : ""}`}><ReorderIcon /></IconButton>
+            onClick={() => setViewMode(weekViewMode.LIST)}
+            className={`${viewMode === weekViewMode.LIST ? activeIconClasses : ""}`}><ReorderIcon /></IconButton>
         </Tooltip>
-        {weekViewMode === "List" && <FormControlLabel
+        {viewMode === "List" && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
@@ -99,7 +100,7 @@ export default function WeekPage() {
         />
         }
       </div>
-      {weekViewMode === "Table" && <TableContainer className="flex mx-auto mb-3">
+      {viewMode === weekViewMode.TABLE && <TableContainer className="flex mx-auto mb-3">
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -149,7 +150,7 @@ export default function WeekPage() {
         </Table>
       </TableContainer>
       }
-      {weekViewMode === "List" && (
+      {viewMode === weekViewMode.LIST && (
         <TimeLogList
           timeLogs={timeLogs}
           mode={mode}
