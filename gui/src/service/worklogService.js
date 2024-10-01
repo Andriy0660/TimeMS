@@ -10,9 +10,20 @@ const worklogService = {
       return filtered
     }
   },
+
   getAllWithoutTicket(worklogs) {
     return worklogs.filter(worklog => worklog.ticket === null);
   },
+
+  sortWorklogsByTimeLogs(worklogs, timeLogs) {
+    const newWorklogs = [];
+    for (let timeLog of timeLogs) {
+      const matchingWorklogs = worklogs.filter(worklog => worklog.color === timeLog.color);
+      newWorklogs.push(...matchingWorklogs);
+      worklogs = worklogs.filter(worklog => worklog.color !== timeLog.color);
+    }
+    return newWorklogs;
+  }
 }
 
 export default worklogService;

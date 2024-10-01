@@ -31,7 +31,7 @@ export default function TimeLogPage() {
   const [isJiraEditMode, setIsJiraEditMode] = useState(false);
 
   const {
-    groupByDescription, setGroupByDescription, timeLogs, processedDataRef, isListing,
+    groupByDescription, setGroupByDescription, timeLogs, processedTimeLogsArray, isListing,
     totalTimeLabel, filterTickets, selectedTickets, setSelectedTickets,
   } = useProcessedTimeLogs();
 
@@ -71,7 +71,7 @@ export default function TimeLogPage() {
   const isSyncingRunning = isSyncing || progress > 0;
 
   const saveFile = async () => {
-    const formattedText = fileService.convertToTxt(processedDataRef.current);
+    const formattedText = fileService.convertToTxt(processedTimeLogsArray);
     const blob = new Blob([formattedText], {type: "text/plain"});
     const a = document.createElement('a');
     a.download = `${dateTimeService.getFormattedDate(date)}-${mode}`
@@ -190,7 +190,7 @@ export default function TimeLogPage() {
         </div>
       </div>
       <div className={`${isJiraEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
-        {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
+        {mode === "Day" && <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
                                            hoveredProgressIntervalId={hoveredProgressIntervalId} />}
 
         {!isJiraEditMode && (
@@ -220,7 +220,7 @@ export default function TimeLogPage() {
                 />
               </div>
               <div className="w-1/2">
-                <WorklogList isJiraEditMode={isJiraEditMode} mode={mode} date={date} selectedTickets={selectedTickets} />
+                <WorklogList isJiraEditMode={isJiraEditMode} mode={mode} date={date} selectedTickets={selectedTickets} timeLogs={processedTimeLogsArray}/>
               </div>
             </div>
           </>

@@ -3,6 +3,7 @@ package com.example.timecraft.domain.worklog.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -52,6 +53,7 @@ public class WorklogServiceImpl implements WorklogService {
           ));
           return worklogDto;
         })
+        .sorted(Comparator.comparing(WorklogListResponse.WorklogDto::getDate).thenComparing(WorklogListResponse.WorklogDto::getStartTime))
         .toList();
     return new WorklogListResponse(timeLogDtoList);
   }

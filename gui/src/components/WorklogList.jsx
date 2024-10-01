@@ -10,7 +10,7 @@ import {useEffect} from "react";
 import worklogService from "../service/worklogService.js";
 import NoLogs from "./NoLogs.jsx";
 
-export default function WorklogList({mode, date, selectedTickets, isJiraEditMode}) {
+export default function WorklogList({mode, date, selectedTickets, isJiraEditMode, timeLogs}) {
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
   const offset = startHourOfDay;
@@ -29,6 +29,7 @@ export default function WorklogList({mode, date, selectedTickets, isJiraEditMode
     retryDelay: 300,
   });
   const filteredWorklogs = worklogService.filterByTickets(worklogs, selectedTickets);
+  const sortedWorklogs = worklogService.sortWorklogsByTimeLogs(filteredWorklogs, timeLogs)
 
   const {mutateAsync: createTimeLogFromWorklog} = useMutation({
     mutationFn: (body) => timeLogApi.createFromWorklog(body),
@@ -86,8 +87,8 @@ export default function WorklogList({mode, date, selectedTickets, isJiraEditMode
     <div className={`m-4`}>
       <div className="flex flex-col items-center">
         <div className="w-full overflow-x-auto">
-          {filteredWorklogs.length
-            ? filteredWorklogs.map(worklog =>
+          {sortedWorklogs.length
+            ? sortedWorklogs.map(worklog =>
               <Worklog
                 key={worklog.id}
                 worklog={worklog}

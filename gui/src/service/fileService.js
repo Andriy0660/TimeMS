@@ -8,7 +8,6 @@ const fileService = {
     const groupedData = timeLogProcessingService.group(data, ["date"]).data;
 
     return groupedData
-      .sort((a, b) => dateTimeService.compareDates(a.key, b.key))
       .map(({key, items: timeLogs}) => {
         const date = dayjs(key).format("ddd DD.MM.YYYY");
 

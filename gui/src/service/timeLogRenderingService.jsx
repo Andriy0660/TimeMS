@@ -1,6 +1,5 @@
 import TimeLogGroupedByDate from "../components/TimeLogGroupedByDate.jsx";
 import TimeLogGroupedByDescription from "../components/TimeLogGroupedByDescription.jsx";
-import dateTimeService from "./dateTimeService.js";
 import {CircularProgress} from "@mui/material";
 import NoLogs from "../components/NoLogs.jsx";
 
@@ -10,7 +9,6 @@ const timeLogRenderingService = {
     switch (JSON.stringify(timeLogs.groupOrder)) {
       case JSON.stringify(["date"]) :
         return timeLogs.data.length ? timeLogs.data
-          .sort((a, b) => dateTimeService.compareDates(a.key, b.key))
           .map(({key: date, items: logsForDate}) => (
             <div key={date}>
               <TimeLogGroupedByDate {...props} date={date} logsForDate={logsForDate} />
@@ -18,7 +16,6 @@ const timeLogRenderingService = {
           )) : <NoLogs />
       case JSON.stringify(["date", "ticketAndDescription"]) :
         return timeLogs.data.length ? timeLogs.data
-          .sort((a, b) => dateTimeService.compareDates(a.key, b.key))
           .map(({key: date, items: logsForDate}) => (
             <div key={date}>
               <TimeLogGroupedByDate {...props} date={date} logsForDate={logsForDate} renderedInner={this.renderedDescriptionGroup(props, logsForDate)} />

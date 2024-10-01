@@ -9,6 +9,7 @@ import java.time.LocalTime;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -71,6 +72,7 @@ public class TimeLogServiceImpl implements TimeLogService {
           ));
           return timeLogDto;
         })
+        .sorted(Comparator.comparing(TimeLogListResponse.TimeLogDto::getDate).thenComparing(TimeLogListResponse.TimeLogDto::getStartTime))
         .toList();
     return new TimeLogListResponse(timeLogDtoList);
   }
