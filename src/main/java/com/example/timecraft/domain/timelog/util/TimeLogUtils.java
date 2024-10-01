@@ -49,10 +49,13 @@ public class TimeLogUtils {
   }
 
   public static String generateColor(String ticket, String descr) {
-    String input = descr + ticket.chars()
-        .filter(Character::isDigit)
-        .mapToObj(c -> String.valueOf((char) c))
-        .collect(Collectors.joining());
+    String input = descr;
+    if (ticket != null) {
+      input = input.concat(ticket.chars()
+          .filter(Character::isDigit)
+          .mapToObj(c -> String.valueOf((char) c))
+          .collect(Collectors.joining()));
+    }
 
     MessageDigest digest = null;
     try {
@@ -62,6 +65,16 @@ public class TimeLogUtils {
     }
     byte[] hashBytes = digest.digest(input.getBytes());
 
+    int rgb = getRgb(hashBytes);
+
+    int red = (rgb >> 16) & 0xFF;
+    int green = (rgb >> 8) & 0xFF;
+    int blue = rgb & 0xFF;
+
+    return String.format("#%02x%02x%02x", red, green, blue);
+  }
+
+  private static int getRgb(final byte[] hashBytes) {
     int hueSum = 0;
     int saturationSum = 0;
     int brightnessSum = 0;
@@ -77,12 +90,6 @@ public class TimeLogUtils {
     float saturation = 0.2f + (saturationSum % 500) / 1000f;
     float brightness = 0.5f + (brightnessSum % 300) / 1000f;
 
-    int rgb = Color.HSBtoRGB(hue, saturation, brightness);
-
-    int red = (rgb >> 16) & 0xFF;
-    int green = (rgb >> 8) & 0xFF;
-    int blue = rgb & 0xFF;
-
-    return String.format("#%02x%02x%02x", red, green, blue);
+    return Color.HSBtoRGB(hue, saturation, brightness);
   }
 }
