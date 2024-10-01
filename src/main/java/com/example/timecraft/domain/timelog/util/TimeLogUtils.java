@@ -87,8 +87,8 @@ public class TimeLogUtils {
     }
 
     float hue = (hueSum % 360) / 360f;
-    float saturation = 0.2f + (saturationSum % 500) / 1000f;
-    float brightness = 0.5f + (brightnessSum % 300) / 1000f;
+    float saturation = (saturationSum % 500) / 1000f;
+    float brightness = 0.7f + (brightnessSum % 300) / 1000f;
 
     return Color.HSBtoRGB(hue, saturation, brightness);
   }

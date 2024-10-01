@@ -596,7 +596,7 @@ export default function TimeLog({
         return null;
       })}
       {!groupByDescription &&
-        <Description className="w-fit" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription} />}
+        <Description className="w-fit" description={description} ids={[timeLog.id]} isJiraEditMode={isJiraEditMode} setGroupDescription={setGroupDescription} />}
       {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading || isChangingDate) &&
         <LinearProgress />}
     </div>

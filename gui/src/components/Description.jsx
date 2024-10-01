@@ -3,8 +3,9 @@ import {useEffect, useRef, useState} from "react";
 import BackspaceOutlinedIcon from "@mui/icons-material/BackspaceOutlined.js";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined.js";
 import useAsyncCall from "../hooks/useAsyncCall.js";
+import classNames from "classnames";
 
-export default function Description({description, ids, setGroupDescription, className}) {
+export default function Description({description, ids, setGroupDescription, isJiraEditMode, className}) {
   const [isEditing, setIsEditing] = useState(false);
   const [descriptionField, setDescriptionField] = useState(description)
   const descriptionFieldRef = useRef(null);
@@ -40,7 +41,10 @@ export default function Description({description, ids, setGroupDescription, clas
   return (
     <div
       ref={descriptionFieldRef}
-      className={`${className} text-justify whitespace-pre-wrap ${isEditing ? "w-full py-2" : "hover:bg-blue-100"}`}
+      className={classNames(className, "text-justify whitespace-pre-wrap", {
+        "w-full py-2": isEditing,
+        "hover:bg-blue-100": !isEditing && !isJiraEditMode,
+      })}
     >
       {isEditing ? (
         <div>
