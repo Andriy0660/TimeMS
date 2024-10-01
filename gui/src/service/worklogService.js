@@ -18,10 +18,15 @@ const worklogService = {
   sortWorklogsByTimeLogs(worklogs, timeLogs) {
     const newWorklogs = [];
     for (let timeLog of timeLogs) {
-      const matchingWorklogs = worklogs.filter(worklog => worklog.color === timeLog.color);
-      newWorklogs.push(...matchingWorklogs);
-      worklogs = worklogs.filter(worklog => worklog.color !== timeLog.color);
+      for (let worklog of worklogs) {
+        if(worklog.color === timeLog.color && worklog.synced) {
+          newWorklogs.push(worklog);
+          worklogs = worklogs.filter(worklog1 => worklog1 !== worklog);
+        }
+      }
     }
+    const nonMatchingWorklogs = worklogs.filter(worklog => worklog.synced === false);
+    newWorklogs.push(...nonMatchingWorklogs);
     return newWorklogs;
   }
 }

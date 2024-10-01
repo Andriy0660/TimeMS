@@ -53,7 +53,9 @@ public class WorklogServiceImpl implements WorklogService {
           ));
           return worklogDto;
         })
-        .sorted(Comparator.comparing(WorklogListResponse.WorklogDto::getDate).thenComparing(WorklogListResponse.WorklogDto::getStartTime))
+        .sorted(Comparator
+            .comparing(WorklogListResponse.WorklogDto::getDate)
+            .thenComparing(WorklogListResponse.WorklogDto::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())))
         .toList();
     return new WorklogListResponse(timeLogDtoList);
   }

@@ -48,14 +48,14 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
   })
 
   return (
-    <div className="mb-2 px-4 shadow-md rounded-md bg-gray-50"
+    <div className="mb-2 px-4 py-1 shadow-md rounded-md bg-gray-50"
          ref={worklogRef}
          style={isJiraEditMode ? {backgroundColor: worklog.color} : {}}
          onMouseEnter={() => setIsHovered(true)}
          onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex justify-between">
-        <div className="mt-1 flex items-center">
+        <div className="flex items-center">
           <div className="flex mr-4 my-1">
             {isTimeLogInNextDay.startTime &&
               <Tooltip className="flex items-center mr-1" title="Next day">
@@ -148,9 +148,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
       </div>
 
       <div className="flex items-center">
-        <div className="my-1">
           {worklog.comment}
-        </div>
       </div>
       {isDeleteLoading || isCreateLoading && <LinearProgress />}
     </div>

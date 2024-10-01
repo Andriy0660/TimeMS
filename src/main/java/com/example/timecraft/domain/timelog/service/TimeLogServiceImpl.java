@@ -72,7 +72,9 @@ public class TimeLogServiceImpl implements TimeLogService {
           ));
           return timeLogDto;
         })
-        .sorted(Comparator.comparing(TimeLogListResponse.TimeLogDto::getDate).thenComparing(TimeLogListResponse.TimeLogDto::getStartTime))
+        .sorted(Comparator
+            .comparing(TimeLogListResponse.TimeLogDto::getDate)
+            .thenComparing(TimeLogListResponse.TimeLogDto::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())))
         .toList();
     return new TimeLogListResponse(timeLogDtoList);
   }

@@ -582,7 +582,7 @@ export default function TimeLog({
         Are you sure you want to delete this time log?
       </ConfirmationModal>
 
-      {isHovered && isJiraEditMode && isTimeLogAvailable && worklogRefs.map((worklogRef, index) => {
+      {isHovered && isJiraEditMode && timeLog.synced && isTimeLogAvailable && worklogRefs.map((worklogRef, index) => {
         if (timeLog.color === worklogRef.worklog.color) {
           return (
             <Connector
