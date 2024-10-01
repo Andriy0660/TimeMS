@@ -11,11 +11,11 @@ export const AppProvider = ({children}) => {
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs())
   const [view, setView] = useState(queryParams.get("view") || "Day")
 
-  // const [timeLogRefs, setTimeLogRefs] = useState([]);
+  const [timeLogRefs, setTimeLogRefs] = useState([]);
 
-  // useEffect(() => {
-  //   setTimeLogRefs([])
-  // }, [date]);
+  useEffect(() => {
+    setTimeLogRefs([])
+  }, [date]);
 
   const [worklogRefs, setWorklogRefs] = useState([]);
 
@@ -51,8 +51,8 @@ export const AppProvider = ({children}) => {
         addAlert,
         mode,
         setMode,
-        // timeLogRefs,
-        // setTimeLogRefs,
+        timeLogRefs,
+        setTimeLogRefs,
         worklogRefs,
         setWorklogRefs
       }}>

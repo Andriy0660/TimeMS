@@ -207,7 +207,7 @@ export default function TimeLogPage() {
         {isJiraEditMode && (
           <>
             <div className="flex">
-              <div className="w-1/2">
+              <div className="w-1/2 mr-6">
                 <TimeLogList
                   timeLogs={timeLogs}
                   mode={mode}
@@ -219,7 +219,7 @@ export default function TimeLogPage() {
                   setHoveredConflictedIds={setHoveredConflictedIds}
                 />
               </div>
-              <div className="w-1/2">
+              <div className="w-1/2 ml-6">
                 <WorklogList isJiraEditMode={isJiraEditMode} mode={mode} date={date} selectedTickets={selectedTickets} timeLogs={processedTimeLogsArray}/>
               </div>
             </div>

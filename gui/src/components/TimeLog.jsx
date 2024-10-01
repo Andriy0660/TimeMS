@@ -29,6 +29,7 @@ import VerticalDivider from "./VerticalDivider.jsx";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import classNames from "classnames";
 import Connector from "./Connector.jsx";
+import Brightness1Icon from "@mui/icons-material/Brightness1";
 
 export default function TimeLog({
   timeLog,
@@ -63,7 +64,7 @@ export default function TimeLog({
 
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
-  const {addAlert, worklogRefs} = useAppContext();
+  const {addAlert, worklogRefs, setTimeLogRefs} = useAppContext();
 
   const timeLogRef = useRef(null);
   const timeLogUpperPartRef = useRef(null);
@@ -77,6 +78,21 @@ export default function TimeLog({
       setIsTimeLogAvailable(false);
     }
   }, [timeLogRef]);
+
+  useEffect(() => {
+    if (timeLogRef.current && isJiraEditMode) {
+      setTimeLogRefs((prev) => {
+        const existingIndex = prev.findIndex(({timeLog: {id}}) => id === timeLog.id);
+        if (existingIndex !== -1) {
+          const updatedRefs = [...prev];
+          updatedRefs[existingIndex] = {timeLog, ref: timeLogRef};
+          return updatedRefs;
+        } else {
+          return [...prev, {timeLog, ref: timeLogRef}];
+        }
+      });
+    }
+  }, [timeLogRef])
 
   const [divideMenuEl, setDivideMenuEl] = useState(null);
   const [moreActionsMenuEl, setMoreActionsMenuEl] = useState(null);
@@ -396,6 +412,7 @@ export default function TimeLog({
               <Tooltip title="Synchronized">
                 <DoneIcon color="success" />
               </Tooltip>
+
             )
             : (
               <Tooltip title="Not synchronized">
@@ -567,6 +584,7 @@ export default function TimeLog({
 
           </div>
           }
+          {isJiraEditMode && timeLog.synced && <Brightness1Icon sx={{color: timeLog.color}} />}
         </div>
       </div>
       <ConfirmationModal

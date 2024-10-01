@@ -12,10 +12,22 @@ import {TiArrowForward} from "react-icons/ti";
 import dayjs from "dayjs";
 import VerticalDivider from "./VerticalDivider.jsx";
 import useAppContext from "../context/useAppContext.js";
+import Connector from "./Connector.jsx";
+import Brightness1Icon from "@mui/icons-material/Brightness1.js";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
-  const {setWorklogRefs} = useAppContext();
+  const {setWorklogRefs, timeLogRefs} = useAppContext();
+
+  const [isWorkogAvailable, setIsWorklogAvailable] = useState(false);
+
+  useEffect(() => {
+    if (worklogRef.current) {
+      setIsWorklogAvailable(true);
+    } else {
+      setIsWorklogAvailable(false);
+    }
+  }, [worklogRef]);
 
   useEffect(() => {
     if (worklogRef.current && isJiraEditMode) {
@@ -50,12 +62,13 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
   return (
     <div className="mb-2 px-4 py-1 shadow-md rounded-md bg-gray-50"
          ref={worklogRef}
-         style={isJiraEditMode ? {backgroundColor: worklog.color} : {}}
          onMouseEnter={() => setIsHovered(true)}
          onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex justify-between">
         <div className="flex items-center">
+          {isJiraEditMode && worklog.synced && <Brightness1Icon className="mr-2" sx={{color: worklog.color}} />}
+
           <div className="flex mr-4 my-1">
             {isTimeLogInNextDay.startTime &&
               <Tooltip className="flex items-center mr-1" title="Next day">
@@ -150,6 +163,19 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
       <div className="flex items-center">
           {worklog.comment}
       </div>
+      {isHovered && isJiraEditMode && worklog.synced && isWorkogAvailable && timeLogRefs.map((timeLogRef, index) => {
+        if (worklog.color === timeLogRef.timeLog.color) {
+          return (
+            <Connector
+              key={index}
+              startElement={timeLogRef.ref.current}
+              endElement={worklogRef.current}
+              color={worklog.color}
+            />
+          );
+        }
+        return null;
+      })}
       {isDeleteLoading || isCreateLoading && <LinearProgress />}
     </div>
   )
