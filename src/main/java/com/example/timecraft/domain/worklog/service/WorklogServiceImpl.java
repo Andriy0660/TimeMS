@@ -1,5 +1,7 @@
 package com.example.timecraft.domain.worklog.service;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -19,6 +21,7 @@ import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.logsync.util.LogSyncUtil;
+import com.example.timecraft.domain.timelog.service.DurationService;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
@@ -39,6 +42,7 @@ public class WorklogServiceImpl implements WorklogService {
   private final SyncProgressService syncProgressService;
   private final WorklogMapper mapper;
   private final AppProperties props;
+  private final Clock clock;
 
   @Override
   public WorklogListResponse list(final String mode, final LocalDate date) {
@@ -99,16 +103,24 @@ public class WorklogServiceImpl implements WorklogService {
 
   @Override
   public WorklogProgressResponse getProgress() {
-    return new WorklogProgressResponse(
-        syncProgressService.getProgress(),
-        syncProgressService.getTicketOfCurrentWorklog(),
-        syncProgressService.getCommentOfCurrentWorklog()
-    );
+    Duration duration = Duration.ZERO;
+    if(syncProgressService.getStartTime() != null) {
+      duration = Duration.between(syncProgressService.getStartTime(), LocalDateTime.now(clock));
+    }
+
+    return WorklogProgressResponse.builder()
+        .progress(syncProgressService.getProgress())
+        .totalIssues(syncProgressService.getTotalIssues())
+        .currentIssueNumber(syncProgressService.getCurrentIssueNumber())
+        .worklogInfos(syncProgressService.getWorklogInfos())
+        .duration(DurationService.formatProgressDuration(duration))
+        .build();
   }
 
   @Override
   public void syncWorklogs() {
     if (syncProgressService.getProgress() > 0) return;
+    syncProgressService.setStartTime(LocalDateTime.now(clock));
 
     List<WorklogEntity> currentWorklogs = worklogRepository.findAll();
     List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchAllWorkLogDtos()

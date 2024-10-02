@@ -37,8 +37,7 @@ export default function useWorklogSync() {
     retryDelay: 300
   });
 
-  const progress = progressInfo.progress;
-  const isSyncingRunning = isSyncingLaunched || progress > 0;
+  const isSyncingRunning = isSyncingLaunched || progressInfo.progress > 0;
 
   return {
     syncWorklogs,

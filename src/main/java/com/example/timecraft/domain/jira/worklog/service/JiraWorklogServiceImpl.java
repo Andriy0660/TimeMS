@@ -22,6 +22,7 @@ import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
+import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
 import com.example.timecraft.domain.worklog.service.SyncProgressService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,10 +50,12 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
       allJiraWorklogDtos.addAll(worklogForKey);
 
       syncProgressService.setProgress(syncProgressService.getProgress() + step);
-      String ticket = !worklogForKey.isEmpty() ? worklogForKey.getFirst().getIssueKey() : null;
-      String comment = !worklogForKey.isEmpty() ? worklogForKey.getFirst().getComment() : null;
-      if (ticket != null) syncProgressService.setTicketOfCurrentWorklog(ticket);
-      if (comment != null) syncProgressService.setCommentOfCurrentWorklog(comment);
+      syncProgressService.setCurrentIssueNumber(syncProgressService.getCurrentIssueNumber() + 1);
+      List<WorklogProgressResponse.WorklogInfo> worklogInfos = new ArrayList<>();
+      for(JiraWorklogDto dto : worklogForKey) {
+        worklogInfos.add(new WorklogProgressResponse.WorklogInfo(dto.getIssueKey(),  dto.getComment()));
+      }
+      syncProgressService.setWorklogInfos(worklogInfos);
     }
     return allJiraWorklogDtos;
   }
@@ -72,6 +75,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
                 .toList()
         );
         total = jiraResponse.getTotal();
+        syncProgressService.setTotalIssues(total);
       }
 
       startAt += maxResults;

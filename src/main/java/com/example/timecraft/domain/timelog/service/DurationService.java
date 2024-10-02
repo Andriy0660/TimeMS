@@ -9,4 +9,9 @@ public class DurationService {
   public static String formatDuration(final Duration duration) {
     return String.format("%dh %dm", duration.toHours(), duration.toMinutesPart());
   }
+
+  public static String formatProgressDuration(final Duration duration) {
+    return String.format("%dh %dm %ds", duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
+  }
+
 }

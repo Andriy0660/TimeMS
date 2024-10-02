@@ -1,6 +1,6 @@
 import {
   AppBar,
-  Box, CircularProgress,
+  Box,
   Drawer,
   IconButton,
   List,
@@ -24,8 +24,7 @@ import useDateInUrl from "../hooks/useDateInUrl.js";
 import dayjs from "dayjs";
 import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore.js";
 import useViewChanger from "../hooks/useViewChanger.js";
-import Button from "@mui/material/Button";
-import useWorklogSync from "../hooks/useWorklogSync.js";
+import SyncWorklogsButton from "./SyncWorklogsButton.jsx";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
@@ -33,8 +32,6 @@ export default function NavBar() {
 
   useDateInUrl(date);
   const {changeView} = useViewChanger();
-
-  const {syncWorklogs, progressInfo: {progress}, isSyncingRunning, isSyncingLaunched} = useWorklogSync();
 
   const modeDatePickerConfig = {
     Day: <DayPicker buttonColor="white" />,
@@ -54,6 +51,14 @@ export default function NavBar() {
           <Link to="/app/timelog" onClick={() => changeView("Day")} className="text-inherit no-underline w-full">
             <ListItemButton>
               <ListItemText primary="TimeLog" />
+            </ListItemButton>
+          </Link>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <Link to="/app/syncWorklogs" className="text-inherit no-underline w-full">
+            <ListItemButton>
+              <ListItemText primary="Sync Worklogs" />
             </ListItemButton>
           </Link>
         </ListItem>
@@ -109,16 +114,7 @@ export default function NavBar() {
             <SettingsBackupRestoreIcon />
           </IconButton>
         </Tooltip>
-        <Button onClick={syncWorklogs} className="mx-4 bg-white" sx={{color: "primary.main"}} disabled={isSyncingLaunched || progress > 0} variant="contained">
-          {isSyncingRunning
-            ? (
-              <>
-                {progress > 0 ? `${Math.floor(progress)}%` : <CircularProgress size={25} />}
-                <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
-              </>
-            )
-            : "sync worklogs"}
-        </Button>
+        <SyncWorklogsButton>Sync Worklogs</SyncWorklogsButton>
       </Toolbar>
       <Drawer open={open} onClose={toggleMenu(false)}>
         {DrawerList}
