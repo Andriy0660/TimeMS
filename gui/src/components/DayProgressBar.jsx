@@ -5,7 +5,7 @@ import minMax from "dayjs/plugin/minMax";
 
 dayjs.extend(minMax);
 
-const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
+const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIntervalId}) => {
   const startOfDay = dateTimeService.getStartOfDay(date);
   const endOfDay = startOfDay.add(1, "day");
   const startOfWorkingDay = dateTimeService.getStartOfWorkingDay(date);
@@ -33,7 +33,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
         splitTimeLogIntoIntervals(timeLog).forEach(interval => {
           intervals.push({
             ...interval,
-            color: getColor(interval.id.length),
+            color: getColor(interval),
           });
         });
       }
@@ -97,7 +97,11 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds}) => {
     return newIntervals;
   }
 
-  function getColor(overlapCount) {
+  function getColor(interval) {
+    if(interval.id.includes(hoveredProgressIntervalId)) {
+      return "rgb(117, 141, 235)";
+    }
+    const overlapCount = interval.id.length;
     switch (overlapCount) {
       case 1:
         return "blue";

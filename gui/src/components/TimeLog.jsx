@@ -39,6 +39,7 @@ export default function TimeLog({
   changeDate,
   hovered,
   setGroupDescription,
+  setHoveredProgressIntervalId,
   onSync
 }) {
   const currentTime = dayjs();
@@ -395,8 +396,14 @@ export default function TimeLog({
   return (
     <div
       className={`px-4  ${status === "InProgress" ? "bg-blue-50" : ""} ${hovered ? "bg-blue-100" : ""}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        setHoveredProgressIntervalId(timeLog.id)
+      }}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setHoveredProgressIntervalId(0)
+      }}
     >
       <div ref={timeLogRef} className="flex justify-between">
         <div className="flex items-center">
