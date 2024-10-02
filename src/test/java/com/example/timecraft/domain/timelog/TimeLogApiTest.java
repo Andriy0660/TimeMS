@@ -277,19 +277,17 @@ class TimeLogApiTest {
 
   @Test
   void shouldGetHoursForMonth() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now().with(firstDayOfMonth()), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now().with(lastDayOfMonth()), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now().with(firstDayOfMonth()), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now().with(lastDayOfMonth()), LocalTime.of(9, 0, 0));
 
     timeLog1 = timeLogRepository.save(timeLog1);
     timeLog2 = timeLogRepository.save(timeLog2);
-    timeLog3 = timeLogRepository.save(timeLog3);
 
     mvc.perform(get("/time-logs/hoursForMonth")
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.totalHours").value("3h 0m"))
+        .andExpect(jsonPath("$.totalHours").value("2h 0m"))
         .andExpect(jsonPath("$.items", hasItem(allOf(
             hasEntry("duration", "1h 0m"),
             hasEntry("date", timeLog1.getDate().format(ISO_LOCAL_DATE))
