@@ -32,7 +32,7 @@ export default function SyncPage() {
 
   return (
     <div className="w-3/5 mx-auto">
-      {!isSyncingLaunched && (
+      {!isSyncingLaunched && !isSyncingRunning && (
         <ProgressInfo className="my-10 text-center text-blue-500 text-2xl font-bold">Start synchronizing to show detailed logs!</ProgressInfo>
       )}
       {lastSyncedAt &&

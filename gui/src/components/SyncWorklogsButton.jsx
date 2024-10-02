@@ -4,18 +4,22 @@ import useAppContext from "../context/useAppContext.js";
 
 export default function SyncWorklogsButton({children}) {
   const {syncWorklogs, isSyncingLaunched, isSyncingRunning, progressInfo: {progress}} = useAppContext();
+  let buttonContent = null;
+  if (!isSyncingLaunched && !isSyncingRunning) {
+    buttonContent = <>{children}</>
+  } else if (isSyncingLaunched && !isSyncingRunning) {
+    buttonContent = <CircularProgress size={25} />
+  } else if (isSyncingLaunched || isSyncingRunning) {
+    buttonContent = <>
+      {`${Math.round(progress)}%`}
+      <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
+    </>
+  }
 
   return (
-    <Button onClick={syncWorklogs} className="mx-4 bg-white" sx={{color: "primary.main"}} disabled={isSyncingLaunched}
+    <Button onClick={syncWorklogs} className="mx-4 bg-white" sx={{color: "primary.main"}} disabled={isSyncingLaunched || isSyncingRunning}
             variant="contained">
-      {!isSyncingLaunched && <>{children}</>}
-      {isSyncingLaunched && !isSyncingRunning && <CircularProgress size={25} />}
-      {isSyncingLaunched && isSyncingRunning && (
-        <>
-          {`${Math.round(progress)}%`}
-          <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
-        </>
-      )}
+      {buttonContent}
     </Button>
   )
 }
