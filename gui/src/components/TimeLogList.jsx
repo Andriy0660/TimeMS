@@ -12,7 +12,9 @@ export default function TimeLogList({
   changeDate,
   onSync,
   hoveredTimeLogIds,
-  setHoveredProgressIntervalId
+  setHoveredProgressIntervalId,
+  hoveredConflictedIds,
+  setHoveredConflictedIds
 }) {
   const renderedTimeLogs = timeLogRenderingService.render({
     timeLogs,
@@ -26,7 +28,9 @@ export default function TimeLogList({
     changeDate,
     onSync,
     hoveredTimeLogIds,
-    setHoveredProgressIntervalId
+    setHoveredProgressIntervalId,
+    hoveredConflictedIds,
+    setHoveredConflictedIds
   })
   return (
     <div className="m-4 flex flex-col items-center">

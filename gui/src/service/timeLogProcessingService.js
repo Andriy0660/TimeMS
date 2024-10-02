@@ -130,6 +130,9 @@ const timeLogProcessingService = {
         if(i !== j && startTime1.isBefore(endTime2) && endTime1.isAfter(startTime2)) {
           markedData[i].isConflicted = true;
           markedData[j].isConflicted = true;
+
+          markedData[i].conflictedIds = markedData[i].conflictedIds ?? [];
+          markedData[i].conflictedIds.push(markedData[j].id);
         }
       }
     }

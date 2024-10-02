@@ -22,7 +22,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Description from "./Description.jsx";
 import {deepOrange} from "@mui/material/colors";
 import DoneIcon from '@mui/icons-material/Done';
-import CloseIcon from '@mui/icons-material/Close';
+import SyncDisabledIcon from '@mui/icons-material/SyncDisabled';
 import SyncIcon from '@mui/icons-material/Sync';
 import Duration from "./Duration.jsx";
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
@@ -40,6 +40,8 @@ export default function TimeLog({
   hovered,
   setGroupDescription,
   setHoveredProgressIntervalId,
+  hoveredConflictedIds,
+  setHoveredConflictedIds,
   onSync
 }) {
   const currentTime = dayjs();
@@ -395,14 +397,17 @@ export default function TimeLog({
 
   return (
     <div
-      className={`px-4  ${status === "InProgress" ? "bg-blue-50" : ""} ${hovered ? "bg-blue-100" : ""}`}
+      className={`px-4  
+      ${status === "InProgress" ? "bg-blue-50" : ""} 
+      ${hovered ? "bg-blue-100" : ""} 
+      ${hoveredConflictedIds.includes(timeLog.id) ? "bg-rose-100" : ""}`}
       onMouseEnter={() => {
         setIsHovered(true);
         setHoveredProgressIntervalId(timeLog.id)
       }}
       onMouseLeave={() => {
         setIsHovered(false);
-        setHoveredProgressIntervalId(0)
+        setHoveredProgressIntervalId(null)
       }}
     >
       <div ref={timeLogRef} className="flex justify-between">
@@ -419,13 +424,17 @@ export default function TimeLog({
             )
             : (
               <Tooltip title="Not synchronized">
-                <CloseIcon color="error" />
+                <SyncDisabledIcon color="error" />
               </Tooltip>
             )
           }
 
           {timeLog.isConflicted && (
-            <Tooltip title="Conflicted">
+            <Tooltip
+              title="Conflicted"
+              onMouseEnter={() => setHoveredConflictedIds(timeLog.conflictedIds)}
+              onMouseLeave={() => setHoveredConflictedIds([])}
+            >
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
           )}

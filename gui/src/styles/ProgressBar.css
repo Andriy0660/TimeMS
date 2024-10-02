@@ -2,19 +2,36 @@
     position: relative;
     margin-top: 10px;
     width: 95%;
-    height: 10px;
+    height: 12px;
     left: 50%;
     transform: translateX(-50%);
-    border-radius: 9999px;
     overflow: hidden;
 }
 
 .progress-interval {
+    height: 60%;
+    top: 20%;
     position: absolute;
+}
+
+.hovered-progress-interval {
     height: 100%;
+    position: absolute;
+}
+
+.progress-interval:first-child, .hovered-progress-interval:first-child {
+    border-radius: 999px 0 0 999px;
+}
+
+.progress-interval:last-child, .hovered-progress-interval:last-child {
+    border-radius: 0 999px 999px 0;
 }
 
 .thin {
     top: 37.5%;
     height: 25%;
+}
+.hovered-thin {
+    height: 40%;
+    top: 30%
 }
