@@ -4,13 +4,9 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import {Checkbox, CircularProgress, FormControl, FormControlLabel, IconButton, ListItemText, MenuItem, Select, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
-import {useEffect, useRef, useState} from "react";
 import dateTimeService from "../service/dateTimeService.js";
 import MonthPicker from "../components/MonthPicker..jsx";
 import WeekPicker from "../components/WeekPicker.jsx";
-import {useNavigate} from "react-router-dom";
-import timeLogProcessingService from "../service/timeLogProcessingService.js";
-import {startHourOfDay} from "../config/timeConfig.js";
 import Label from "../components/Label.jsx";
 import DayProgressBar from "../components/DayProgressBar.jsx";
 import ClearIcon from '@mui/icons-material/Clear';
@@ -19,240 +15,26 @@ import Button from "@mui/material/Button";
 import ImportButton from "../components/ImportButton.jsx";
 import worklogApi from "../api/worklogApi.js";
 import WorklogList from "../components/WorklogList.jsx";
+import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
+import {useState} from "react";
+import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
+import {viewMode} from "../consts/viewMode.js";
 
 export default function TimeLogPage() {
-  const [timeLogs, setTimeLogs] = useState([]);
+  const {date, addAlert, mode} = useAppContext();
+
+  const queryClient = useQueryClient();
+
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
   const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
   const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);
 
-  const queryParams = new URLSearchParams(location.search);
-  const {date, setDate, addAlert} = useAppContext();
-  const [mode, setMode] = useState(queryParams.get("mode") || "Day");
-  const offset = startHourOfDay;
-  const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
-  const [filterTickets, setFilterTickets] = useState([""])
-  const [selectedTickets, setSelectedTickets] = useState([]);
-
-  const [totalTimeLabel, setTotalTimeLabel] = useState("")
-  const queryClient = useQueryClient();
-
-  const navigate = useNavigate();
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (mode && mode !== "Day") {
-      params.set("mode", mode);
-    } else {
-      params.delete("mode")
-    }
-    if(groupByDescription) {
-      params.set("groupByDescription", true);
-    } else {
-      params.delete("groupByDescription");
-    }
-    navigate({search: params.toString()});
-  }, [mode, groupByDescription]);
-
   const {
-    data,
-    isPending: isListing,
-    error: listAllError,
-    isPlaceholderData
-  } = useQuery({
-    queryKey: [timeLogApi.key, mode, date, offset],
-    queryFn: () => {
-      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
-    },
-    // placeholderData: (prev) => prev,
-    retryDelay: 300,
-  });
-  const processedDataRef = useRef([]);
-  useEffect(() => {
-    const processedData = timeLogProcessingService.processData(data, selectedTickets);
-    processedDataRef.current = processedData;
+    groupByDescription, setGroupByDescription, timeLogs, processedDataRef, isListing,
+    totalTimeLabel, filterTickets, selectedTickets, setSelectedTickets,
+  } = useProcessedTimeLogs();
 
-    const filterTickets = getFilterTickets(data);
-    updateSelectedTicketsIfNeeded(filterTickets);
-
-    const groupedData = groupAndSortData(processedData, groupByDescription);
-    const label = calculateTotalTimeLabel(groupedData, groupByDescription);
-    setTimeLogs(groupedData)
-    setTotalTimeLabel(label);
-  }, [data, groupByDescription, selectedTickets])
-
-  function getFilterTickets(data) {
-    const filterTickets = timeLogProcessingService.extractTickets(data);
-    filterTickets.push("Without ticket");
-    setFilterTickets(filterTickets);
-    return filterTickets;
-  }
-
-  function updateSelectedTicketsIfNeeded(filterTickets) {
-    const updatedTickets = selectedTickets.filter(ticket => filterTickets.includes(ticket));
-    if (selectedTickets.toString() !== updatedTickets.toString()) {
-      setSelectedTickets(updatedTickets);
-    }
-  }
-
-  function groupAndSortData(data, groupByDescription) {
-    if (groupByDescription) {
-      return timeLogProcessingService.group(data, ["date", "ticketAndDescription"]);
-    } else {
-      return timeLogProcessingService.group(data, ["date"]);
-    }
-  }
-
-  function calculateTotalTimeLabel(groupedData, groupByDescription) {
-    if (groupByDescription) {
-      return dateTimeService.formatDuration(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedData.data));
-    } else {
-      return dateTimeService.formatDuration(dateTimeService.getTotalTimeGroupedByDate(groupedData.data));
-    }
-  }
-
-  const {mutateAsync: create} = useMutation({
-    mutationFn: (body) => timeLogApi.create(body),
-    onSuccess: async (body) => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: "Time log is successfully created",
-        type: "success"
-      });
-    },
-    onError: async (error, body) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      })
-      console.error("Creating time log failed:", error);
-    }
-  });
-
-  const {mutateAsync: createWorklogFromTimeLog} = useMutation({
-    mutationFn: (body) => worklogApi.create(body),
-    onSuccess: async (body) => {
-      queryClient.invalidateQueries(worklogApi.key);
-      addAlert({
-        text: "Worklog is successfully created",
-        type: "success"
-      });
-    },
-    onError: async (error, body) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      })
-      console.error("Creating worklog failed:", error);
-    }
-  });
-
-  const {mutateAsync: divide} = useMutation({
-    mutationFn: (id) => timeLogApi.divide(id),
-    onSuccess: async () => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: "Time logs is successfully divided",
-        type: "success"
-      });
-    },
-    onError: async (error, body) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      })
-      console.error("Dividing time logs failed:", error);
-    }
-  });
-
-  const {mutateAsync: importTimeLogs} = useMutation({
-    mutationFn: (body) => timeLogApi.importTimeLogs(body),
-    onSuccess: async (body) => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: "Imported successfully",
-        type: "success"
-      });
-
-    },
-    onError: async (error, body) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      })
-      console.error("Importing failed:", error);
-    }
-  });
-
-  const {mutateAsync: update} = useMutation({
-    mutationFn: (body) => timeLogApi.update(body),
-    onSuccess: async (body) => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: "Time log is successfully updated",
-        type: "success"
-      });
-    },
-    onError: async (error, body) => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      })
-      console.error("Updating time log failed:", error);
-    }
-  });
-
-  const {mutateAsync: deleteTimeLog} = useMutation({
-    mutationFn: (id) => timeLogApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: "You have successfully deleted time log",
-        type: "success"
-      });
-    },
-    onError: (error) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      });
-      console.error("Deleting time log failed:", error);
-    }
-  });
-  const {mutateAsync: setGroupDescription} = useMutation({
-    mutationFn: (body) => timeLogApi.setGroupDescription(body),
-    onSuccess: () => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: "You have successfully set description",
-        type: "success"
-      });
-    },
-    onError: (error) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      });
-      console.error("Setting group description failed:", error);
-    }
-  });
-  const {mutateAsync: changeDate} = useMutation({
-    mutationFn: (body) => timeLogApi.changeDate(body),
-    onSuccess: () => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: "You have successfully changed date",
-        type: "success"
-      });
-    },
-    onError: (error) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      });
-      console.error("Changing date failed:", error);
-    }
-  });
+  const timeLogMutations = useTimeLogMutations();
 
   const {mutateAsync: syncWorklogs, isPending: isSyncing} = useMutation({
     mutationFn: (body) => worklogApi.syncWorklogs(),
@@ -270,24 +52,6 @@ export default function TimeLogPage() {
         type: "error"
       });
       console.error("synchronizing worklogs failed:", error);
-    }
-  });
-
-  const {mutateAsync: syncWorklogsForIssue} = useMutation({
-    mutationFn: (issueKey) => worklogApi.syncWorklogsForIssue(issueKey),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: `You have successfully synchronized worklogs for issue ${variables}`,
-        type: "success"
-      });
-    },
-    onError: (error) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      });
-      console.error("synchronizing worklogs for issue failed:", error);
     }
   });
 
@@ -317,15 +81,6 @@ export default function TimeLogPage() {
     a.click();
   };
 
-  useEffect(() => {
-    if (listAllError) {
-      addAlert({
-        text: `${listAllError.displayMessage} Try agail later`,
-        type: "error"
-      });
-    }
-  }, [listAllError]);
-
   if (isListing) {
     return (
       <div className="absolute inset-1/2">
@@ -335,17 +90,17 @@ export default function TimeLogPage() {
   }
 
   const modeDatePickerConfig = {
-    Week: <WeekPicker buttonColor="blue" isActive={isPlaceholderData}/>,
-    Month: <MonthPicker buttonColor="blue" isActive={isPlaceholderData}/>,
+    Week: <WeekPicker buttonColor="blue"/>,
+    Month: <MonthPicker buttonColor="blue"/>,
     All: null,
   };
 
   return (
     <div className="w-3/5 mx-auto">
       <TimeLogCreateBar
-        onCreate={create}
+        onCreate={timeLogMutations.onCreate}
         date={date}
-        canCreate={mode === "Day"}
+        canCreate={mode === viewMode.DAY}
       />
       <div className="flex flex-col">
         <div className="flex justify-center">
@@ -353,28 +108,13 @@ export default function TimeLogPage() {
             control={
               <Switch
                 checked={groupByDescription}
-                onChange={() => setGroupByDescription((event.target.checked))}
+                onChange={(event) => setGroupByDescription((event.target.checked))}
               />
             }
             label="Group"
             labelPlacement="start"
             className="mx-2"
           />
-          <Select
-            className="mx-2"
-            size="small"
-            inputProps={{"aria-label": "Without label"}}
-            value={mode}
-            onChange={(event) => {
-              setMode(event.target.value);
-            }}
-            autoWidth
-          >
-            <MenuItem value="Day">Day</MenuItem>
-            <MenuItem value="Week">Week</MenuItem>
-            <MenuItem value="Month">Month</MenuItem>
-            <MenuItem value="All">All</MenuItem>
-          </Select>
 
           <FormControl className="mx-2">
             <Select
@@ -417,7 +157,7 @@ export default function TimeLogPage() {
                 : "synchronize worklogs"}
             </Button>
 
-            <ImportButton className="mr-4" onImport={importTimeLogs} />
+            <ImportButton className="mr-4" onImport={timeLogMutations.onImport} />
             <Button
               className="mr-4"
               variant="outlined"
@@ -435,20 +175,13 @@ export default function TimeLogPage() {
             </div>
           </div>
         }
-        {mode === "Day" && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
+        {mode === viewMode.DAY && <DayProgressBar timeLogs={processedDataRef.current} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
                                            hoveredProgressIntervalId={hoveredProgressIntervalId}/>}
 
         <TimeLogList
           timeLogs={timeLogs}
           mode={mode}
-          onCreate={create}
-          onDivide={divide}
-          onUpdate={update}
-          onWorklogCreate={createWorklogFromTimeLog}
-          onDelete={deleteTimeLog}
-          setGroupDescription={setGroupDescription}
-          changeDate={changeDate}
-          onSync={syncWorklogsForIssue}
+          {...timeLogMutations}
           hoveredTimeLogIds={hoveredTimeLogIds}
           setHoveredProgressIntervalId={setHoveredProgressIntervalId}
           hoveredConflictedIds={hoveredConflictedIds}

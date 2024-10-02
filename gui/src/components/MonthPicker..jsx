@@ -4,14 +4,13 @@ import Button from "@mui/material/Button";
 import {MobileDatePicker} from "@mui/x-date-pickers";
 import useAppContext from "../context/useAppContext.js";
 
-export default function MonthPicker({buttonColor, isActive, classNames}) {
+export default function MonthPicker({buttonColor, classNames}) {
   const {date, setDate} = useAppContext()
   return (
     <div className={`flex items-center justify-center ${classNames}`}>
       <Button
         className={`text-${buttonColor}`}
         onClick={() => setDate(date.subtract(1, "month"))}
-        disabled={isActive}
       >
         <ArrowBackIosIcon />
       </Button>
@@ -25,7 +24,6 @@ export default function MonthPicker({buttonColor, isActive, classNames}) {
       <Button
         className={`text-${buttonColor}`}
         onClick={() => setDate(date.add(1, "month"))}
-        disabled={isActive}
       >
         <ArrowForwardIosIcon />
       </Button>

@@ -12,13 +12,20 @@ import {startHourOfDay} from "../config/timeConfig.js";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import StatusIcon from "../components/StatusIcon.jsx";
-import {CircularProgress} from "@mui/material";
+import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
+import TimeLogList from "../components/TimeLogList.jsx";
+import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
+import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
+import {GoTable} from "react-icons/go";
+import ReorderIcon from "@mui/icons-material/Reorder.js";
+import {monthViewMode} from "../consts/monthViewMode.js";
+import IconModeIcon from "../components/IconModeIcon.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
   const [calendarApi, setCalendarApi] = useState(null);
-
-  const {date, setDate, addAlert} = useAppContext();
+  const [viewMode, setViewMode] = useState(monthViewMode.CALENDAR);
+  const {date, setDate, addAlert, mode} = useAppContext();
   const {changeView} = useViewChanger();
 
   const {data, isPending} = useQuery({
@@ -33,6 +40,11 @@ export default function MonthPage() {
     },
     retryDelay: 300,
   });
+
+  const timeLogMutations = useTimeLogMutations();
+  const {
+    groupByDescription, setGroupByDescription, timeLogs
+  } = useProcessedTimeLogs();
 
   useEffect(() => {
     if(calendarApi && calendarApi.currentData.currentDate.getMonth() !== date.get("month")) {
@@ -50,14 +62,13 @@ export default function MonthPage() {
 
   const handleClickDate = (date) => {
     setDate(dayjs(date));
-    changeView("Day")
+    changeView(viewMode.DAY)
   };
 
   const getDayCellClassNames = ({dow: dayOfWeek, date: cellDate}) => {
-    if (dayjs(cellDate).$M !== date.$M) return;
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
     const {synced, conflicted} = dayInfo || {};
-    if (!synced || conflicted) {
+    if ((!synced || conflicted) && dayjs(cellDate).$M === date.$M) {
       return ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
     } else if (dayOfWeek === 0 || dayOfWeek === 6) {
       return ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"];
@@ -67,15 +78,14 @@ export default function MonthPage() {
   }
 
   const getCellContent = ({dayNumberText, date: cellDate}) => {
-    if(dayjs(cellDate).$M !== date.$M) return;
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
     return (
       <div className="flex justify-between p-1">
-        {dayInfo &&
           <div>
-            <StatusIcon isSynced={dayInfo.synced} isConflicted={dayInfo.conflicted} />
+            {dayInfo && dayjs(cellDate).$M === date.$M && (
+              <StatusIcon isSynced={dayInfo.synced} isConflicted={dayInfo.conflicted} />
+            )}
           </div>
-        }
         <div>
           {dayNumberText}
         </div>
@@ -97,33 +107,64 @@ export default function MonthPage() {
   }
 
   return (
-    <div className="mt-6 w-2/3 mx-auto">
-      <div className="flex items-center">
-        <div className="w-1/3 font-medium">
+    <div className="my-6 w-2/3 mx-auto">
+      <div className="flex items-center mb-2">
+        <IconModeIcon
+          title={monthViewMode.CALENDAR}
+          icon={<GoTable />}
+          isActive={viewMode === monthViewMode.CALENDAR}
+          onClick={() => setViewMode(monthViewMode.CALENDAR)}
+        />
+        <IconModeIcon
+          title={monthViewMode.LIST}
+          icon={<ReorderIcon />}
+          isActive={viewMode === monthViewMode.LIST}
+          onClick={() => setViewMode(monthViewMode.LIST)}
+        />
+        <div className="font-medium ml-10">
           Month: {data.totalHours}
         </div>
+        {viewMode === monthViewMode.LIST && <FormControlLabel
+          control={
+            <Switch
+              checked={groupByDescription}
+              onChange={(event) => setGroupByDescription((event.target.checked))}
+            />
+          }
+          label="Group"
+          labelPlacement="start"
+          className="ml-10"
+        />
+        }
       </div>
-      <FullCalendar
-        initialDate={new Date(date)}
-        events={data.items?.map(item => {
-          item.extendedProps = {duration: item.duration}
-          return item;
-        })}
-        ref={handleCalendarRef}
-        plugins={[dayGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        fixedWeekCount={false}
-        firstDay={1}
-        headerToolbar={null}
-        aspectRatio={1.75}
-        dayCellClassNames={getDayCellClassNames}
-        dayCellDidMount={({el, date}) => {
-          el.addEventListener("click", () => handleClickDate(date));
-        }}
-        dayCellContent={getCellContent}
-        eventContent={getEventContent}
-        eventClassNames={() => ["bg-transparent"]}
-      />
+      {viewMode === monthViewMode.CALENDAR &&
+        <FullCalendar
+          initialDate={new Date(date)}
+          events={data.items?.map(item => {
+            item.extendedProps = {duration: item.duration}
+            return item;
+          })}
+          ref={handleCalendarRef}
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          fixedWeekCount={false}
+          firstDay={1}
+          headerToolbar={null}
+          aspectRatio={1.75}
+          dayCellClassNames={getDayCellClassNames}
+          dayCellDidMount={({el, date}) => {
+            el.addEventListener("click", () => handleClickDate(date));
+          }}
+          dayCellContent={getCellContent}
+          eventContent={getEventContent}
+          eventClassNames={() => ["bg-transparent"]}
+        />
+      }
+      {viewMode === monthViewMode.LIST && <TimeLogList
+        timeLogs={timeLogs}
+        mode={mode}
+        {...timeLogMutations}
+      />}
     </div>
   );
 }

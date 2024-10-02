@@ -62,7 +62,7 @@ function Day({day, selectedDay, hoveredDay, ...other}) {
   );
 }
 
-export default function WeekPicker({buttonColor, isActive}) {
+export default function WeekPicker({buttonColor}) {
   const {date, setDate} = useAppContext()
   const [hoveredDay, setHoveredDay] = React.useState(null);
 
@@ -76,7 +76,6 @@ export default function WeekPicker({buttonColor, isActive}) {
       <Button
         className={`text-${buttonColor}`}
         onClick={() => setDate(date.subtract(1, "week"))}
-        disabled={isActive}
       >
         <ArrowBackIosIcon />
       </Button>
@@ -104,7 +103,6 @@ export default function WeekPicker({buttonColor, isActive}) {
       <Button
         className={`text-${buttonColor}`}
         onClick={() => setDate(date.add(1, "week"))}
-        disabled={isActive}
       >
         <ArrowForwardIosIcon />
       </Button>

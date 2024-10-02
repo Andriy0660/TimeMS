@@ -8,22 +8,29 @@ import dateTimeService from "../service/dateTimeService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress} from "@mui/material";
+import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import CustomTableCell from "../components/CustomTableCell.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
+import TimeLogList from "../components/TimeLogList.jsx";
+import {useState} from "react";
+import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
+import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
+import {GoTable} from "react-icons/go";
+import ReorderIcon from '@mui/icons-material/Reorder';
+import {weekViewMode} from "../consts/weekViewMode.js";
+import IconModeIcon from "../components/IconModeIcon.jsx";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
-  const {date, setDate, addAlert} = useAppContext();
   const {changeView} = useViewChanger();
-
+  const [viewMode, setViewMode] = useState(weekViewMode.TABLE);
+  const {date, setDate, addAlert, mode} = useAppContext();
 
   const {
     data,
-    isPending,
-    isPlaceholderData,
+    isPending
   } = useQuery({
     queryKey: [timeLogApi.key, "week", date, offset],
     queryFn: () => {
@@ -36,13 +43,18 @@ export default function WeekPage() {
       })
       console.error("Getting hours for week failed:", error);
     },
-    placeholderData: (prev) => prev,
     retryDelay: 300,
   });
 
+  const timeLogMutations = useTimeLogMutations();
+
+  const {
+    groupByDescription, setGroupByDescription, timeLogs
+  } = useProcessedTimeLogs();
+
   const handleClick = (date) => {
     setDate(dayjs(date))
-    changeView("Day")
+    changeView(viewMode.DAY)
   }
 
   const getTotalTimeForTicket = (ticket) => {
@@ -62,10 +74,35 @@ export default function WeekPage() {
     );
   }
 
-
   return (
-    <div>
-      <TableContainer className="flex mx-auto my-6 w-fit">
+    <div className="w-3/5 mx-auto">
+      <div className="flex justify-start my-2">
+        <IconModeIcon
+          title={weekViewMode.TABLE}
+          icon={<GoTable />}
+          isActive={viewMode === weekViewMode.TABLE}
+          onClick={() => setViewMode(weekViewMode.TABLE)}
+        />
+        <IconModeIcon
+          title={weekViewMode.LIST}
+          icon={<ReorderIcon />}
+          isActive={viewMode === weekViewMode.LIST}
+          onClick={() => setViewMode(weekViewMode.LIST)}
+        />
+        {viewMode === weekViewMode && <FormControlLabel
+          control={
+            <Switch
+              checked={groupByDescription}
+              onChange={(event) => setGroupByDescription((event.target.checked))}
+            />
+          }
+          label="Group"
+          labelPlacement="start"
+          className="ml-10"
+        />
+        }
+      </div>
+      {viewMode === weekViewMode.TABLE && <TableContainer className="flex mx-auto mb-3">
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -74,12 +111,12 @@ export default function WeekPage() {
               {data.map(dayInfo => (
                 <CustomTableCell
                   key={dayInfo.date}
+                  date={dayInfo.date}
                   isHover
                   isSynced={dayInfo.synced}
                   isConflicted={dayInfo.conflicted}
                   onClick={() => handleClick(dayInfo.date)}
                 >
-                  <div className="mr-1">{dayjs(dayInfo.date).format("DD.MM")}</div>
                   <div>{dayInfo.dayName}</div>
                 </CustomTableCell>
               ))}
@@ -114,6 +151,14 @@ export default function WeekPage() {
           </TableBody>
         </Table>
       </TableContainer>
+      }
+      {viewMode === weekViewMode.LIST && (
+        <TimeLogList
+          timeLogs={timeLogs}
+          mode={mode}
+          {...timeLogMutations}
+        />
+      )}
     </div>
   )
 }
