@@ -105,22 +105,33 @@ public class WorklogServiceImpl implements WorklogService {
   public WorklogProgressResponse getProgress() {
     Duration duration = Duration.ZERO;
     if(syncProgressService.getStartTime() != null) {
-      duration = Duration.between(syncProgressService.getStartTime(), LocalDateTime.now(clock));
+      if (syncProgressService.getEndTime() != null) {
+        duration = Duration.between(syncProgressService.getStartTime(), syncProgressService.getEndTime());
+      } else {
+        duration = Duration.between(syncProgressService.getStartTime(), LocalDateTime.now(clock));
+      }
     }
 
     return WorklogProgressResponse.builder()
+        .isInProgress(syncProgressService.isInProgress())
         .progress(syncProgressService.getProgress())
+        .worklogInfos(syncProgressService.getWorklogInfos())
+        .duration(DurationService.formatDurationHMS(duration))
+        .lastSyncedAt(syncProgressService.getEndTime())
         .totalIssues(syncProgressService.getTotalIssues())
         .currentIssueNumber(syncProgressService.getCurrentIssueNumber())
-        .worklogInfos(syncProgressService.getWorklogInfos())
-        .duration(DurationService.formatProgressDuration(duration))
+        .totalTimeSpent(DurationService.formatDurationDH(Duration.ofSeconds(syncProgressService.getTotalTimeSpent())))
+        .totalEstimate(DurationService.formatDurationDH(Duration.ofSeconds(syncProgressService.getTotalEstimate())))
         .build();
   }
 
   @Override
   public void syncWorklogs() {
-    if (syncProgressService.getProgress() > 0) return;
+    if (syncProgressService.isInProgress()) return;
+    syncProgressService.clearProgress();
+
     syncProgressService.setStartTime(LocalDateTime.now(clock));
+    syncProgressService.setIsInProgress(true);
 
     List<WorklogEntity> currentWorklogs = worklogRepository.findAll();
     List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchAllWorkLogDtos()
@@ -129,8 +140,8 @@ public class WorklogServiceImpl implements WorklogService {
         .toList();
 
     syncWorklogs(currentWorklogs, worklogEntitiesFromJira);
-
-    syncProgressService.clearProgress();
+    syncProgressService.setEndTime(LocalDateTime.now(clock));
+    syncProgressService.setIsInProgress(false);
   }
 
   @Override

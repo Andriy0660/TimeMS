@@ -15,11 +15,9 @@ import WorklogList from "../components/WorklogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import {useState} from "react";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
-import useWorklogSync from "../hooks/useWorklogSync.js";
 
 export default function TimeLogPage() {
   const {date, mode} = useAppContext();
-  const {progressInfo} = useWorklogSync();
 
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
   const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
@@ -133,13 +131,6 @@ export default function TimeLogPage() {
             </div>
 
           </div>
-          {progressInfo.progress > 0 &&
-            <div className="m-4 flex justify-center">
-              <div className="text-center p-2 h-16 w-full overflow-x-auto shadow-md bg-gray-50">
-                <div className="text-center">{progressInfo.ticketOfCurrentWorklog} {progressInfo.commentOfCurrentWorklog}</div>
-              </div>
-            </div>
-          }
         </div>
       </div>
       <div className={`${isJiraEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>

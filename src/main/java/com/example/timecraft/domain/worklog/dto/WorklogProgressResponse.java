@@ -1,5 +1,7 @@
 package com.example.timecraft.domain.worklog.dto;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -12,16 +14,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WorklogProgressResponse {
+  private boolean isInProgress;
   private double progress;
+  private List<WorklogInfo> worklogInfos;
+  private String duration;
+  private LocalDateTime lastSyncedAt;
+  private String totalTimeSpent;
+  private String totalEstimate;
   private int currentIssueNumber;
   private int totalIssues;
-  private String duration;
-  private List<WorklogInfo> worklogInfos;
 
   @Data
   @AllArgsConstructor
   @NoArgsConstructor
   public static class WorklogInfo {
+    private LocalDate date;
     private String ticket;
     private String comment;
   }

@@ -1,21 +1,21 @@
 import {CircularProgress} from "@mui/material";
 import Button from "@mui/material/Button";
-import useWorklogSync from "../hooks/useWorklogSync.js";
+import useAppContext from "../context/useAppContext.js";
 
 export default function SyncWorklogsButton({children}) {
-  const {syncWorklogs, progressInfo: {progress}, isSyncingRunning, isSyncingLaunched} = useWorklogSync();
+  const {syncWorklogs, isSyncingLaunched, isSyncingRunning, progressInfo: {progress}} = useAppContext();
 
   return (
-    <Button onClick={syncWorklogs} className="mx-4 bg-white" sx={{color: "primary.main"}} disabled={isSyncingLaunched || progress > 0}
+    <Button onClick={syncWorklogs} className="mx-4 bg-white" sx={{color: "primary.main"}} disabled={isSyncingLaunched}
             variant="contained">
-      {isSyncingRunning
-        ? (
-          <>
-            {progress > 0 ? `${Math.floor(progress)}%` : <CircularProgress size={25} />}
-            <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
-          </>
-        )
-        : <div>{children}</div>}
+      {!isSyncingLaunched && <>{children}</>}
+      {isSyncingLaunched && !isSyncingRunning && <CircularProgress size={25} />}
+      {isSyncingLaunched && isSyncingRunning && (
+        <>
+          {`${Math.round(progress)}%`}
+          <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
+        </>
+      )}
     </Button>
   )
 }

@@ -39,41 +39,51 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
   private final AppProperties appProperties;
   private final ObjectMapper objectMapper;
   private final SyncProgressService syncProgressService;
+  private final int workingDayDurationInHours = 8;
+
 
   @Override
   public List<JiraWorklogDto> fetchAllWorkLogDtos() {
-    List<JiraWorklogDto> allJiraWorklogDtos = new ArrayList<>();
-    List<String> allKeys = fetchAllIssueKeys();
-    double step = 100. / allKeys.size();
-    for (String key : allKeys) {
-      List<JiraWorklogDto> worklogForKey = fetchWorklogDtosForIssue(key);
-      allJiraWorklogDtos.addAll(worklogForKey);
+    try {
+      List<JiraWorklogDto> allJiraWorklogDtos = new ArrayList<>();
+      List<Issue> issues = fetchAllIssues();
+      double step = 100. / issues.size();
+      for (Issue issue : issues) {
+        String issueKey = issue.getKey();
+        List<JiraWorklogDto> worklogsForKey = fetchWorklogDtosForIssue(issueKey);
+        allJiraWorklogDtos.addAll(worklogsForKey);
 
-      syncProgressService.setProgress(syncProgressService.getProgress() + step);
-      syncProgressService.setCurrentIssueNumber(syncProgressService.getCurrentIssueNumber() + 1);
-      List<WorklogProgressResponse.WorklogInfo> worklogInfos = new ArrayList<>();
-      for(JiraWorklogDto dto : worklogForKey) {
-        worklogInfos.add(new WorklogProgressResponse.WorklogInfo(dto.getIssueKey(),  dto.getComment()));
+        updateProgressStatus(issue, step, worklogsForKey);
       }
-      syncProgressService.setWorklogInfos(worklogInfos);
+      return allJiraWorklogDtos;
+    } catch (Exception e) {
+      syncProgressService.clearProgress();
+      throw new RuntimeException("Error fetching all worklogs", e);
     }
-    return allJiraWorklogDtos;
   }
 
-  private List<String> fetchAllIssueKeys() {
-    List<String> allIssueKeys = new ArrayList<>();
+  private void updateProgressStatus(final Issue issue, final double step, final List<JiraWorklogDto> worklogsForKey) {
+    syncProgressService.setProgress(syncProgressService.getProgress() + step);
+    syncProgressService.setCurrentIssueNumber(syncProgressService.getCurrentIssueNumber() + 1);
+    syncProgressService.setTotalEstimate(syncProgressService.getTotalEstimate() + issue.getFields().getTimeoriginalestimate() * (24 / workingDayDurationInHours));
+    syncProgressService.setTotalTimeSpent(syncProgressService.getTotalTimeSpent() + issue.getFields().getTimespent() * (24 / workingDayDurationInHours));
+    List<WorklogProgressResponse.WorklogInfo> worklogInfos = new ArrayList<>();
+    for (JiraWorklogDto dto : worklogsForKey) {
+      worklogInfos.add(new WorklogProgressResponse.WorklogInfo(dto.getDate(), dto.getIssueKey(), dto.getComment()));
+    }
+    syncProgressService.setWorklogInfos(worklogInfos);
+  }
+
+  private List<Issue> fetchAllIssues() {
+    List<Issue> issues = new ArrayList<>();
     int startAt = 0;
     int maxResults = 100;
     int total = 0;
 
     do {
-      JiraSearchResponse jiraResponse = fetchIssueKeysPage(startAt, maxResults);
+      JiraSearchResponse jiraResponse = fetchIssuesPage(startAt, maxResults);
       if (jiraResponse.getIssues() != null) {
-        allIssueKeys.addAll(
-            jiraResponse.getIssues().stream()
-                .map(Issue::getKey)
-                .toList()
-        );
+        issues.addAll(jiraResponse.getIssues());
         total = jiraResponse.getTotal();
         syncProgressService.setTotalIssues(total);
       }
@@ -82,10 +92,10 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
 
     } while (startAt < total);
 
-    return allIssueKeys;
+    return issues;
   }
 
-  private JiraSearchResponse fetchIssueKeysPage(int startAt, int maxResults) {
+  private JiraSearchResponse fetchIssuesPage(int startAt, int maxResults) {
     String url = appProperties.getJira().getUrl() + "/rest/api/3/search?&startAt=" + startAt + "&maxResults=" + maxResults;
 
     HttpHeaders headers = getHttpHeaders();
@@ -223,6 +233,14 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
   @Setter
   public static class Issue {
     private String key;
+    private Fields fields;
+
+    @Getter
+    @Setter
+    public static class Fields {
+      private int timespent;
+      private int timeoriginalestimate;
+    }
   }
 
   @Getter
