@@ -1,5 +1,8 @@
 package com.example.timecraft.domain.timelog.util;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -41,5 +44,25 @@ public class TimeLogUtils {
     return startTime.isBefore(LocalTime.of(offset, 0))
         ? date.minusDays(1)
         : date;
+  }
+
+  public static String generateColor(String ticket, String descr) {
+    try {
+      String input = ticket + descr;
+
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+
+      int red = (Byte.toUnsignedInt(hash[0]) + Byte.toUnsignedInt(hash[13]) + Byte.toUnsignedInt(hash[29])) % 256;
+      int green = (Byte.toUnsignedInt(hash[1]) + Byte.toUnsignedInt(hash[14]) + Byte.toUnsignedInt(hash[30])) % 256;
+      int blue = (Byte.toUnsignedInt(hash[2]) + Byte.toUnsignedInt(hash[15]) + Byte.toUnsignedInt(hash[31])) % 256;
+
+      int alpha = (int) (0.075 * 255);
+
+      return String.format("#%02x%02x%02x%02x", red, green, blue, alpha);
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException("Error generating color", e);
+    }
+
   }
 }

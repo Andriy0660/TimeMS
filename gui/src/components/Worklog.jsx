@@ -3,7 +3,7 @@ import Duration from "./Duration.jsx";
 import {Icon, IconButton, LinearProgress, Tooltip, Typography} from "@mui/material";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
-import {useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import DoneIcon from "@mui/icons-material/Done.js";
@@ -11,8 +11,22 @@ import SyncDisabledIcon from '@mui/icons-material/SyncDisabled';
 import {TiArrowForward} from "react-icons/ti";
 import dayjs from "dayjs";
 import VerticalDivider from "./VerticalDivider.jsx";
+import useAppContext from "../context/useAppContext.js";
+import Connector from "./Connector.jsx";
 
-export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
+export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
+  const worklogRef = useRef(null);
+  const [isWorklogAvailable, setIsWorklogAvailable] = useState(false);
+  const {timeLogRefs} = useAppContext();
+
+  useEffect(() => {
+    if (worklogRef.current) {
+      setIsWorklogAvailable(true);
+    } else {
+      setIsWorklogAvailable(false);
+    }
+  }, [worklogRef]);
+
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -27,9 +41,11 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
   const {execute: handleCreateTimeLogFromWorklog, isExecuting: isCreateLoading} = useAsyncCall({
     fn: onTimeLogCreate,
   })
-  
+
   return (
     <div className="mb-2 px-4 shadow-md rounded-md bg-gray-50"
+         ref={worklogRef}
+         style={isJiraEditMode ? {backgroundColor: worklog.color} : {}}
          onMouseEnter={() => setIsHovered(true)}
          onMouseLeave={() => setIsHovered(false)}
     >
@@ -132,6 +148,19 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete}) {
         </div>
       </div>
       {isDeleteLoading || isCreateLoading && <LinearProgress />}
+      {isJiraEditMode && isWorklogAvailable && timeLogRefs.map((timeLogRef, index) => {
+        if (timeLogRef.timeLog.color === worklog.color) {
+          return (
+            <Connector
+              key={index}
+              startElement={timeLogRef.ref.current}
+              endElement={worklogRef.current}
+              color={timeLogRef.timeLog.color}
+            />
+          );
+        }
+        return null;
+      })}
     </div>
   )
 }

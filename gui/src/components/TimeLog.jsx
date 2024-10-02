@@ -1,4 +1,4 @@
-import {Icon, IconButton, LinearProgress, Menu, MenuItem, TextField, Tooltip, Typography} from "@mui/material";
+import {Icon, IconButton, LinearProgress, ListItemIcon, ListItemText, Menu, MenuItem, TextField, Tooltip, Typography} from "@mui/material";
 import {TimeField} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import {useEffect, useMemo, useRef, useState} from "react";
@@ -14,7 +14,6 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import useAsyncCall from "../hooks/useAsyncCall.js";
-import Button from "@mui/material/Button";
 import {TiArrowForward} from "react-icons/ti";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos.js";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
@@ -27,6 +26,8 @@ import SyncIcon from '@mui/icons-material/Sync';
 import Duration from "./Duration.jsx";
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import VerticalDivider from "./VerticalDivider.jsx";
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import classNames from "classnames";
 
 export default function TimeLog({
   timeLog,
@@ -42,7 +43,8 @@ export default function TimeLog({
   setHoveredProgressIntervalId,
   hoveredConflictedIds,
   setHoveredConflictedIds,
-  onSync
+  onSync,
+  isJiraEditMode
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -60,11 +62,41 @@ export default function TimeLog({
 
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
+  const {addAlert, setTimeLogRefs} = useAppContext();
 
   const timeLogRef = useRef(null);
-  const [menuEl, setMenuEl] = useState(null);
+  const timeLogUpperPartRef = useRef(null);
 
-  const {addAlert} = useAppContext();
+  useEffect(() => {
+    if (timeLogRef.current && isJiraEditMode) {
+      setTimeLogRefs((prev) => {
+        const existingIndex = prev.findIndex(({timeLog: {id}}) => id === timeLog.id);
+        if (existingIndex !== -1) {
+          const updatedRefs = [...prev];
+          updatedRefs[existingIndex] = {timeLog, ref: timeLogRef};
+          return updatedRefs;
+        } else {
+          return [...prev, {timeLog, ref: timeLogRef}];
+        }
+      });
+    }
+  }, [timeLogRef])
+
+  const [divideMenuEl, setDivideMenuEl] = useState(null);
+  const [moreActionsMenuEl, setMoreActionsMenuEl] = useState(null);
+
+  useEffect(() => {
+    if (!isHovered || !isEditing) {
+      setMoreActionsMenuEl(null)
+    }
+  }, [isHovered, isEditing]);
+
+  function handleCloseMoreActionsMenu() {
+    setMoreActionsMenuEl(null);
+    setHoveredProgressIntervalId?.(null);
+    setIsHovered(false);
+  }
+
   useEffect(() => {
     initializeState();
   }, [timeLog]);
@@ -136,10 +168,10 @@ export default function TimeLog({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [timeLogRef.current, startTime, endTime, ticket, description, timeLog]);
+  }, [timeLogUpperPartRef.current, startTime, endTime, ticket, description, timeLog]);
 
   function handleClickOutside(event) {
-    if (timeLogRef.current && !timeLogRef.current.contains(event.target)) {
+    if (timeLogUpperPartRef.current && !timeLogUpperPartRef.current.contains(event.target)) {
       setIsEditing(false);
       if (isModified) {
         handleUpdateTimeLog({
@@ -162,7 +194,7 @@ export default function TimeLog({
 
   useEffect(() => {
     if (isEditing && editedField) {
-      timeLogRef.current.querySelector(`[name="${editedField}"]`).focus();
+      timeLogUpperPartRef.current.querySelector(`[name="${editedField}"]`).focus();
     }
   }, [isEditing, editedField]);
 
@@ -299,118 +331,67 @@ export default function TimeLog({
     </>;
   }
 
-  const getDateChanger = () => {
-    return (
-      <div className="mr-2">
-        <Tooltip title="Move to previous day">
-          <Button
-            className="py-0 pl-1.5 pr-0 min-w-0"
-            size="small"
-            onClick={() => {
-              handleChangeDate({id: timeLog.id, isNext: false})
-            }}
-            disabled={isChangingDate}
-          >
-            <ArrowBackIosIcon fontSize="small" />
-          </Button>
-        </Tooltip>
-        <Tooltip title="Move to next day">
-          <Button
-            className="py-0 pl-1.5 pr-0 min-w-0"
-            size="small"
-            onClick={() => {
-              handleChangeDate({id: timeLog.id, isNext: true})
-            }}
-            disabled={isChangingDate}
-          >
-            <ArrowForwardIosIcon fontSize="small" />
-          </Button>
-        </Tooltip>
-      </div>
-    )
-  }
+  const progressTime = status === "InProgress"
+    ? dateTimeService.formatDuration(dateTimeService.getDurationInMinutes(timeLog.startTime, null))
+    : null;
 
-  const progressTime = status === "InProgress" ? dateTimeService.formatDuration(
-    dateTimeService.getDurationInMinutes(timeLog.startTime, null)) : null;
   const statusConfig = {
     Done: {
       label: totalTime,
-      action: (isHovered || isEditing) && (
-        <Tooltip title="Continue">
-          <IconButton
-            onClick={() => handleCreateTimeLog(
-              {ticket, startTime: dateTimeService.getFormattedDateTime(currentTime), description})}
-            variant="outlined"
-            color="primary"
-            className="mr-2 p-0"
-          >
-            <KeyboardTabOutlinedIcon />
-          </IconButton>
-        </Tooltip>
-      ),
+      condition: true,
+      icon: <KeyboardTabOutlinedIcon color="primary" fontSize="small"/>,
+      onClick: () => handleCreateTimeLog({
+        ticket,
+        startTime: dateTimeService.getFormattedDateTime(currentTime),
+        description
+      }),
+      text: "Continue"
     },
     InProgress: {
       label: progressTime,
-      action: ((isHovered || isEditing) && progressTime)
-      && (
-        <Tooltip title="Stop">
-          <IconButton
-            onClick={() => {
-              handleUpdateTimeLog({
-                id: timeLog.id,
-                ticket,
-                startTime,
-                endTime: currentTime,
-              });
-            }}
-            variant="outlined"
-            color="warning"
-            className="mr-2 p-0"
-          >
-            <StopCircleOutlinedIcon />
-          </IconButton>
-        </Tooltip>
-      ),
+      condition: progressTime,
+      icon: <StopCircleOutlinedIcon color="warning" fontSize="small"/>,
+      onClick: () => handleUpdateTimeLog({
+          id: timeLog.id,
+          ticket,
+          startTime,
+          endTime: currentTime,
+      }),
+      text: "Stop"
     },
     Pending: {
       label: 'Pending',
-      action: ((isHovered || isEditing) && dateTimeService.isSameDate(dayjs(timeLog.date), currentTime)) && (
-        <Tooltip title="Start">
-          <IconButton
-            onClick={() => {
-              handleUpdateTimeLog({
-                id: timeLog.id,
-                ticket,
-                startTime: currentTime,
-              });
-            }}
-            variant="outlined"
-            color="primary"
-            className="mr-2 p-0"
-          >
-            <StartOutlinedIcon />
-          </IconButton>
-        </Tooltip>
-      ),
-    },
-  };
+      condition: dateTimeService.isSameDate(dayjs(timeLog.date), currentTime),
+      icon: <StartOutlinedIcon color="primary" fontSize="small"/>,
+      onClick: () => handleUpdateTimeLog({
+          id: timeLog.id,
+          ticket,
+          startTime: currentTime,
+      }),
+      text: "Start"
+  }};
 
   return (
     <div
-      className={`px-4  
-      ${status === "InProgress" ? "bg-blue-50" : ""} 
-      ${hovered ? "bg-blue-100" : ""} 
-      ${hoveredConflictedIds?.includes(timeLog.id) ? "bg-rose-100" : ""}`}
+      ref={timeLogRef}
+      className={classNames("px-4 pt-1", {
+        "bg-blue-50" : status === "InProgress",
+        "bg-blue-100" : hovered,
+        "bg-rose-100": hoveredConflictedIds?.includes(timeLog.id)
+      })}
+      style={isJiraEditMode && timeLog.synced ? {backgroundColor: timeLog.color} : {}}
+
+
       onMouseEnter={() => {
         setIsHovered(true);
-        setHoveredProgressIntervalId && setHoveredProgressIntervalId(timeLog.id)
+        setHoveredProgressIntervalId?.(timeLog.id);
       }}
       onMouseLeave={() => {
         setIsHovered(false);
-        setHoveredProgressIntervalId && setHoveredProgressIntervalId(null)
+        setHoveredProgressIntervalId?.(null);
       }}
     >
-      <div ref={timeLogRef} className="flex justify-between">
+      <div ref={timeLogUpperPartRef} className="flex justify-between">
         <div className="flex items-center">
           {isEditing ? getEditableFields() : getNonEditableFields()}
 
@@ -443,43 +424,39 @@ export default function TimeLog({
               ? dateTimeService.getStartOfDay(timeLog.startTime)
               : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day"))) &&
             <div>
-              <Button onClick={(event) => setMenuEl(event.currentTarget)}>
+              <IconButton onClick={(event) => setDivideMenuEl(event.currentTarget)}>
                 <Tooltip title="Timelog continues tomorrow">
                   <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
                 </Tooltip>
-              </Button>
+              </IconButton>
               <Menu
-                anchorEl={menuEl}
-                open={!!menuEl}
-                onClose={() => setMenuEl(null)}
+                anchorEl={divideMenuEl}
+                open={!!divideMenuEl}
+                onClose={() => setDivideMenuEl(null)}
               >
                 <MenuItem className="py-0 px-2" onClick={() => handleDivideTimeLog(timeLog.id)}>Divide into two days</MenuItem>
-                <Divider/>
-                <MenuItem className="py-0 px-2" onClick={() => setMenuEl(null)}>Cancel</MenuItem>
+                <Divider />
+                <MenuItem className="py-0 px-2" onClick={() => setDivideMenuEl(null)}>Cancel</MenuItem>
               </Menu>
             </div>
           }
         </div>
 
         <div className="flex items-center">
-          <div className="flex ">
-            {(isEditing) && (
-              <div>
-                <Tooltip title="Reset">
-                  <IconButton onClick={() => resetChanges()} className="mr-1">
-                    <BackspaceOutlinedIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+          {(isEditing && !isJiraEditMode) && (
+            <div>
+              <Tooltip title="Reset">
+                <IconButton onClick={() => resetChanges()} className="mr-1">
+                  <BackspaceOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
 
-                <Tooltip title="Save">
+              <Tooltip title="Save">
                   <span>
                     <IconButton
                       onClick={() => {
                         handleUpdateTimeLog({
-                          id: timeLog.id,
-                          ticket,
-                          startTime,
-                          endTime,
+                          id: timeLog.id, ticket, startTime, endTime,
                         });
 
                       }}
@@ -490,86 +467,130 @@ export default function TimeLog({
                       <SaveOutlinedIcon fontSize="small" />
                     </IconButton>
                   </span>
-                </Tooltip>
-              </div>
-            )}
+              </Tooltip>
+            </div>
+          )}
 
-            {isHovered && !isEditing && getDateChanger()}
-            {statusConfig[status] ? statusConfig[status].action : null}
-            {(isHovered || isEditing) &&
-              <>
-                <Tooltip title="Delete">
-                  <IconButton
-                    className="mr-2 p-0"
-                    color="error"
-                    onClick={() => setShowDeleteModal(true)}
-                  >
-                    <DeleteOutlineOutlinedIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <ConfirmationModal
-                  open={showDeleteModal}
-                  type="error"
-                  actionText="Delete"
-                  onConfirm={() => handleDeleteTimeLog(timeLog.id)}
-                  onClose={() => {
-                    setShowDeleteModal(false);
-                    setIsHovered(false);
-                  }}
-                >
-                  Are you sure you want to delete this time log?
-                </ConfirmationModal>
-              </>
-            }
-            {(isHovered && !isEditing) && (
-              <Tooltip title="Edit">
-                <IconButton
-                  className="mr-2 p-0"
-                  color="success"
-                  onMouseDown={() => {
-                    setTimeout(() => {
-                      setIsEditing(true);
-                    }, 0)
-                  }}
-                >
-                  <EditOutlinedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {(isHovered && !isEditing && timeLog.ticket) && (
-              <Tooltip title="Synchronize">
-                <IconButton
-                  className="mr-2 p-0"
-                  color="primary"
-                  onClick={() => handleSync(timeLog.ticket)}
-                >
-                  <SyncIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-            {(isHovered && !isEditing && timeLog.ticket && timeLog.startTime && timeLog.endTime && !timeLog.synced) && (
-              <Tooltip title="Save to worklogs">
-                <IconButton
-                  className="mr-2 p-0"
-                  color="primary"
-                  onClick={() => handleCreateWorklog({
-                    ticket: timeLog.ticket,
-                    date: dateTimeService.getFormattedDate(timeLog.date),
-                    startTime: dateTimeService.getFormattedDateTime(timeLog.startTime),
-                    endTime: dateTimeService.getFormattedDateTime(timeLog.endTime),
-                    description: timeLog.description
-                  })}
-                >
-                  <KeyboardDoubleArrowRightIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
+          {(isHovered && !isEditing) && <div onClick={() => handleCloseMoreActionsMenu()}>
+            <Tooltip title="More">
+              <IconButton
+                onClick={(event) => {
+                  event.stopPropagation()
+                  setMoreActionsMenuEl(event.currentTarget);
+                }}
+                color="primary"
+                className="p-0"
+              >
+                <MoreVertIcon />
+              </IconButton>
+            </Tooltip>
+
+            <Menu
+              anchorEl={moreActionsMenuEl}
+              open={!!moreActionsMenuEl}
+              onClose={() => handleCloseMoreActionsMenu()}
+            >
+              <MenuItem onClick={() => setIsEditing(true)}>
+                <ListItemIcon>
+                  <EditOutlinedIcon color="success" fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>
+                  <Typography className="text-sm">Edit</Typography>
+                </ListItemText>
+              </MenuItem>
+
+              {statusConfig[status].condition && (
+                <MenuItem onClick={statusConfig[status].onClick}>
+                  <ListItemIcon>
+                    {statusConfig[status].icon}
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography className="text-sm">{statusConfig[status].text}</Typography>
+                  </ListItemText>
+                </MenuItem>
+              )}
+
+              {timeLog.ticket && (
+                <MenuItem onClick={() => handleSync(timeLog.ticket)}>
+                  <ListItemIcon>
+                    <SyncIcon color="primary" fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography className="text-sm">Synchronize</Typography>
+                  </ListItemText>
+                </MenuItem>
+              )}
+
+              {(timeLog.ticket && timeLog.startTime && timeLog.endTime && !timeLog.synced) && (
+                <MenuItem onClick={() => handleCreateWorklog({
+                  ticket: timeLog.ticket,
+                  date: dateTimeService.getFormattedDate(timeLog.date),
+                  startTime: dateTimeService.getFormattedDateTime(timeLog.startTime),
+                  endTime: dateTimeService.getFormattedDateTime(timeLog.endTime),
+                  description: timeLog.description
+                })}>
+                  <ListItemIcon>
+                    <KeyboardDoubleArrowRightIcon color="primary" fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography className="text-sm">Save to worklogs</Typography>
+                  </ListItemText>
+                </MenuItem>
+              )}
+
+              <MenuItem onClick={() => {
+                handleChangeDate({id: timeLog.id, isNext: false})
+              }}>
+                <ListItemIcon>
+                  <ArrowBackIosIcon color="primary" fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>
+                  <Typography className="text-sm">To previous day</Typography>
+                </ListItemText>
+              </MenuItem>
+
+              <MenuItem onClick={() => {
+                handleChangeDate({id: timeLog.id, isNext: true})
+              }}>
+                <ListItemIcon>
+                  <ArrowForwardIosIcon color="primary" fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>
+                  <Typography className="text-sm">To next day</Typography>
+                </ListItemText>
+              </MenuItem>
+
+              <MenuItem onClick={() => setShowDeleteModal(true)}>
+                <ListItemIcon>
+                  <DeleteOutlineOutlinedIcon color="error" fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>
+                  <Typography className="text-sm">Delete</Typography>
+                </ListItemText>
+              </MenuItem>
+
+            </Menu>
+
           </div>
+          }
         </div>
       </div>
-
-      {!groupByDescription && <Description className="mb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription}/>}
-      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading) && <LinearProgress />}
+      <ConfirmationModal
+        open={showDeleteModal}
+        type="error"
+        actionText="Delete"
+        onConfirm={() => handleDeleteTimeLog(timeLog.id)}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setIsHovered(false);
+        }}
+      >
+        Are you sure you want to delete this time log?
+      </ConfirmationModal>
+      {!groupByDescription &&
+        <Description className="pb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription} />}
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading || isChangingDate) &&
+        <LinearProgress />}
     </div>
   );
 }

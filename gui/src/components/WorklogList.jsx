@@ -10,7 +10,7 @@ import {useEffect} from "react";
 import worklogService from "../service/worklogService.js";
 import NoLogs from "./NoLogs.jsx";
 
-export default function WorklogList({mode, date, selectedTickets}) {
+export default function WorklogList({mode, date, selectedTickets, isJiraEditMode}) {
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
   const offset = startHourOfDay;
@@ -83,8 +83,8 @@ export default function WorklogList({mode, date, selectedTickets}) {
   }
 
   return (
-    <div className="m-4">
-      <div className="mb-2 p-2 bg-green-100 font-medium text-green-900 w-fit rounded-2xl">Worklogs</div>
+    <div className={`m-4 ${isJiraEditMode ? "ml-12" : ""}`}>
+      {!isJiraEditMode && <div className="mb-2 p-2 bg-green-100 font-medium text-green-900 w-fit rounded-2xl">Worklogs</div>}
       <div className="flex flex-col items-center">
         <div className="w-full overflow-x-auto">
           {filteredWorklogs.length
@@ -93,7 +93,9 @@ export default function WorklogList({mode, date, selectedTickets}) {
                 key={worklog.id}
                 worklog={worklog}
                 onDelete={deleteWorklog}
-                onTimeLogCreate={createTimeLogFromWorklog} />)
+                onTimeLogCreate={createTimeLogFromWorklog}
+                isJiraEditMode={isJiraEditMode}
+              />)
             : <NoLogs />
           }
         </div>
