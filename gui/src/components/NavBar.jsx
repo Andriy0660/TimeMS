@@ -25,10 +25,11 @@ import dayjs from "dayjs";
 import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore.js";
 import useViewChanger from "../hooks/useViewChanger.js";
 import SyncWorklogsButton from "./SyncWorklogsButton.jsx";
+import {viewMode} from "../consts/viewMode.js";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
-  const {date, setDate, view} = useAppContext();
+  const {date, setDate, mode} = useAppContext();
 
   useDateInUrl(date);
   const {changeView} = useViewChanger();
@@ -48,7 +49,7 @@ export default function NavBar() {
     <Box sx={{width: 250}} onClick={toggleMenu(false)}>
       <List>
         <ListItem disablePadding>
-          <Link to="/app/timelog" onClick={() => changeView("Day")} className="text-inherit no-underline w-full">
+          <Link to="/app/timelog" onClick={() => changeView(viewMode.DAY)} className="text-inherit no-underline w-full">
             <ListItemButton>
               <ListItemText primary="TimeLog" />
             </ListItemButton>
@@ -94,17 +95,17 @@ export default function NavBar() {
           className="mx-8 bg-white"
           size="small"
           inputProps={{"aria-label": "Without label"}}
-          value={view}
+          value={mode}
           onChange={(event) => {
             changeView(event.target.value);
           }}
           autoWidth
         >
-          <MenuItem value="Day">Day</MenuItem>
-          <MenuItem value="Week">Week</MenuItem>
-          <MenuItem value="Month">Month</MenuItem>
+          <MenuItem value={viewMode.DAY}>Day</MenuItem>
+          <MenuItem value={viewMode.WEEK}>Week</MenuItem>
+          <MenuItem value={viewMode.MONTH}>Month</MenuItem>
         </Select>
-        {modeDatePickerConfig[view]}
+        {modeDatePickerConfig[mode]}
         <Tooltip title="Reset">
           <IconButton
             onClick={() => setDate(dayjs())}

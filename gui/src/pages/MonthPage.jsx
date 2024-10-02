@@ -16,11 +16,15 @@ import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import TimeLogList from "../components/TimeLogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
+import {GoTable} from "react-icons/go";
+import ReorderIcon from "@mui/icons-material/Reorder.js";
+import {monthViewMode} from "../consts/monthViewMode.js";
+import IconModeIcon from "../components/IconModeIcon.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
   const [calendarApi, setCalendarApi] = useState(null);
-  const [isCalendarView, setIsCalendarView] = useState(true);
+  const [viewMode, setViewMode] = useState(monthViewMode.CALENDAR);
   const {date, setDate, addAlert, mode} = useAppContext();
   const {changeView} = useViewChanger();
 
@@ -58,14 +62,13 @@ export default function MonthPage() {
 
   const handleClickDate = (date) => {
     setDate(dayjs(date));
-    changeView("Day")
+    changeView(viewMode.DAY)
   };
 
   const getDayCellClassNames = ({dow: dayOfWeek, date: cellDate}) => {
-    if (dayjs(cellDate).$M !== date.$M) return;
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
     const {synced, conflicted} = dayInfo || {};
-    if (!synced || conflicted) {
+    if ((!synced || conflicted) && dayjs(cellDate).$M === date.$M) {
       return ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
     } else if (dayOfWeek === 0 || dayOfWeek === 6) {
       return ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"];
@@ -75,15 +78,14 @@ export default function MonthPage() {
   }
 
   const getCellContent = ({dayNumberText, date: cellDate}) => {
-    if(dayjs(cellDate).$M !== date.$M) return;
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
     return (
       <div className="flex justify-between p-1">
-        {dayInfo &&
           <div>
-            <StatusIcon isSynced={dayInfo.synced} isConflicted={dayInfo.conflicted} />
+            {dayInfo && dayjs(cellDate).$M === date.$M && (
+              <StatusIcon isSynced={dayInfo.synced} isConflicted={dayInfo.conflicted} />
+            )}
           </div>
-        }
         <div>
           {dayNumberText}
         </div>
@@ -105,26 +107,24 @@ export default function MonthPage() {
   }
 
   return (
-    <div className="mt-6 w-2/3 mx-auto">
-      <div className="flex items-center">
-        <div className="font-medium mr-10">
+    <div className="my-6 w-2/3 mx-auto">
+      <div className="flex items-center mb-2">
+        <IconModeIcon
+          title={monthViewMode.CALENDAR}
+          icon={<GoTable />}
+          isActive={viewMode === monthViewMode.CALENDAR}
+          onClick={() => setViewMode(monthViewMode.CALENDAR)}
+        />
+        <IconModeIcon
+          title={monthViewMode.LIST}
+          icon={<ReorderIcon />}
+          isActive={viewMode === monthViewMode.LIST}
+          onClick={() => setViewMode(monthViewMode.LIST)}
+        />
+        <div className="font-medium ml-10">
           Month: {data.totalHours}
         </div>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isCalendarView}
-              onChange={(event) => setIsCalendarView((event.target.checked))}
-            />
-          }
-          label="List"
-          labelPlacement="start"
-          className="mr-0.5"
-        />
-        <div>
-          Calendar
-        </div>
-        {!isCalendarView && <FormControlLabel
+        {viewMode === monthViewMode.LIST && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
@@ -137,7 +137,7 @@ export default function MonthPage() {
         />
         }
       </div>
-      {isCalendarView &&
+      {viewMode === monthViewMode.CALENDAR &&
         <FullCalendar
           initialDate={new Date(date)}
           events={data.items?.map(item => {
@@ -160,7 +160,7 @@ export default function MonthPage() {
           eventClassNames={() => ["bg-transparent"]}
         />
       }
-      {!isCalendarView && <TimeLogList
+      {viewMode === monthViewMode.LIST && <TimeLogList
         timeLogs={timeLogs}
         mode={mode}
         {...timeLogMutations}

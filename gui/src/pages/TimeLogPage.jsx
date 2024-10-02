@@ -15,6 +15,7 @@ import WorklogList from "../components/WorklogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import {useState} from "react";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
+import {viewMode} from "../consts/viewMode.js";
 
 export default function TimeLogPage() {
   const {date, mode} = useAppContext();
@@ -64,7 +65,7 @@ export default function TimeLogPage() {
         <TimeLogCreateBar
           onCreate={timeLogMutations.onCreate}
           date={date}
-          canCreate={mode === "Day"}
+          canCreate={mode === viewMode.DAY}
         />
         <div className="flex flex-col">
           <div className="flex justify-center">
@@ -134,7 +135,7 @@ export default function TimeLogPage() {
         </div>
       </div>
       <div className={`${isJiraEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
-        {mode === "Day" && <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
+        {mode === viewMode.DAY && <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
                                            hoveredProgressIntervalId={hoveredProgressIntervalId} />}
 
         {!isJiraEditMode && (

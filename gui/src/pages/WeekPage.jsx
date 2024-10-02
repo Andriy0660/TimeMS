@@ -16,12 +16,16 @@ import TimeLogList from "../components/TimeLogList.jsx";
 import {useState} from "react";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
+import {GoTable} from "react-icons/go";
+import ReorderIcon from '@mui/icons-material/Reorder';
+import {weekViewMode} from "../consts/weekViewMode.js";
+import IconModeIcon from "../components/IconModeIcon.jsx";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
   const {changeView} = useViewChanger();
-  const [isTableView, setIsTableView] = useState(true);
+  const [viewMode, setViewMode] = useState(weekViewMode.TABLE);
   const {date, setDate, addAlert, mode} = useAppContext();
 
   const {
@@ -50,7 +54,7 @@ export default function WeekPage() {
 
   const handleClick = (date) => {
     setDate(dayjs(date))
-    changeView("Day")
+    changeView(viewMode.DAY)
   }
 
   const getTotalTimeForTicket = (ticket) => {
@@ -70,25 +74,22 @@ export default function WeekPage() {
     );
   }
 
-
   return (
     <div className="w-3/5 mx-auto">
-      <div className="flex items-center">
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isTableView}
-              onChange={(event) => setIsTableView((event.target.checked))}
-            />
-          }
-          label="List"
-          labelPlacement="start"
-          className="mr-0.5"
+      <div className="flex justify-start my-2">
+        <IconModeIcon
+          title={weekViewMode.TABLE}
+          icon={<GoTable />}
+          isActive={viewMode === weekViewMode.TABLE}
+          onClick={() => setViewMode(weekViewMode.TABLE)}
         />
-        <div>
-          Table
-        </div>
-        {!isTableView && <FormControlLabel
+        <IconModeIcon
+          title={weekViewMode.LIST}
+          icon={<ReorderIcon />}
+          isActive={viewMode === weekViewMode.LIST}
+          onClick={() => setViewMode(weekViewMode.LIST)}
+        />
+        {viewMode === weekViewMode && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
@@ -101,7 +102,7 @@ export default function WeekPage() {
         />
         }
       </div>
-      {isTableView && <TableContainer className="flex mx-auto mb-3">
+      {viewMode === weekViewMode.TABLE && <TableContainer className="flex mx-auto mb-3">
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -151,7 +152,7 @@ export default function WeekPage() {
         </Table>
       </TableContainer>
       }
-      {!isTableView && (
+      {viewMode === weekViewMode.LIST && (
         <TimeLogList
           timeLogs={timeLogs}
           mode={mode}

@@ -5,14 +5,14 @@ import dayjs from "dayjs";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import worklogApi from "../api/worklogApi.js";
 import timeLogApi from "../api/timeLogApi.js";
+import {viewMode} from "../consts/viewMode.js";
 
 const AppContext = createContext();
 
 export const AppProvider = ({children}) => {
   const queryParams = new URLSearchParams(location.search);
-  const [mode, setMode] = useState(queryParams.get("mode") || "Day");
+  const [mode, setMode] = useState(queryParams.get("mode") || viewMode.DAY);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs())
-  const [view, setView] = useState(queryParams.get("view") || "Day")
 
   const queryClient = useQueryClient();
   const [timeLogRefs, setTimeLogRefs] = useState([]);
@@ -81,8 +81,6 @@ export const AppProvider = ({children}) => {
       <AppContext.Provider value={{
         date,
         setDate,
-        view,
-        setView,
         addAlert,
         mode,
         setMode,
