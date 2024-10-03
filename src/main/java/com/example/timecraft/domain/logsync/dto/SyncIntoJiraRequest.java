@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.worklog.dto;
+package com.example.timecraft.domain.logsync.dto;
 
 import java.time.LocalDate;
 
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class WorklogSyncIntoJiraRequest {
+public class SyncIntoJiraRequest {
   private String ticket;
   private LocalDate date;
   private String description;

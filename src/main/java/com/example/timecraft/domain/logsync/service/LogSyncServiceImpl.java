@@ -1,13 +1,22 @@
 package com.example.timecraft.domain.logsync.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import com.example.timecraft.core.config.AppProperties;
+import com.example.timecraft.core.exception.BadRequestException;
+import com.example.timecraft.domain.jira.worklog.dto.JiraUpdateWorklogDto;
+import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
+import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
+import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.logsync.dto.SyncFromJiraRequest;
+import com.example.timecraft.domain.logsync.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.logsync.model.Status;
 import com.example.timecraft.domain.logsync.util.LogSyncUtil;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
@@ -17,6 +26,7 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.service.TimeLogService;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
+import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.service.WorklogService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +36,8 @@ import lombok.RequiredArgsConstructor;
 public class LogSyncServiceImpl implements LogSyncService {
   private final TimeLogService timeLogService;
   private final WorklogService worklogService;
+  private final JiraWorklogService jiraWorklogService;
+  private final WorklogMapper worklogMapper;
   private final AppProperties props;
 
   @Override
@@ -54,6 +66,42 @@ public class LogSyncServiceImpl implements LogSyncService {
             .build())
         .toList());
 
+  }
+
+  @Override
+  public void syncIntoJira(final SyncIntoJiraRequest request) {
+    final int offset = props.getTimeConfig().getOffset();
+    LocalDateTime dateTime = LocalDateTime.of(request.getDate(), LocalTime.of(10, 0));
+    List<WorklogEntity> worklogEntities = worklogService.getAllWorklogEntitiesInMode("Day", request.getDate(), offset);
+    worklogEntities = worklogEntities
+        .stream()
+        .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getComment(), request.getDescription()))
+        .filter(entity -> Objects.equals(entity.getTicket(), request.getTicket()))
+        .toList();
+
+    int worklogCount = worklogEntities.size();
+    if (worklogCount == 0) throw new BadRequestException("There is no worklog associated with the given ticket");
+    try {
+      if (worklogCount > 1) {
+        for (int i = 1; i < worklogCount; i++) {
+          jiraWorklogService.delete(request.getTicket(), worklogEntities.get(i).getId());
+        }
+      }
+    } catch (HttpClientErrorException.NotFound e) {
+      throw new BadRequestException("Synchronization mismatch");
+    } finally {
+      worklogService.syncWorklogsForIssue(request.getTicket());
+    }
+
+
+    final Long id = worklogEntities.getFirst().getId();
+    JiraWorklogDto updated = jiraWorklogService.update(request.getTicket(), id, JiraUpdateWorklogDto.builder()
+        .started(JiraWorklogUtils.getJiraStartedTime(dateTime))
+        .timeSpentSeconds(request.getTotalSpent())
+        .build());
+
+    WorklogEntity entity = worklogMapper.toWorklogEntity(updated);
+    worklogService.save(entity);
   }
 
   public TimeLogListResponse processTimeLogDtos(TimeLogListResponse response) {

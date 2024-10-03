@@ -7,7 +7,6 @@ import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
-import com.example.timecraft.domain.worklog.dto.WorklogSyncIntoJiraRequest;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 
 public interface WorklogService {
@@ -17,7 +16,7 @@ public interface WorklogService {
 
   WorklogCreateFromTimeLogResponse createWorklogFromTimeLog(WorklogCreateFromTimeLogRequest request);
 
-  void syncIntoJira(WorklogSyncIntoJiraRequest request);
+  void save(final WorklogEntity entity);
 
   void deleteUnsyncedWorklog(final String issueKey, final Long id);
 

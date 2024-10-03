@@ -45,9 +45,10 @@ export default function useTimeLogMutations() {
   });
 
   const {mutateAsync: syncIntoJira} = useMutation({
-    mutationFn: (body) => worklogApi.syncIntoJira(body),
+    mutationFn: (body) => logSyncApi.syncIntoJira(body),
     onSuccess: async () => {
       queryClient.invalidateQueries(worklogApi.key);
+      queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
         text: "Successfully synchronized into jira",
         type: "success"
