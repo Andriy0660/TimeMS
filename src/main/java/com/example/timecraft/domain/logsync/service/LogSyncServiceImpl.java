@@ -7,6 +7,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 import com.example.timecraft.core.config.AppProperties;
+import com.example.timecraft.domain.logsync.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.logsync.model.Status;
 import com.example.timecraft.domain.logsync.util.LogSyncUtil;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
@@ -26,6 +27,34 @@ public class LogSyncServiceImpl implements LogSyncService {
   private final TimeLogService timeLogService;
   private final WorklogService worklogService;
   private final AppProperties props;
+
+  @Override
+  public void syncFromJira(final SyncFromJiraRequest request) {
+    List<TimeLogEntity> timeLogEntityList = getTimeLogsForDay(request.getDate());
+    timeLogEntityList = timeLogEntityList
+        .stream()
+        .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getDescription(), request.getDescription()))
+        .filter(entity -> Objects.equals(entity.getTicket(), request.getTicket()))
+        .toList();
+    timeLogService.delete(timeLogEntityList);
+
+    List<WorklogEntity> worklogEntityList = getWorklogsForDay(request.getDate());
+    worklogEntityList = worklogEntityList
+        .stream()
+        .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getComment(), request.getDescription()))
+        .filter(entity -> Objects.equals(entity.getTicket(), request.getTicket()))
+        .toList();
+
+    timeLogService.saveAll(worklogEntityList.stream().map(worklogEntity -> TimeLogEntity.builder()
+            .description(worklogEntity.getComment())
+            .date(worklogEntity.getDate())
+            .ticket(worklogEntity.getTicket())
+            .startTime(worklogEntity.getStartTime())
+            .endTime(worklogEntity.getStartTime().plusSeconds(worklogEntity.getTimeSpentSeconds()))
+            .build())
+        .toList());
+
+  }
 
   public TimeLogListResponse processTimeLogDtos(TimeLogListResponse response) {
     final int offset = props.getTimeConfig().getOffset();

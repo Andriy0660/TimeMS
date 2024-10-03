@@ -92,6 +92,11 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
   }
 
+  @Override
+  public void saveAll(final List<TimeLogEntity> entities) {
+    repository.saveAll(entities);
+  }
+
   private String mapTotalTime(final LocalTime startTime, final LocalTime endTime) {
     if (startTime == null || endTime == null) {
       return null;
@@ -375,6 +380,11 @@ public class TimeLogServiceImpl implements TimeLogService {
   public void delete(final long timeLogId) {
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
     repository.delete(timeLogEntity);
+  }
+
+  @Override
+  public void delete(final List<TimeLogEntity> entities) {
+    repository.deleteAll(entities);
   }
 
   @Override

@@ -42,6 +42,7 @@ export default function TimeLog({
   groupByDescription,
   onWorklogCreate,
   onSyncIntoJira,
+  onSyncFromJira,
   changeDate,
   hovered,
   setGroupDescription,
@@ -174,6 +175,9 @@ export default function TimeLog({
   })
   const {execute: handleSyncIntoJira, isExecuting: isSyncingIntoJira} = useAsyncCall({
     fn: onSyncIntoJira,
+  })
+  const {execute: handleSyncFromJira, isExecuting: isSyncingFromJira} = useAsyncCall({
+    fn: onSyncFromJira,
   })
   const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
     fn: changeDate
@@ -563,7 +567,14 @@ export default function TimeLog({
                       <Typography className="text-sm">Sync to jira</Typography>
                     </ListItemText>
                   </MenuItem>,
-                  <MenuItem key="from">
+                  <MenuItem
+                    key="from"
+                    onClick={() => handleSyncFromJira({
+                      ticket: timeLog.ticket,
+                      date: dateTimeService.getFormattedDate(timeLog.date),
+                      description: timeLog.description,
+                    })}
+                  >
                     <ListItemIcon>
                       <CallMissedIcon color="primary" fontSize="small" />
                     </ListItemIcon>
@@ -647,7 +658,7 @@ export default function TimeLog({
 
       {!groupByDescription &&
         <Description className="w-fit" description={description} ids={[timeLog.id]} isJiraEditMode={isJiraEditMode} setGroupDescription={setGroupDescription} />}
-      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading || isChangingDate) &&
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading || isChangingDate || isSyncingIntoJira || isSyncingFromJira) &&
         <LinearProgress />}
     </div>
   );
