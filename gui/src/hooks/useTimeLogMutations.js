@@ -43,6 +43,24 @@ export default function useTimeLogMutations() {
     }
   });
 
+  const {mutateAsync: syncIntoJira} = useMutation({
+    mutationFn: (body) => worklogApi.syncIntoJira(body),
+    onSuccess: async () => {
+      queryClient.invalidateQueries(worklogApi.key);
+      addAlert({
+        text: "Successfully synchronized into jira",
+        type: "success"
+      });
+    },
+    onError: async (error, body) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      })
+      console.error("synchronizing into jira failed:", error);
+    }
+  });
+
   const {mutateAsync: divide} = useMutation({
     mutationFn: (id) => timeLogApi.divide(id),
     onSuccess: async () => {
@@ -174,6 +192,7 @@ export default function useTimeLogMutations() {
     onDivide: divide,
     onUpdate: update,
     onWorklogCreate: createWorklogFromTimeLog,
+    onSyncIntoJira: syncIntoJira,
     onDelete: deleteTimeLog,
     setGroupDescription: setGroupDescription,
     changeDate: changeDate,

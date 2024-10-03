@@ -131,10 +131,10 @@ public class LogSyncServiceImpl implements LogSyncService {
   private boolean hasWorklogsSyncStatusForDay(LocalDate date, Status status) {
     final int offset = props.getTimeConfig().getOffset();
     return getWorklogsForDay(date).stream().anyMatch(
-        timeLogEntity -> getSyncStatus(
-            TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
-            timeLogEntity.getTicket(),
-            timeLogEntity.getComment()
+        worklogEntity -> getSyncStatus(
+            TimeLogUtils.getProcessedDate(worklogEntity.getDate(), worklogEntity.getStartTime(), offset),
+            worklogEntity.getTicket(),
+            worklogEntity.getComment()
         ).equals(status)
     );
   }

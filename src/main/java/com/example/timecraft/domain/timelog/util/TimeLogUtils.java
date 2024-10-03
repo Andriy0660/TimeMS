@@ -49,6 +49,7 @@ public class TimeLogUtils {
   }
 
   public static String generateColor(String ticket, String descr) {
+    if (descr == null) return null;
     String input = descr;
     if (ticket != null) {
       input = input.concat(ticket.chars()

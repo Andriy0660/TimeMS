@@ -30,6 +30,8 @@ import Connector from "./Connector.jsx";
 import Brightness1Icon from "@mui/icons-material/Brightness1";
 import {syncStatus} from "../consts/syncStatus.js";
 import TimeLogSyncIcon from "./TimeLogSyncIcon.jsx";
+import CallMissedOutgoingIcon from '@mui/icons-material/CallMissedOutgoing';
+import CallMissedIcon from '@mui/icons-material/CallMissed';
 
 export default function TimeLog({
   timeLog,
@@ -39,6 +41,7 @@ export default function TimeLog({
   onDelete,
   groupByDescription,
   onWorklogCreate,
+  onSyncIntoJira,
   changeDate,
   hovered,
   setGroupDescription,
@@ -46,7 +49,8 @@ export default function TimeLog({
   hoveredConflictedIds,
   setHoveredConflictedIds,
   onSync,
-  isJiraEditMode
+  isJiraEditMode,
+  processedTimeLogsArray
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -167,6 +171,9 @@ export default function TimeLog({
   })
   const {execute: handleCreateWorklog, isExecuting: isCreatingWorklogLoading} = useAsyncCall({
     fn: onWorklogCreate,
+  })
+  const {execute: handleSyncIntoJira, isExecuting: isSyncingIntoJira} = useAsyncCall({
+    fn: onSyncIntoJira,
   })
   const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
     fn: changeDate
@@ -535,6 +542,36 @@ export default function TimeLog({
                     <Typography className="text-sm">Save to worklogs</Typography>
                   </ListItemText>
                 </MenuItem>
+              )}
+
+              {(timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.syncStatus === syncStatus.PARTIAL_SYNCED) && (
+                [
+                  <MenuItem
+                    key="to"
+                    onClick={() => handleSyncIntoJira({
+                      ticket: timeLog.ticket,
+                      date: dateTimeService.getFormattedDate(timeLog.date),
+                      description: timeLog.description,
+                      totalSpent: dateTimeService.getTotalSpent(
+                        {timeLogs: processedTimeLogsArray, ticket, date: timeLog.date, description})
+                    })}
+                  >
+                    <ListItemIcon>
+                      <CallMissedOutgoingIcon color="primary" fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>
+                      <Typography className="text-sm">Sync to jira</Typography>
+                    </ListItemText>
+                  </MenuItem>,
+                  <MenuItem key="from">
+                    <ListItemIcon>
+                      <CallMissedIcon color="primary" fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>
+                      <Typography className="text-sm">Sync from jira</Typography>
+                    </ListItemText>
+                  </MenuItem>
+                ]
               )}
 
               <MenuItem onClick={() => {

@@ -16,6 +16,7 @@ import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
+import com.example.timecraft.domain.worklog.dto.WorklogSyncIntoJiraRequest;
 import com.example.timecraft.domain.worklog.service.WorklogService;
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +35,11 @@ public class WorklogController {
   @PostMapping
   public WorklogCreateFromTimeLogResponse createWorklogFromTimeLog(@RequestBody final WorklogCreateFromTimeLogRequest request) {
     return worklogService.createWorklogFromTimeLog(request);
+  }
+
+  @PostMapping("/syncIntoJira")
+  public void syncIntoJira (@RequestBody final WorklogSyncIntoJiraRequest request) {
+    worklogService.syncIntoJira(request);
   }
 
   @DeleteMapping("/{issueKey}/{worklogId}")
