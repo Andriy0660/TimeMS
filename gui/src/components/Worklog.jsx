@@ -14,10 +14,11 @@ import Connector from "./Connector.jsx";
 import Brightness1Icon from "@mui/icons-material/Brightness1.js";
 import {syncStatus} from "../consts/syncStatus.js";
 import TimeLogSyncIcon from "./TimeLogSyncIcon.jsx";
+import * as timeLog from "../consts/syncStatus.js";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
-  const {setWorklogRefs, timeLogRefs} = useAppContext();
+  const {worklogRefs, setWorklogRefs, timeLogRefs} = useAppContext();
 
   const [isWorkogAvailable, setIsWorklogAvailable] = useState(false);
 
@@ -67,7 +68,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
     >
       <div className="flex justify-between">
         <div className="flex items-center">
-          {isJiraEditMode && worklog.syncStatus === syncStatus.SYNCED && <Brightness1Icon className="mr-2" sx={{color: worklog.color}} />}
+          {isJiraEditMode && worklog.syncStatus !== syncStatus.NOT_SYNCED && <Brightness1Icon className="mr-2" sx={{color: worklog.color}} />}
 
           <div className="flex mr-4 my-1">
             {isTimeLogInNextDay.startTime &&
@@ -152,19 +153,27 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
       <div className="flex items-center">
           {worklog.comment}
       </div>
-      {isHovered && isJiraEditMode && worklog.syncStatus === syncStatus.SYNCED && isWorkogAvailable && timeLogRefs.map((timeLogRef, index) => {
-        if (worklog.color === timeLogRef.timeLog.color) {
-          return (
-            <Connector
-              key={index}
-              startElement={timeLogRef.ref.current}
-              endElement={worklogRef.current}
-              color={worklog.color}
-            />
-          );
-        }
-        return null;
-      })}
+
+      {isHovered && isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED && isWorkogAvailable &&
+        worklogRefs.map((worklogRef, index1) => {
+          const targetColor = worklog.color;
+          return timeLogRefs.map((timeLogRef, index2) => {
+            if (timeLogRef.timeLog.color === targetColor && worklogRef.worklog.color === targetColor) {
+              return (
+                <Connector
+                  key={`${index1}${index2}`}
+                  startElement={timeLogRef.ref.current}
+                  endElement={worklogRef.ref.current}
+                  color={targetColor}
+                  dashed={worklog.syncStatus === syncStatus.PARTIAL_SYNCED}
+                />
+              );
+            }
+            return null;
+          })
+        })
+      }
+
       {isDeleteLoading || isCreateLoading && <LinearProgress />}
     </div>
   )

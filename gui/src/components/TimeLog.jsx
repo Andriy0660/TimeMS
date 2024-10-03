@@ -64,7 +64,7 @@ export default function TimeLog({
 
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
-  const {addAlert, worklogRefs, setTimeLogRefs} = useAppContext();
+  const {addAlert, worklogRefs, timeLogRefs, setTimeLogRefs} = useAppContext();
 
   const timeLogRef = useRef(null);
   const timeLogUpperPartRef = useRef(null);
@@ -572,7 +572,7 @@ export default function TimeLog({
 
           </div>
           }
-          {isJiraEditMode && timeLog.syncStatus === syncStatus.SYNCED && <Brightness1Icon sx={{color: timeLog.color}} />}
+          {isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED && <Brightness1Icon sx={{color: timeLog.color}} />}
         </div>
       </div>
       <ConfirmationModal
@@ -588,19 +588,26 @@ export default function TimeLog({
         Are you sure you want to delete this time log?
       </ConfirmationModal>
 
-      {isHovered && isJiraEditMode && timeLog.syncStatus === syncStatus.SYNCED && isTimeLogAvailable && worklogRefs.map((worklogRef, index) => {
-        if (timeLog.color === worklogRef.worklog.color) {
-          return (
-            <Connector
-              key={index}
-              startElement={timeLogRef.current}
-              endElement={worklogRef.ref.current}
-              color={timeLog.color}
-            />
-          );
-        }
-        return null;
-      })}
+      {isHovered && isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED && isTimeLogAvailable &&
+          timeLogRefs.map((timeLogRef, index1) => {
+            const targetColor = timeLog.color;
+            return worklogRefs.map((worklogRef, index2) => {
+              if(timeLogRef.timeLog.color === targetColor && worklogRef.worklog.color === targetColor) {
+                return (
+                  <Connector
+                    key={`${index1}${index2}`}
+                    startElement={timeLogRef.ref.current}
+                    endElement={worklogRef.ref.current}
+                    color={targetColor}
+                    dashed={timeLog.syncStatus === syncStatus.PARTIAL_SYNCED}
+                  />
+                );
+              }
+              return null;
+            })
+          })
+      }
+
       {!groupByDescription &&
         <Description className="w-fit" description={description} ids={[timeLog.id]} isJiraEditMode={isJiraEditMode} setGroupDescription={setGroupDescription} />}
       {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading || isChangingDate) &&
