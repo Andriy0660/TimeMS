@@ -20,8 +20,6 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Description from "./Description.jsx";
 import {deepOrange} from "@mui/material/colors";
-import DoneIcon from '@mui/icons-material/Done';
-import SyncDisabledIcon from '@mui/icons-material/SyncDisabled';
 import SyncIcon from '@mui/icons-material/Sync';
 import Duration from "./Duration.jsx";
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
@@ -30,6 +28,8 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import classNames from "classnames";
 import Connector from "./Connector.jsx";
 import Brightness1Icon from "@mui/icons-material/Brightness1";
+import {syncStatus} from "../consts/syncStatus.js";
+import TimeLogSyncIcon from "./TimeLogSyncIcon.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -407,19 +407,7 @@ export default function TimeLog({
 
           {statusConfig[status].label ? <Duration duration={statusConfig[status].label} /> : null}
 
-          {timeLog.synced && timeLog.startTime && timeLog.endTime
-            ? (
-              <Tooltip title="Synchronized">
-                <DoneIcon color="success" />
-              </Tooltip>
-
-            )
-            : (
-              <Tooltip title="Not synchronized">
-                <SyncDisabledIcon color="error" />
-              </Tooltip>
-            )
-          }
+          {timeLog.startTime && timeLog.endTime && <TimeLogSyncIcon status={timeLog.syncStatus}/>}
 
           {timeLog.isConflicted && (
             <Tooltip
@@ -532,7 +520,7 @@ export default function TimeLog({
                 </MenuItem>
               )}
 
-              {(timeLog.ticket && timeLog.startTime && timeLog.endTime && !timeLog.synced) && (
+              {(timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.syncStatus === syncStatus.NOT_SYNCED) && (
                 <MenuItem onClick={() => handleCreateWorklog({
                   ticket: timeLog.ticket,
                   date: dateTimeService.getFormattedDate(timeLog.date),
@@ -584,7 +572,7 @@ export default function TimeLog({
 
           </div>
           }
-          {isJiraEditMode && timeLog.synced && <Brightness1Icon sx={{color: timeLog.color}} />}
+          {isJiraEditMode && timeLog.syncStatus === syncStatus.SYNCED && <Brightness1Icon sx={{color: timeLog.color}} />}
         </div>
       </div>
       <ConfirmationModal
@@ -600,7 +588,7 @@ export default function TimeLog({
         Are you sure you want to delete this time log?
       </ConfirmationModal>
 
-      {isHovered && isJiraEditMode && timeLog.synced && isTimeLogAvailable && worklogRefs.map((worklogRef, index) => {
+      {isHovered && isJiraEditMode && timeLog.syncStatus === syncStatus.SYNCED && isTimeLogAvailable && worklogRefs.map((worklogRef, index) => {
         if (timeLog.color === worklogRef.worklog.color) {
           return (
             <Connector

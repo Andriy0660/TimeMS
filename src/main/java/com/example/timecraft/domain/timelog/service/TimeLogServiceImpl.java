@@ -65,10 +65,12 @@ public class TimeLogServiceImpl implements TimeLogService {
         .map(timeLogEntity -> {
           TimeLogListResponse.TimeLogDto timeLogDto = mapper.toListItem(timeLogEntity);
           timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime()));
-          timeLogDto.setColor(TimeLogUtils.generateColor(
-              timeLogEntity.getTicket(),
-              LogSyncUtil.removeNonLetterAndDigitCharacters(timeLogEntity.getDescription())
-          ));
+          if (timeLogDto.getDescription() != null || timeLogDto.getTicket() != null) {
+            timeLogDto.setColor(TimeLogUtils.generateColor(
+                timeLogEntity.getTicket(),
+                LogSyncUtil.removeNonLetterAndDigitCharacters(timeLogEntity.getDescription())
+            ));
+          }
           return timeLogDto;
         })
         .sorted(Comparator

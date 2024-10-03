@@ -7,6 +7,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 import com.example.timecraft.core.config.AppProperties;
+import com.example.timecraft.domain.logsync.model.Status;
 import com.example.timecraft.domain.logsync.util.LogSyncUtil;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
@@ -31,8 +32,8 @@ public class LogSyncServiceImpl implements LogSyncService {
     List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
     return new TimeLogListResponse(
         timeLogDtos.stream().peek(timeLogDto ->
-            timeLogDto.setSynced(
-                isSynced(
+            timeLogDto.setSyncStatus(
+                getSyncStatus(
                     TimeLogUtils.getProcessedDate(timeLogDto.getDate(), timeLogDto.getStartTime(), offset),
                     timeLogDto.getTicket(),
                     timeLogDto.getDescription())
@@ -41,55 +42,39 @@ public class LogSyncServiceImpl implements LogSyncService {
   }
 
   public TimeLogHoursForWeekResponse processWeekDayInfos(TimeLogHoursForWeekResponse response) {
-    final int offset = props.getTimeConfig().getOffset();
     List<TimeLogHoursForWeekResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekResponse(
-        dayInfos.stream().peek(dayInfo -> dayInfo.setSynced(
-            getTimeLogsForDay(dayInfo.getDate()).stream().allMatch(
-                timeLogEntity -> isSynced(
-                    TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
-                    timeLogEntity.getTicket(),
-                    timeLogEntity.getDescription()
-                )
-            ) && getWorklogsForDay(dayInfo.getDate()).stream().allMatch(
-                worklogEntity -> isSynced(
-                    TimeLogUtils.getProcessedDate(worklogEntity.getDate(), worklogEntity.getStartTime(), offset),
-                    worklogEntity.getTicket(),
-                    worklogEntity.getComment()
-                )
-            )
-            )
-        ).toList());
+        dayInfos.stream()
+            .peek(dayInfo -> dayInfo.setSyncStatus(determineSyncStatusForDay(dayInfo.getDate())))
+            .toList());
+  }
+
+  private Status determineSyncStatusForDay(LocalDate date) {
+    if (hasTimeLogsSyncStatusForDay(date, Status.NOT_SYNCED) ||
+        hasWorklogsSyncStatusForDay(date, Status.NOT_SYNCED)) {
+      return Status.NOT_SYNCED;
+    } else if (hasTimeLogsSyncStatusForDay(date, Status.PARTIAL_SYNCED) ||
+        hasWorklogsSyncStatusForDay(date, Status.PARTIAL_SYNCED)) {
+      return Status.PARTIAL_SYNCED;
+    } else {
+      return Status.SYNCED;
+    }
   }
 
   public TimeLogHoursForMonthResponse processMonthDayInfos(TimeLogHoursForMonthResponse response) {
-    final int offset = props.getTimeConfig().getOffset();
     List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
-        dayInfos.stream().peek(dayInfo -> dayInfo.setSynced(
-                getTimeLogsForDay(dayInfo.getDate()).stream().allMatch(
-                    timeLogEntity -> isSynced(
-                        TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
-                        timeLogEntity.getTicket(),
-                        timeLogEntity.getDescription()
-                    )
-                ) && getWorklogsForDay(dayInfo.getDate()).stream().allMatch(
-                    worklogEntity -> isSynced(
-                        TimeLogUtils.getProcessedDate(worklogEntity.getDate(), worklogEntity.getStartTime(), offset),
-                        worklogEntity.getTicket(),
-                        worklogEntity.getComment()
-                    )
-                )
-            )
-        ).toList());
+        dayInfos.stream()
+            .peek(dayInfo -> dayInfo.setSyncStatus(determineSyncStatusForDay(dayInfo.getDate())))
+            .toList());
   }
 
   public WorklogListResponse processWorklogDtos(WorklogListResponse response) {
     final int offset = props.getTimeConfig().getOffset();
     List<WorklogListResponse.WorklogDto> worklogDtos = response.getItems();
     return new WorklogListResponse(
-        worklogDtos.stream().peek(worklogDto -> worklogDto.setSynced(
-            isSynced(
+        worklogDtos.stream().peek(worklogDto -> worklogDto.setSyncStatus(
+            getSyncStatus(
                 TimeLogUtils.getProcessedDate(worklogDto.getDate(), worklogDto.getStartTime(), offset),
                 worklogDto.getTicket(),
                 worklogDto.getComment())
@@ -97,7 +82,7 @@ public class LogSyncServiceImpl implements LogSyncService {
     );
   }
 
-  private boolean isSynced(final LocalDate date, final String ticket, final String description) {
+  private Status getSyncStatus(final LocalDate date, final String ticket, final String description) {
     List<TimeLogEntity> timeLogEntityList = getTimeLogsForDay(date);
     List<WorklogEntity> worklogEntityList = getWorklogsForDay(date);
     timeLogEntityList = timeLogEntityList
@@ -111,7 +96,15 @@ public class LogSyncServiceImpl implements LogSyncService {
         .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getComment(), description))
         .filter(entity -> Objects.equals(entity.getTicket(), ticket))
         .toList();
-    return LogSyncUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
+
+    boolean isCompatibleInTime = LogSyncUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
+    if (isCompatibleInTime) {
+      return Status.SYNCED;
+    } else if (!timeLogEntityList.isEmpty() && !worklogEntityList.isEmpty()) {
+      return Status.PARTIAL_SYNCED;
+    } else {
+      return Status.NOT_SYNCED;
+    }
   }
 
   private List<TimeLogEntity> getTimeLogsForDay(final LocalDate date) {
@@ -123,4 +116,27 @@ public class LogSyncServiceImpl implements LogSyncService {
     final int offset = props.getTimeConfig().getOffset();
     return worklogService.getAllWorklogEntitiesInMode("Day", date, offset);
   }
+
+  private boolean hasTimeLogsSyncStatusForDay(LocalDate date, Status status) {
+    final int offset = props.getTimeConfig().getOffset();
+    return getTimeLogsForDay(date).stream().anyMatch(
+        timeLogEntity -> getSyncStatus(
+            TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
+            timeLogEntity.getTicket(),
+            timeLogEntity.getDescription()
+        ).equals(status)
+    );
+  }
+
+  private boolean hasWorklogsSyncStatusForDay(LocalDate date, Status status) {
+    final int offset = props.getTimeConfig().getOffset();
+    return getWorklogsForDay(date).stream().anyMatch(
+        timeLogEntity -> getSyncStatus(
+            TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
+            timeLogEntity.getTicket(),
+            timeLogEntity.getComment()
+        ).equals(status)
+    );
+  }
+
 }

@@ -1,0 +1,5 @@
+export const syncStatus = {
+  SYNCED: "SYNCED",
+  PARTIAL_SYNCED: "PARTIAL_SYNCED",
+  NOT_SYNCED: "NOT_SYNCED"
+}

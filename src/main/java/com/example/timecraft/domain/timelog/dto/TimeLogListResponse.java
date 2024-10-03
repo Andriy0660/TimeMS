@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import com.example.timecraft.domain.logsync.model.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class TimeLogListResponse {
     private LocalTime endTime;
     private String description;
     private String totalTime;
-    private boolean isSynced;
+    private Status syncStatus;
     private String color;
   }
 }
