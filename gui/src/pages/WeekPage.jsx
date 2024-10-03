@@ -20,12 +20,13 @@ import {GoTable} from "react-icons/go";
 import ReorderIcon from '@mui/icons-material/Reorder';
 import {weekViewMode} from "../consts/weekViewMode.js";
 import IconModeIcon from "../components/IconModeIcon.jsx";
+import {viewMode} from "../consts/viewMode.js";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
 
   const {changeView} = useViewChanger();
-  const [viewMode, setViewMode] = useState(weekViewMode.TABLE);
+  const [view, setView] = useState(weekViewMode.TABLE);
   const {date, setDate, addAlert, mode} = useAppContext();
 
   const {
@@ -80,16 +81,16 @@ export default function WeekPage() {
         <IconModeIcon
           title={weekViewMode.TABLE}
           icon={<GoTable />}
-          isActive={viewMode === weekViewMode.TABLE}
-          onClick={() => setViewMode(weekViewMode.TABLE)}
+          isActive={view === weekViewMode.TABLE}
+          onClick={() => setView(weekViewMode.TABLE)}
         />
         <IconModeIcon
           title={weekViewMode.LIST}
           icon={<ReorderIcon />}
-          isActive={viewMode === weekViewMode.LIST}
-          onClick={() => setViewMode(weekViewMode.LIST)}
+          isActive={view === weekViewMode.LIST}
+          onClick={() => setView(weekViewMode.LIST)}
         />
-        {viewMode === weekViewMode && <FormControlLabel
+        {view === weekViewMode && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
@@ -102,7 +103,7 @@ export default function WeekPage() {
         />
         }
       </div>
-      {viewMode === weekViewMode.TABLE && <TableContainer className="flex mx-auto mb-3">
+      {view === weekViewMode.TABLE && <TableContainer className="flex mx-auto mb-3">
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -152,7 +153,7 @@ export default function WeekPage() {
         </Table>
       </TableContainer>
       }
-      {viewMode === weekViewMode.LIST && (
+      {view === weekViewMode.LIST && (
         <TimeLogList
           timeLogs={timeLogs}
           mode={mode}
