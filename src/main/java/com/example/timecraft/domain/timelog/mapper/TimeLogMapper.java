@@ -1,6 +1,7 @@
 package com.example.timecraft.domain.timelog.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
@@ -13,6 +14,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
+import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 
 @Mapper(componentModel = "spring")
 public interface TimeLogMapper {
@@ -32,4 +34,8 @@ public interface TimeLogMapper {
   TimeLogEntity fromCreateFromWorklogRequest(final TimeLogCreateFromWorklogRequest request);
 
   TimeLogCreateFormWorklogResponse toCreateFromWorklogResponse(final TimeLogEntity entity);
+
+  @Mapping(source = "comment", target = "description")
+  @Mapping(target = "id", ignore = true)
+  TimeLogEntity worklogToTimeLog(WorklogEntity worklogEntity);
 }

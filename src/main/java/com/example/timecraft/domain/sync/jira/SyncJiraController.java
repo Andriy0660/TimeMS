@@ -7,23 +7,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
-import com.example.timecraft.domain.sync.jira.service.SyncJiraService;
+import com.example.timecraft.domain.sync.jira.service.SyncJiraApiService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/sync")
 public class SyncJiraController {
-  private final SyncJiraService syncJiraService;
+  private final SyncJiraApiService syncJiraApiService;
 
   @PostMapping("/syncFromJira")
   public void syncFromJira(@RequestBody SyncFromJiraRequest request) {
-    syncJiraService.syncFromJira(request);
+    syncJiraApiService.syncFromJira(request);
   }
 
   @PostMapping("/syncIntoJira")
   public void syncIntoJira(@RequestBody final SyncIntoJiraRequest request) {
-    syncJiraService.syncIntoJira(request);
+    syncJiraApiService.syncIntoJira(request);
   }
 
 }
