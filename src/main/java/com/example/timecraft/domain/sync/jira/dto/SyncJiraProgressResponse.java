@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.worklog.dto;
+package com.example.timecraft.domain.sync.jira.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class WorklogProgressResponse {
+public class SyncJiraProgressResponse {
   private boolean isInProgress;
   private double progress;
   private List<WorklogInfo> worklogInfos;

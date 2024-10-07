@@ -191,7 +191,7 @@ export default function useTimeLogMutations() {
   });
 
   const {mutateAsync: syncWorklogsForIssue} = useMutation({
-    mutationFn: (issueKey) => worklogApi.syncWorklogsForIssue(issueKey),
+    mutationFn: (issueKey) => syncApi.syncWorklogsForIssue(issueKey),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries(timeLogApi.key);
       addAlert({

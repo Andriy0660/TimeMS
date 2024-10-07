@@ -15,44 +15,29 @@ import com.example.timecraft.domain.sync.jira.service.SyncJiraProcessingService;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
-import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
-import com.example.timecraft.domain.worklog.service.WorklogService;
+import com.example.timecraft.domain.worklog.service.WorklogApiService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/work-logs")
 public class WorklogController {
-  private final WorklogService worklogService;
+  private final WorklogApiService worklogApiService;
   private final SyncJiraProcessingService syncJiraProcessingService;
 
   @GetMapping()
   public WorklogListResponse listWorklogs(@RequestParam final String mode, @RequestParam final LocalDate date) {
-    return syncJiraProcessingService.processWorklogDtos(worklogService.list(mode, date));
+    return syncJiraProcessingService.processWorklogDtos(worklogApiService.list(mode, date));
   }
 
   @PostMapping
-  public WorklogCreateFromTimeLogResponse createWorklogFromTimeLog(@RequestBody final WorklogCreateFromTimeLogRequest request) {
-    return worklogService.createWorklogFromTimeLog(request);
+  public WorklogCreateFromTimeLogResponse createFromTimeLog(@RequestBody final WorklogCreateFromTimeLogRequest request) {
+    return worklogApiService.createFromTimeLog(request);
   }
 
   @DeleteMapping("/{issueKey}/{worklogId}")
-  public void deleteUnsyncedWorklog(@PathVariable String issueKey, @PathVariable Long worklogId) {
-    worklogService.deleteUnsyncedWorklog(issueKey, worklogId);
+  public void delete(@PathVariable String issueKey, @PathVariable Long worklogId) {
+    worklogApiService.delete(issueKey, worklogId);
   }
 
-  @PostMapping("/synchronizeWorklogs")
-  public void syncWorklogs() {
-    worklogService.syncWorklogs();
-  }
-
-  @PostMapping("/{issueKey}")
-  public void syncWorklogsForIssue(@PathVariable String issueKey) {
-    worklogService.syncWorklogsForIssue(issueKey);
-  }
-
-  @GetMapping("/progress")
-  public WorklogProgressResponse getProgress() {
-    return worklogService.getProgress();
-  }
 }

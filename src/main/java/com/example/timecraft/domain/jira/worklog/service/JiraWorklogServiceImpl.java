@@ -23,8 +23,8 @@ import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraUpdateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
-import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
-import com.example.timecraft.domain.worklog.service.SyncProgressService;
+import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
+import com.example.timecraft.domain.sync.jira.model.SyncJiraProgress;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,7 +39,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
   private final RestTemplate restTemplate;
   private final AppProperties appProperties;
   private final ObjectMapper objectMapper;
-  private final SyncProgressService syncProgressService;
+  private final SyncJiraProgress syncJiraProgress;
   private final int workingDayDurationInHours = 8;
 
 
@@ -58,21 +58,21 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
       }
       return allJiraWorklogDtos;
     } catch (Exception e) {
-      syncProgressService.clearProgress();
+      syncJiraProgress.clearProgress();
       throw new RuntimeException("Error fetching all worklogs", e);
     }
   }
 
   private void updateProgressStatus(final Issue issue, final double step, final List<JiraWorklogDto> worklogsForKey) {
-    syncProgressService.setProgress(syncProgressService.getProgress() + step);
-    syncProgressService.setCurrentIssueNumber(syncProgressService.getCurrentIssueNumber() + 1);
-    syncProgressService.setTotalEstimate(syncProgressService.getTotalEstimate() + issue.getFields().getTimeoriginalestimate() * (24 / workingDayDurationInHours));
-    syncProgressService.setTotalTimeSpent(syncProgressService.getTotalTimeSpent() + issue.getFields().getTimespent() * (24 / workingDayDurationInHours));
-    List<WorklogProgressResponse.WorklogInfo> worklogInfos = new ArrayList<>();
+    syncJiraProgress.setProgress(syncJiraProgress.getProgress() + step);
+    syncJiraProgress.setCurrentIssueNumber(syncJiraProgress.getCurrentIssueNumber() + 1);
+    syncJiraProgress.setTotalEstimate(syncJiraProgress.getTotalEstimate() + issue.getFields().getTimeoriginalestimate() * (24 / workingDayDurationInHours));
+    syncJiraProgress.setTotalTimeSpent(syncJiraProgress.getTotalTimeSpent() + issue.getFields().getTimespent() * (24 / workingDayDurationInHours));
+    List<SyncJiraProgressResponse.WorklogInfo> worklogInfos = new ArrayList<>();
     for (JiraWorklogDto dto : worklogsForKey) {
-      worklogInfos.add(new WorklogProgressResponse.WorklogInfo(dto.getDate(), dto.getIssueKey(), dto.getComment()));
+      worklogInfos.add(new SyncJiraProgressResponse.WorklogInfo(dto.getDate(), dto.getIssueKey(), dto.getComment()));
     }
-    syncProgressService.setWorklogInfos(worklogInfos);
+    syncJiraProgress.setWorklogInfos(worklogInfos);
   }
 
   private List<Issue> fetchAllIssues() {
@@ -86,7 +86,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
       if (jiraResponse.getIssues() != null) {
         issues.addAll(jiraResponse.getIssues());
         total = jiraResponse.getTotal();
-        syncProgressService.setTotalIssues(total);
+        syncJiraProgress.setTotalIssues(total);
       }
 
       startAt += maxResults;

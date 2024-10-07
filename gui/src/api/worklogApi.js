@@ -18,19 +18,6 @@ const worklogApi = {
     await axios.delete(`/${key}/${issueKey}/${id}`, {baseMsg: "Error while deleting worklog"});
   },
 
-  syncWorklogs: async () => {
-    await axios.post(`/${key}/synchronizeWorklogs`, {}, {baseMsg: "Error while synchronizing worklogs"});
-  },
-
-  syncWorklogsForIssue: async (issueKey) => {
-    await axios.post(`/${key}/${issueKey}`, {}, {baseMsg: `Error while synchronizing worklogs for issue ${issueKey}`});
-  },
-
-  getProgress: async () => {
-    const {data} = await axios.get(`/${key}/progress`, {}, {baseMsg: "Error while getting worklogs"});
-    return data;
-  },
-
 };
 
 export default worklogApi;

@@ -16,7 +16,7 @@ import com.example.timecraft.domain.timelog.service.TimeLogService;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
-import com.example.timecraft.domain.worklog.service.WorklogService;
+import com.example.timecraft.domain.worklog.service.WorklogSyncService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService {
   private final AppProperties props;
   private final TimeLogService timeLogService;
-  private final WorklogService worklogService;
+  private final WorklogSyncService worklogSyncService;
 
   public TimeLogListResponse processTimeLogDtos(TimeLogListResponse response) {
     final int offset = props.getTimeConfig().getOffset();
@@ -83,7 +83,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
 
   private SyncStatus getSyncStatus(final LocalDate date, final String ticket, final String description) {
     List<TimeLogEntity> timeLogEntityList = timeLogService.findAllByDateAndDescriptionAndTicket(date, description, ticket);
-    List<WorklogEntity> worklogEntityList = worklogService.getAllByDateAndCommentAndTicket(date, description, ticket);
+    List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
     boolean isCompatibleInTime = SyncJiraUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
     if (isCompatibleInTime) {
@@ -112,9 +112,9 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
   }
 
   private boolean hasWorklogsSyncStatusForDay(LocalDate date, SyncStatus syncStatus) {
-    return worklogService.getAllByDate(date).stream()
+    return worklogSyncService.getAllByDate(date).stream()
         .anyMatch(
-            worklogEntity -> getSyncStatus(worklogEntity.getDate(), worklogEntity.getTicket(), worklogEntity.getComment()
-            ).equals(syncStatus));
+            worklogEntity -> getSyncStatus(worklogEntity.getDate(), worklogEntity.getTicket(), worklogEntity.getComment()).equals(syncStatus)
+        );
   }
 }
