@@ -8,7 +8,7 @@ export default function Connector({startElement, endElement, color}) {
       const startRect = startElement.getBoundingClientRect();
       const endRect = endElement.getBoundingClientRect();
 
-      const startX = startRect.right;
+      const startX = startRect.right + 16;
       const startY = startRect.top + startRect.height / 2 + window.scrollY;
       const endX = endRect.left;
       const endY = endRect.top + endRect.height / 2 + window.scrollY;

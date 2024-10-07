@@ -1,5 +1,4 @@
 import dateTimeService from "./dateTimeService.js";
-import dayjs from "dayjs";
 
 const timeLogProcessingService = {
   group(data, groupOrder) {
@@ -27,7 +26,7 @@ const timeLogProcessingService = {
     }
   },
   groupList(data, key) {
-    const groupedData = data.reduce((result, item) => {
+    return data.reduce((result, item) => {
       const groupKey = item[key];
       if (!result[groupKey]) {
         result[groupKey] = [];
@@ -35,21 +34,6 @@ const timeLogProcessingService = {
       result[groupKey].push(item);
       return result;
     }, {});
-    Object.keys(groupedData).forEach(groupKey => {
-      groupedData[groupKey] = this.sortTimeLogs(groupedData[groupKey]);
-    });
-    return groupedData;
-  },
-  sortTimeLogs(data) {
-    const getDiffInMinutes = (time) => {
-      if (!time) {
-        return Number.MAX_SAFE_INTEGER;
-      }
-      const startOfDay = dateTimeService.getStartOfDay();
-      return dateTimeService.compareTimes(dayjs(time), startOfDay) < 0 ? dayjs(time).add(1, "day").diff(startOfDay, "minutes")
-        : dayjs(time).diff(startOfDay, "minutes");
-    }
-    return data.sort((a, b) => getDiffInMinutes(a.startTime) - getDiffInMinutes(b.startTime));
   },
 
   formatGroupedData(groupedData) {

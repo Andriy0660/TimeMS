@@ -13,11 +13,13 @@ import dayjs from "dayjs";
 import VerticalDivider from "./VerticalDivider.jsx";
 import useAppContext from "../context/useAppContext.js";
 import Connector from "./Connector.jsx";
+import Brightness1Icon from "@mui/icons-material/Brightness1.js";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
-  const [isWorklogAvailable, setIsWorklogAvailable] = useState(false);
-  const {timeLogRefs} = useAppContext();
+  const {setWorklogRefs, timeLogRefs} = useAppContext();
+
+  const [isWorkogAvailable, setIsWorklogAvailable] = useState(false);
 
   useEffect(() => {
     if (worklogRef.current) {
@@ -26,6 +28,21 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
       setIsWorklogAvailable(false);
     }
   }, [worklogRef]);
+
+  useEffect(() => {
+    if (worklogRef.current && isJiraEditMode) {
+      setWorklogRefs((prev) => {
+        const existingIndex = prev.findIndex(({worklog: {id}}) => id === worklog.id);
+        if (existingIndex !== -1) {
+          const updatedRefs = [...prev];
+          updatedRefs[existingIndex] = {worklog, ref: worklogRef};
+          return updatedRefs;
+        } else {
+          return [...prev, {worklog, ref: worklogRef}];
+        }
+      });
+    }
+  }, [worklogRef])
 
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -43,14 +60,15 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
   })
 
   return (
-    <div className="mb-2 px-4 shadow-md rounded-md bg-gray-50"
+    <div className="mb-2 px-4 py-1 shadow-md rounded-md bg-gray-50"
          ref={worklogRef}
-         style={isJiraEditMode ? {backgroundColor: worklog.color} : {}}
          onMouseEnter={() => setIsHovered(true)}
          onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex justify-between">
-        <div className="mt-1 flex items-center">
+        <div className="flex items-center">
+          {isJiraEditMode && worklog.synced && <Brightness1Icon className="mr-2" sx={{color: worklog.color}} />}
+
           <div className="flex mr-4 my-1">
             {isTimeLogInNextDay.startTime &&
               <Tooltip className="flex items-center mr-1" title="Next day">
@@ -143,24 +161,22 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
       </div>
 
       <div className="flex items-center">
-        <div className="my-1">
           {worklog.comment}
-        </div>
       </div>
-      {isDeleteLoading || isCreateLoading && <LinearProgress />}
-      {isJiraEditMode && isWorklogAvailable && timeLogRefs.map((timeLogRef, index) => {
-        if (timeLogRef.timeLog.color === worklog.color) {
+      {isHovered && isJiraEditMode && worklog.synced && isWorkogAvailable && timeLogRefs.map((timeLogRef, index) => {
+        if (worklog.color === timeLogRef.timeLog.color) {
           return (
             <Connector
               key={index}
               startElement={timeLogRef.ref.current}
               endElement={worklogRef.current}
-              color={timeLogRef.timeLog.color}
+              color={worklog.color}
             />
           );
         }
         return null;
       })}
+      {isDeleteLoading || isCreateLoading && <LinearProgress />}
     </div>
   )
 }

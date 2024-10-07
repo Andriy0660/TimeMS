@@ -20,11 +20,12 @@ import {GoTable} from "react-icons/go";
 import ReorderIcon from "@mui/icons-material/Reorder.js";
 import {monthViewMode} from "../consts/monthViewMode.js";
 import IconModeIcon from "../components/IconModeIcon.jsx";
+import {viewMode} from "../consts/viewMode.js";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
   const [calendarApi, setCalendarApi] = useState(null);
-  const [viewMode, setViewMode] = useState(monthViewMode.CALENDAR);
+  const [view, setView] = useState(monthViewMode.CALENDAR);
   const {date, setDate, addAlert, mode} = useAppContext();
   const {changeView} = useViewChanger();
 
@@ -112,19 +113,19 @@ export default function MonthPage() {
         <IconModeIcon
           title={monthViewMode.CALENDAR}
           icon={<GoTable />}
-          isActive={viewMode === monthViewMode.CALENDAR}
-          onClick={() => setViewMode(monthViewMode.CALENDAR)}
+          isActive={view === monthViewMode.CALENDAR}
+          onClick={() => setView(monthViewMode.CALENDAR)}
         />
         <IconModeIcon
           title={monthViewMode.LIST}
           icon={<ReorderIcon />}
-          isActive={viewMode === monthViewMode.LIST}
-          onClick={() => setViewMode(monthViewMode.LIST)}
+          isActive={view === monthViewMode.LIST}
+          onClick={() => setView(monthViewMode.LIST)}
         />
         <div className="font-medium ml-10">
           Month: {data.totalHours}
         </div>
-        {viewMode === monthViewMode.LIST && <FormControlLabel
+        {view === monthViewMode.LIST && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
@@ -137,7 +138,7 @@ export default function MonthPage() {
         />
         }
       </div>
-      {viewMode === monthViewMode.CALENDAR &&
+      {view === monthViewMode.CALENDAR &&
         <FullCalendar
           initialDate={new Date(date)}
           events={data.items?.map(item => {
@@ -160,7 +161,7 @@ export default function MonthPage() {
           eventClassNames={() => ["bg-transparent"]}
         />
       }
-      {viewMode === monthViewMode.LIST && <TimeLogList
+      {view === monthViewMode.LIST && <TimeLogList
         timeLogs={timeLogs}
         mode={mode}
         {...timeLogMutations}

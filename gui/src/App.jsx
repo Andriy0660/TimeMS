@@ -4,6 +4,7 @@ import TimeLogPage from "./pages/TimeLogPage.jsx";
 import Root from "./Root.jsx";
 import WeekPage from "./pages/WeekPage.jsx";
 import MonthPage from "./pages/MonthPage.jsx";
+import SyncPage from "./pages/SyncPage.jsx";
 function App() {
   const router = createBrowserRouter([
     {
@@ -29,6 +30,10 @@ function App() {
         {
           path: "/app/monthview",
           element: <MonthPage />,
+        },
+        {
+          path: "/app/syncWorklogs",
+          element: <SyncPage />,
         },
         {
           path: "/app/info",

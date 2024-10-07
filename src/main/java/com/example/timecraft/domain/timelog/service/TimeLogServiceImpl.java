@@ -4,11 +4,11 @@ import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -42,7 +42,7 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import lombok.RequiredArgsConstructor;
 
-import static com.example.timecraft.domain.timelog.service.DurationService.formatDuration;
+import static com.example.timecraft.domain.timelog.service.DurationService.formatDurationHM;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +71,9 @@ public class TimeLogServiceImpl implements TimeLogService {
           ));
           return timeLogDto;
         })
+        .sorted(Comparator
+            .comparing(TimeLogListResponse.TimeLogDto::getDate)
+            .thenComparing(TimeLogListResponse.TimeLogDto::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())))
         .toList();
     return new TimeLogListResponse(timeLogDtoList);
   }
@@ -92,7 +95,7 @@ public class TimeLogServiceImpl implements TimeLogService {
       return null;
     }
     Duration duration = getDurationBetweenStartAndEndTime(startTime, endTime);
-    return formatDuration(duration);
+    return formatDurationHM(duration);
   }
 
   private Duration getDurationBetweenStartAndEndTime(final LocalTime startTime, final LocalTime endTime) {
@@ -303,9 +306,9 @@ public class TimeLogServiceImpl implements TimeLogService {
         }
       }
 
-      ticketDurations.add(new TimeLogHoursForWeekResponse.TicketDuration(ticket, formatDuration(totalForTicket)));
+      ticketDurations.add(new TimeLogHoursForWeekResponse.TicketDuration(ticket, formatDurationHM(totalForTicket)));
     }
-    ticketDurations.add(new TimeLogHoursForWeekResponse.TicketDuration("Total", formatDuration(totalForDay)));
+    ticketDurations.add(new TimeLogHoursForWeekResponse.TicketDuration("Total", formatDurationHM(totalForDay)));
     return ticketDurations;
   }
 
@@ -326,13 +329,13 @@ public class TimeLogServiceImpl implements TimeLogService {
 
       dayInfoList.add(TimeLogHoursForMonthResponse.DayInfo.builder()
           .date(currentDay)
-          .duration(formatDuration(durationForDay))
+          .duration(formatDurationHM(durationForDay))
           .isConflicted(hasConflictsForDay(entitiesForDay))
           .build());
 
       currentDay = currentDay.plusDays(1);
     }
-    return new TimeLogHoursForMonthResponse(formatDuration(totalDuration), dayInfoList);
+    return new TimeLogHoursForMonthResponse(formatDurationHM(totalDuration), dayInfoList);
   }
 
   private Duration getDurationForDay(final List<TimeLogEntity> entities) {

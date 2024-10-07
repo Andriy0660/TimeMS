@@ -1,8 +1,8 @@
 import TimeLog from "./TimeLog.jsx";
 import Description from "./Description.jsx";
 import {Chip} from "@mui/material";
-import Divider from "@mui/material/Divider";
 import dateTimeService from "../service/dateTimeService.js";
+import TimeLogGroup from "./TimeLogGroup.jsx";
 
 export default function TimeLogGroupedByDescription({
   description,
@@ -20,7 +20,7 @@ export default function TimeLogGroupedByDescription({
   }, [])
 
   return (
-    <>
+    <TimeLogGroup isJiraEditMode={isJiraEditMode} isSynced={logsForDescription[0]?.synced} color={logsForDescription[0]?.color}>
       {logsForDescription.map(timeLog => (
         <div key={timeLog.id}>
           <TimeLog
@@ -32,15 +32,12 @@ export default function TimeLogGroupedByDescription({
             hovered={hoveredTimeLogIds?.includes(timeLog.id)} />
         </div>
       ))}
-      <div className="flex items-center pb-1"
-           style={isJiraEditMode && logsForDescription[0]?.synced? {backgroundColor: logsForDescription[0]?.color} : {}}
-      >
-        <Description className="mx-4" description={description} ids={ids} setGroupDescription={setGroupDescription} />
+      <div className="flex items-center">
+        <Description description={description} ids={ids} setGroupDescription={setGroupDescription} isJiraEditMode={isJiraEditMode}/>
         {logsForDescription.length > 1 &&
-          <Chip label={totalTimeLabel} className="shadow-md mr-2" color="primary" variant="outlined" size="small" />
+          <Chip label={totalTimeLabel} className="shadow-md ml-2" color="primary" variant="outlined" size="small" />
         }
       </div>
-      <Divider />
-    </>
+    </TimeLogGroup>
   )
 }

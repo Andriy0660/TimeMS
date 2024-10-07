@@ -28,6 +28,8 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import VerticalDivider from "./VerticalDivider.jsx";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import classNames from "classnames";
+import Connector from "./Connector.jsx";
+import Brightness1Icon from "@mui/icons-material/Brightness1";
 
 export default function TimeLog({
   timeLog,
@@ -62,10 +64,20 @@ export default function TimeLog({
 
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
-  const {addAlert, setTimeLogRefs} = useAppContext();
+  const {addAlert, worklogRefs, setTimeLogRefs} = useAppContext();
 
   const timeLogRef = useRef(null);
   const timeLogUpperPartRef = useRef(null);
+
+  const [isTimeLogAvailable, setIsTimeLogAvailable] = useState(false);
+
+  useEffect(() => {
+    if (timeLogRef.current) {
+      setIsTimeLogAvailable(true);
+    } else {
+      setIsTimeLogAvailable(false);
+    }
+  }, [timeLogRef]);
 
   useEffect(() => {
     if (timeLogRef.current && isJiraEditMode) {
@@ -374,13 +386,11 @@ export default function TimeLog({
   return (
     <div
       ref={timeLogRef}
-      className={classNames("px-4 pt-1", {
+      className={classNames({
         "bg-blue-50" : status === "InProgress",
         "bg-blue-100" : hovered,
         "bg-rose-100": hoveredConflictedIds?.includes(timeLog.id)
       })}
-      style={isJiraEditMode && timeLog.synced ? {backgroundColor: timeLog.color} : {}}
-
 
       onMouseEnter={() => {
         setIsHovered(true);
@@ -402,6 +412,7 @@ export default function TimeLog({
               <Tooltip title="Synchronized">
                 <DoneIcon color="success" />
               </Tooltip>
+
             )
             : (
               <Tooltip title="Not synchronized">
@@ -573,6 +584,7 @@ export default function TimeLog({
 
           </div>
           }
+          {isJiraEditMode && timeLog.synced && <Brightness1Icon sx={{color: timeLog.color}} />}
         </div>
       </div>
       <ConfirmationModal
@@ -587,8 +599,22 @@ export default function TimeLog({
       >
         Are you sure you want to delete this time log?
       </ConfirmationModal>
+
+      {isHovered && isJiraEditMode && timeLog.synced && isTimeLogAvailable && worklogRefs.map((worklogRef, index) => {
+        if (timeLog.color === worklogRef.worklog.color) {
+          return (
+            <Connector
+              key={index}
+              startElement={timeLogRef.current}
+              endElement={worklogRef.ref.current}
+              color={timeLog.color}
+            />
+          );
+        }
+        return null;
+      })}
       {!groupByDescription &&
-        <Description className="pb-1" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription} />}
+        <Description className="w-fit" description={description} ids={[timeLog.id]} isJiraEditMode={isJiraEditMode} setGroupDescription={setGroupDescription} />}
       {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading || isChangingDate) &&
         <LinearProgress />}
     </div>

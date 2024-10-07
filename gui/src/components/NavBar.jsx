@@ -24,6 +24,7 @@ import useDateInUrl from "../hooks/useDateInUrl.js";
 import dayjs from "dayjs";
 import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore.js";
 import useViewChanger from "../hooks/useViewChanger.js";
+import SyncWorklogsButton from "./SyncWorklogsButton.jsx";
 import {viewMode} from "../consts/viewMode.js";
 
 export default function NavBar() {
@@ -51,6 +52,14 @@ export default function NavBar() {
           <Link to="/app/timelog" onClick={() => changeView(viewMode.DAY)} className="text-inherit no-underline w-full">
             <ListItemButton>
               <ListItemText primary="TimeLog" />
+            </ListItemButton>
+          </Link>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <Link to="/app/syncWorklogs" className="text-inherit no-underline w-full">
+            <ListItemButton>
+              <ListItemText primary="Sync Worklogs" />
             </ListItemButton>
           </Link>
         </ListItem>
@@ -106,6 +115,7 @@ export default function NavBar() {
             <SettingsBackupRestoreIcon />
           </IconButton>
         </Tooltip>
+        <SyncWorklogsButton>Sync Worklogs</SyncWorklogsButton>
       </Toolbar>
       <Drawer open={open} onClose={toggleMenu(false)}>
         {DrawerList}

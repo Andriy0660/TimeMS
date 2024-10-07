@@ -53,6 +53,8 @@ const dateTimeService = {
     }
   },
   compareTimes(time1, time2) {
+    if (time1 === null) return 1;
+    if (time2 === null) return -1;
     const t1 = time1.hour() * 60 + time1.minute();
     const t2 = time2.hour() * 60 + time2.minute();
     return t1 - t2;

@@ -85,7 +85,7 @@ export default function useProcessedTimeLogs() {
     groupByDescription,
     setGroupByDescription,
     timeLogs,
-    processedDataRef,
+    processedTimeLogsArray: processedDataRef.current,
     isListing,
     totalTimeLabel,
     filterTickets,
