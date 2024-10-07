@@ -14,11 +14,6 @@ const worklogApi = {
     return data;
   },
 
-  syncIntoJira: async (body) => {
-    const {data} = await axios.post(`/${key}/syncIntoJira`, {...body}, {baseMsg: "Error while synchronizing into jira"});
-    return data;
-  },
-
   delete: async (issueKey, id) => {
     await axios.delete(`/${key}/${issueKey}/${id}`, {baseMsg: "Error while deleting worklog"});
   },
