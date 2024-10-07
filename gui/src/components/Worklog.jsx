@@ -20,16 +20,6 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
   const worklogRef = useRef(null);
   const {worklogRefs, setWorklogRefs, timeLogRefs} = useAppContext();
 
-  const [isWorkogAvailable, setIsWorklogAvailable] = useState(false);
-
-  useEffect(() => {
-    if (worklogRef.current) {
-      setIsWorklogAvailable(true);
-    } else {
-      setIsWorklogAvailable(false);
-    }
-  }, [worklogRef]);
-
   useEffect(() => {
     if (worklogRef.current && isJiraEditMode) {
       setWorklogRefs((prev) => {
@@ -154,7 +144,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
           {worklog.comment}
       </div>
 
-      {isHovered && isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED && isWorkogAvailable &&
+      {isHovered && isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED &&
         worklogRefs.map((worklogRef, index1) => {
           const targetColor = worklog.color;
           return timeLogRefs.map((timeLogRef, index2) => {

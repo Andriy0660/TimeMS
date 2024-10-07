@@ -74,16 +74,6 @@ export default function TimeLog({
   const timeLogRef = useRef(null);
   const timeLogUpperPartRef = useRef(null);
 
-  const [isTimeLogAvailable, setIsTimeLogAvailable] = useState(false);
-
-  useEffect(() => {
-    if (timeLogRef.current) {
-      setIsTimeLogAvailable(true);
-    } else {
-      setIsTimeLogAvailable(false);
-    }
-  }, [timeLogRef]);
-
   useEffect(() => {
     if (timeLogRef.current && isJiraEditMode) {
       setTimeLogRefs((prev) => {
@@ -636,7 +626,7 @@ export default function TimeLog({
         Are you sure you want to delete this time log?
       </ConfirmationModal>
 
-      {isHovered && isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED && isTimeLogAvailable &&
+      {isHovered && isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED &&
           timeLogRefs.map((timeLogRef, index1) => {
             const targetColor = timeLog.color;
             return worklogRefs.map((worklogRef, index2) => {
