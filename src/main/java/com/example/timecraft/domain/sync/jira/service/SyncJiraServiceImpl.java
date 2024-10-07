@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -50,7 +49,7 @@ public class SyncJiraServiceImpl implements SyncJiraService {
     String ticket = request.getTicket();
 
     List<TimeLogEntity> timeLogEntityList = timeLogService.findAllByDateAndDescriptionAndTicket(date, description, ticket);
-    List<WorklogEntity> worklogEntityList = worklogService.findAllByDateAndCommentAndTicket(date, description, ticket);
+    List<WorklogEntity> worklogEntityList = worklogService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
     timeLogService.delete(timeLogEntityList);
     timeLogService.saveAll(worklogEntityList.stream().map(worklogEntity -> {
@@ -68,7 +67,7 @@ public class SyncJiraServiceImpl implements SyncJiraService {
     String ticket = request.getTicket();
 
     List<TimeLogEntity> timeLogEntityList = timeLogService.findAllByDateAndDescriptionAndTicket(date, description, ticket);
-    List<WorklogEntity> worklogEntityList = worklogService.findAllByDateAndCommentAndTicket(date, description, ticket);
+    List<WorklogEntity> worklogEntityList = worklogService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
     int totalSpentSeconds = getTotalSpentSeconds(timeLogEntityList);
 
@@ -163,7 +162,7 @@ public class SyncJiraServiceImpl implements SyncJiraService {
 
   private SyncStatus getSyncStatus(final LocalDate date, final String ticket, final String description) {
     List<TimeLogEntity> timeLogEntityList = timeLogService.findAllByDateAndDescriptionAndTicket(date, description, ticket);
-    List<WorklogEntity> worklogEntityList = worklogService.findAllByDateAndCommentAndTicket(date, description, ticket);
+    List<WorklogEntity> worklogEntityList = worklogService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
     boolean isCompatibleInTime = SyncJiraUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
     if (isCompatibleInTime) {
@@ -173,16 +172,6 @@ public class SyncJiraServiceImpl implements SyncJiraService {
     } else {
       return SyncStatus.NOT_SYNCED;
     }
-  }
-
-  private List<TimeLogEntity> getTimeLogsForDay(final LocalDate date) {
-    final int offset = props.getTimeConfig().getOffset();
-    return timeLogService.getAllTimeLogEntitiesInMode("Day", date, offset);
-  }
-
-  private List<WorklogEntity> getWorklogsForDay(final LocalDate date) {
-    final int offset = props.getTimeConfig().getOffset();
-    return worklogService.getAllWorklogEntitiesInMode("Day", date, offset);
   }
 
   private boolean hasTimeLogsSyncStatusForDay(LocalDate date, SyncStatus syncStatus) {
@@ -196,15 +185,16 @@ public class SyncJiraServiceImpl implements SyncJiraService {
     );
   }
 
-  private boolean hasWorklogsSyncStatusForDay(LocalDate date, SyncStatus syncStatus) {
+  private List<TimeLogEntity> getTimeLogsForDay(final LocalDate date) {
     final int offset = props.getTimeConfig().getOffset();
-    return getWorklogsForDay(date).stream().anyMatch(
-        worklogEntity -> getSyncStatus(
-            TimeLogUtils.getProcessedDate(worklogEntity.getDate(), worklogEntity.getStartTime(), offset),
-            worklogEntity.getTicket(),
-            worklogEntity.getComment()
-        ).equals(syncStatus)
-    );
+    return timeLogService.getAllTimeLogEntitiesInMode("Day", date, offset);
+  }
+
+  private boolean hasWorklogsSyncStatusForDay(LocalDate date, SyncStatus syncStatus) {
+    return worklogService.getAllByDate(date).stream()
+        .anyMatch(
+          worklogEntity -> getSyncStatus(worklogEntity.getDate(), worklogEntity.getTicket(), worklogEntity.getComment()
+        ).equals(syncStatus));
   }
 
 }

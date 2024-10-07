@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
@@ -41,13 +40,11 @@ public class WorklogServiceImpl implements WorklogService {
   private final JiraWorklogService jiraWorklogService;
   private final SyncProgressService syncProgressService;
   private final WorklogMapper mapper;
-  private final AppProperties props;
   private final Clock clock;
 
   @Override
   public WorklogListResponse list(final String mode, final LocalDate date) {
-    final int offset = props.getTimeConfig().getOffset();
-    List<WorklogEntity> worklogEntityList = getAllWorklogEntitiesInMode(mode, date, offset);
+    List<WorklogEntity> worklogEntityList = getAllByDate(date);
     final List<WorklogListResponse.WorklogDto> timeLogDtoList = worklogEntityList.stream()
         .map(worklogEntity -> {
           WorklogListResponse.WorklogDto worklogDto = mapper.toListItem(worklogEntity);
@@ -65,20 +62,15 @@ public class WorklogServiceImpl implements WorklogService {
   }
 
   @Override
-  public List<WorklogEntity> findAllByDateAndCommentAndTicket(final LocalDate date, final String comment, final String ticket) {
-    return worklogRepository.findAllByDateAndCommentAndTicket(date, comment, ticket);
+  public List<WorklogEntity> getAllByDate(final LocalDate date) {
+    return worklogRepository.findAllByDate(date);
   }
 
   @Override
-  public List<WorklogEntity> getAllWorklogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
-    final LocalTime startTime = LocalTime.of(offset, 0);
-    final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
-
-    if ("All".equals(mode)) {
-      return worklogRepository.findAll();
-    } else {
-      return worklogRepository.findAllInRange(dateRange[0], dateRange[1], startTime);
-    }
+  public List<WorklogEntity> getAllByDateAndCommentAndTicket(final LocalDate date, final String comment, final String ticket) {
+    return worklogRepository.findAllByDateAndTicket(date, ticket).stream()
+        .filter(worklogEntity -> SyncJiraUtil.areDescriptionsEqual(worklogEntity.getComment(), comment))
+        .toList();
   }
 
   @Override
@@ -114,7 +106,7 @@ public class WorklogServiceImpl implements WorklogService {
   @Override
   public WorklogProgressResponse getProgress() {
     Duration duration = Duration.ZERO;
-    if(syncProgressService.getStartTime() != null) {
+    if (syncProgressService.getStartTime() != null) {
       if (syncProgressService.getEndTime() != null) {
         duration = Duration.between(syncProgressService.getStartTime(), syncProgressService.getEndTime());
       } else {

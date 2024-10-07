@@ -56,9 +56,6 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogListResponse list(final String mode, final LocalDate date) {
     final int offset = props.getTimeConfig().getOffset();
-    if(offset < 0 || offset > 23) {
-      throw new BadRequestException("Offset must be between 0 and 23");
-    }
     final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date, offset);
 
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
@@ -82,7 +79,10 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public List<TimeLogEntity> findAllByDateAndDescriptionAndTicket(final LocalDate date, final String description, final String ticket) {
-    return repository.findAllByDateAndDescriptionAndTicket(date, description, ticket);
+    final int offset = props.getTimeConfig().getOffset();
+    return repository.findAllByDateAndTicket(date, date.plusDays(1), LocalTime.of(offset, 0), ticket).stream()
+        .filter(timeLogEntity -> SyncJiraUtil.areDescriptionsEqual(timeLogEntity.getDescription(), description))
+        .toList();
   }
 
   @Override

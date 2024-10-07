@@ -12,9 +12,9 @@ import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 public interface WorklogService {
   WorklogListResponse list(final String mode, final LocalDate date);
 
-  List<WorklogEntity> findAllByDateAndCommentAndTicket(LocalDate date, String comment, String ticket);
+  List<WorklogEntity> getAllByDate(final LocalDate date);
 
-  List<WorklogEntity> getAllWorklogEntitiesInMode(final String mode, final LocalDate date, final int offset);
+  List<WorklogEntity> getAllByDateAndCommentAndTicket(LocalDate date, String comment, String ticket);
 
   WorklogCreateFromTimeLogResponse createWorklogFromTimeLog(WorklogCreateFromTimeLogRequest request);
 
