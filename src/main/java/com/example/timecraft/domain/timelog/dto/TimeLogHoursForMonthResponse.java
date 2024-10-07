@@ -3,7 +3,7 @@ package com.example.timecraft.domain.timelog.dto;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.example.timecraft.domain.sync.model.Status;
+import com.example.timecraft.domain.sync.model.SyncStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +22,7 @@ public class TimeLogHoursForMonthResponse {
   public static class DayInfo {
     private LocalDate date;
     private String duration;
-    private Status syncStatus;
+    private SyncStatus syncStatus;
     private boolean isConflicted;
   }
 }

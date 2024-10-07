@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.service;
+package com.example.timecraft.domain.sync.jira.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,10 +15,10 @@ import com.example.timecraft.domain.jira.worklog.dto.JiraUpdateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
-import com.example.timecraft.domain.sync.dto.SyncFromJiraRequest;
-import com.example.timecraft.domain.sync.dto.SyncIntoJiraRequest;
-import com.example.timecraft.domain.sync.model.Status;
-import com.example.timecraft.domain.sync.util.SyncUtil;
+import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
+import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
+import com.example.timecraft.domain.sync.model.SyncStatus;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtil;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class SyncServiceImpl implements SyncService {
+public class SyncJiraServiceImpl implements SyncJiraService {
   private final TimeLogService timeLogService;
   private final WorklogService worklogService;
   private final JiraWorklogService jiraWorklogService;
@@ -45,7 +45,7 @@ public class SyncServiceImpl implements SyncService {
     List<TimeLogEntity> timeLogEntityList = getTimeLogsForDay(request.getDate());
     timeLogEntityList = timeLogEntityList
         .stream()
-        .filter(entity -> SyncUtil.areDescriptionsEqual(entity.getDescription(), request.getDescription()))
+        .filter(entity -> SyncJiraUtil.areDescriptionsEqual(entity.getDescription(), request.getDescription()))
         .filter(entity -> Objects.equals(entity.getTicket(), request.getTicket()))
         .toList();
     timeLogService.delete(timeLogEntityList);
@@ -53,7 +53,7 @@ public class SyncServiceImpl implements SyncService {
     List<WorklogEntity> worklogEntityList = getWorklogsForDay(request.getDate());
     worklogEntityList = worklogEntityList
         .stream()
-        .filter(entity -> SyncUtil.areDescriptionsEqual(entity.getComment(), request.getDescription()))
+        .filter(entity -> SyncJiraUtil.areDescriptionsEqual(entity.getComment(), request.getDescription()))
         .filter(entity -> Objects.equals(entity.getTicket(), request.getTicket()))
         .toList();
 
@@ -75,7 +75,7 @@ public class SyncServiceImpl implements SyncService {
     List<WorklogEntity> worklogEntities = worklogService.getAllWorklogEntitiesInMode("Day", request.getDate(), offset);
     worklogEntities = worklogEntities
         .stream()
-        .filter(entity -> SyncUtil.areDescriptionsEqual(entity.getComment(), request.getDescription()))
+        .filter(entity -> SyncJiraUtil.areDescriptionsEqual(entity.getComment(), request.getDescription()))
         .filter(entity -> Objects.equals(entity.getTicket(), request.getTicket()))
         .toList();
 
@@ -126,15 +126,15 @@ public class SyncServiceImpl implements SyncService {
             .toList());
   }
 
-  private Status determineSyncStatusForDay(LocalDate date) {
-    if (hasTimeLogsSyncStatusForDay(date, Status.NOT_SYNCED) ||
-        hasWorklogsSyncStatusForDay(date, Status.NOT_SYNCED)) {
-      return Status.NOT_SYNCED;
-    } else if (hasTimeLogsSyncStatusForDay(date, Status.PARTIAL_SYNCED) ||
-        hasWorklogsSyncStatusForDay(date, Status.PARTIAL_SYNCED)) {
-      return Status.PARTIAL_SYNCED;
+  private SyncStatus determineSyncStatusForDay(LocalDate date) {
+    if (hasTimeLogsSyncStatusForDay(date, SyncStatus.NOT_SYNCED) ||
+        hasWorklogsSyncStatusForDay(date, SyncStatus.NOT_SYNCED)) {
+      return SyncStatus.NOT_SYNCED;
+    } else if (hasTimeLogsSyncStatusForDay(date, SyncStatus.PARTIAL_SYNCED) ||
+        hasWorklogsSyncStatusForDay(date, SyncStatus.PARTIAL_SYNCED)) {
+      return SyncStatus.PARTIAL_SYNCED;
     } else {
-      return Status.SYNCED;
+      return SyncStatus.SYNCED;
     }
   }
 
@@ -159,28 +159,28 @@ public class SyncServiceImpl implements SyncService {
     );
   }
 
-  private Status getSyncStatus(final LocalDate date, final String ticket, final String description) {
+  private SyncStatus getSyncStatus(final LocalDate date, final String ticket, final String description) {
     List<TimeLogEntity> timeLogEntityList = getTimeLogsForDay(date);
     List<WorklogEntity> worklogEntityList = getWorklogsForDay(date);
     timeLogEntityList = timeLogEntityList
         .stream()
-        .filter(entity -> SyncUtil.areDescriptionsEqual(entity.getDescription(), description))
+        .filter(entity -> SyncJiraUtil.areDescriptionsEqual(entity.getDescription(), description))
         .filter(entity -> Objects.equals(entity.getTicket(), ticket))
         .toList();
 
     worklogEntityList = worklogEntityList
         .stream()
-        .filter(entity -> SyncUtil.areDescriptionsEqual(entity.getComment(), description))
+        .filter(entity -> SyncJiraUtil.areDescriptionsEqual(entity.getComment(), description))
         .filter(entity -> Objects.equals(entity.getTicket(), ticket))
         .toList();
 
-    boolean isCompatibleInTime = SyncUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
+    boolean isCompatibleInTime = SyncJiraUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
     if (isCompatibleInTime) {
-      return Status.SYNCED;
+      return SyncStatus.SYNCED;
     } else if (!timeLogEntityList.isEmpty() && !worklogEntityList.isEmpty()) {
-      return Status.PARTIAL_SYNCED;
+      return SyncStatus.PARTIAL_SYNCED;
     } else {
-      return Status.NOT_SYNCED;
+      return SyncStatus.NOT_SYNCED;
     }
   }
 
@@ -194,25 +194,25 @@ public class SyncServiceImpl implements SyncService {
     return worklogService.getAllWorklogEntitiesInMode("Day", date, offset);
   }
 
-  private boolean hasTimeLogsSyncStatusForDay(LocalDate date, Status status) {
+  private boolean hasTimeLogsSyncStatusForDay(LocalDate date, SyncStatus syncStatus) {
     final int offset = props.getTimeConfig().getOffset();
     return getTimeLogsForDay(date).stream().anyMatch(
         timeLogEntity -> getSyncStatus(
             TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
             timeLogEntity.getTicket(),
             timeLogEntity.getDescription()
-        ).equals(status)
+        ).equals(syncStatus)
     );
   }
 
-  private boolean hasWorklogsSyncStatusForDay(LocalDate date, Status status) {
+  private boolean hasWorklogsSyncStatusForDay(LocalDate date, SyncStatus syncStatus) {
     final int offset = props.getTimeConfig().getOffset();
     return getWorklogsForDay(date).stream().anyMatch(
         worklogEntity -> getSyncStatus(
             TimeLogUtils.getProcessedDate(worklogEntity.getDate(), worklogEntity.getStartTime(), offset),
             worklogEntity.getTicket(),
             worklogEntity.getComment()
-        ).equals(status)
+        ).equals(syncStatus)
     );
   }
 

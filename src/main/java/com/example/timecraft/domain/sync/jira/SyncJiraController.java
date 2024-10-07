@@ -1,29 +1,29 @@
-package com.example.timecraft.domain.sync;
+package com.example.timecraft.domain.sync.jira;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.timecraft.domain.sync.dto.SyncFromJiraRequest;
-import com.example.timecraft.domain.sync.dto.SyncIntoJiraRequest;
-import com.example.timecraft.domain.sync.service.SyncService;
+import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
+import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
+import com.example.timecraft.domain.sync.jira.service.SyncJiraService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/sync")
-public class SyncController {
-  private final SyncService syncService;
+public class SyncJiraController {
+  private final SyncJiraService syncJiraService;
 
   @PostMapping("/syncFromJira")
   public void syncFromJira(@RequestBody SyncFromJiraRequest request) {
-    syncService.syncFromJira(request);
+    syncJiraService.syncFromJira(request);
   }
 
   @PostMapping("/syncIntoJira")
   public void syncIntoJira(@RequestBody final SyncIntoJiraRequest request) {
-    syncService.syncIntoJira(request);
+    syncJiraService.syncIntoJira(request);
   }
 
 }

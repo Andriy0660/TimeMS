@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
-import com.example.timecraft.domain.sync.util.SyncUtil;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtil;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
@@ -68,7 +68,7 @@ public class TimeLogServiceImpl implements TimeLogService {
           if (timeLogDto.getDescription() != null || timeLogDto.getTicket() != null) {
             timeLogDto.setColor(TimeLogUtils.generateColor(
                 timeLogEntity.getTicket(),
-                SyncUtil.removeNonLetterAndDigitCharacters(timeLogEntity.getDescription())
+                SyncJiraUtil.removeNonLetterAndDigitCharacters(timeLogEntity.getDescription())
             ));
           }
           return timeLogDto;

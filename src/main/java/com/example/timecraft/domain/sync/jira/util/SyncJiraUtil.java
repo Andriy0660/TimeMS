@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.util;
+package com.example.timecraft.domain.sync.jira.util;
 
 import java.util.List;
 import java.util.Objects;
@@ -7,7 +7,7 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 
-public class SyncUtil {
+public class SyncJiraUtil {
   public static boolean areDescriptionsEqual(String descr1, String descr2) {
     descr1 = descr1 != null ? removeNonLetterAndDigitCharacters(descr1) : null;
     descr2 = descr2 != null ? removeNonLetterAndDigitCharacters(descr2) : null;

@@ -20,7 +20,7 @@ import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
-import com.example.timecraft.domain.sync.util.SyncUtil;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtil;
 import com.example.timecraft.domain.timelog.service.DurationService;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
@@ -53,7 +53,7 @@ public class WorklogServiceImpl implements WorklogService {
           WorklogListResponse.WorklogDto worklogDto = mapper.toListItem(worklogEntity);
           worklogDto.setColor(TimeLogUtils.generateColor(
               worklogEntity.getTicket(),
-              SyncUtil.removeNonLetterAndDigitCharacters(worklogEntity.getComment())
+              SyncJiraUtil.removeNonLetterAndDigitCharacters(worklogEntity.getComment())
           ));
           return worklogDto;
         })

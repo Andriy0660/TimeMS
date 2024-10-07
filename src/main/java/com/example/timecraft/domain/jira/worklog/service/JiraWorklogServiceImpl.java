@@ -204,7 +204,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
         throw new RuntimeException("Error parsing worklog for " + issueKey);
       }
     } else {
-      throw new RuntimeException("Failed to create worklog. Status code: " + response.getStatusCode());
+      throw new RuntimeException("Failed to create worklog. SyncStatus code: " + response.getStatusCode());
     }
   }
 
@@ -226,7 +226,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
         throw new RuntimeException("Error parsing worklog for " + issueKey);
       }
     } else {
-      throw new RuntimeException("Failed to update worklog. Status code: " + response.getStatusCode());
+      throw new RuntimeException("Failed to update worklog. SyncStatus code: " + response.getStatusCode());
     }
   }
 

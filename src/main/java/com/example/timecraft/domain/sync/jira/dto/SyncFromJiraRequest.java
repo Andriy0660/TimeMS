@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.dto;
+package com.example.timecraft.domain.sync.jira.dto;
 
 import java.time.LocalDate;
 
@@ -9,9 +9,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SyncIntoJiraRequest {
+public class SyncFromJiraRequest {
   private String ticket;
   private LocalDate date;
   private String description;
-  private int totalSpent;
 }
