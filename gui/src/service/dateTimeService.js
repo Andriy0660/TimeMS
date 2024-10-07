@@ -140,15 +140,6 @@ const dateTimeService = {
       return calculateDuration(currentTime);
     }
     return calculateDuration(endTime);
-  },
-  getTotalSpent({timeLogs, ticket, date, description}) {
-    let totalSpentSeconds = 0;
-    timeLogs.forEach((timeLog) => {
-      if(timeLog.ticket === ticket && timeLog.date.isSame(date, "day") && timeLog.description === description) {
-        totalSpentSeconds += timeLog.endTime.diff(timeLog.startTime, "seconds");
-      }
-    })
-    return totalSpentSeconds;
   }
 }
 export default dateTimeService;

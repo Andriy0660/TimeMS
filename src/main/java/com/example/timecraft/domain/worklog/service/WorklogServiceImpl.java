@@ -65,6 +65,11 @@ public class WorklogServiceImpl implements WorklogService {
   }
 
   @Override
+  public List<WorklogEntity> findAllByDateAndCommentAndTicket(final LocalDate date, final String comment, final String ticket) {
+    return worklogRepository.findAllByDateAndCommentAndTicket(date, comment, ticket);
+  }
+
+  @Override
   public List<WorklogEntity> getAllWorklogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
     final LocalTime startTime = LocalTime.of(offset, 0);
     final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);

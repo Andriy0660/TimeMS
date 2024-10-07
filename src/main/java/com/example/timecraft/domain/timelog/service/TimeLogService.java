@@ -22,6 +22,8 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 public interface TimeLogService {
   TimeLogListResponse list(final String mode, final LocalDate date);
 
+  List<TimeLogEntity> findAllByDateAndDescriptionAndTicket(final LocalDate date, final String description, final String ticket);
+
   List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset);
 
   void saveAll(final List<TimeLogEntity> entities);

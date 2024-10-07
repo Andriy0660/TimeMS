@@ -12,13 +12,19 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WorklogRepository extends JpaRepository<WorklogEntity, Long> {
 
-  @Query("SELECT t FROM WorklogEntity t WHERE " +
-      "(t.date = :currentDay AND (t.startTime >= :startTime OR t.startTime IS NULL)) " +
-      "OR (t.date = :nextDay AND t.startTime < :startTime) " +
-      "OR (t.date > :currentDay AND t.date < :nextDay)")
-  List<WorklogEntity> findAllInRange(@Param("currentDay") LocalDate currentDay,
-                                     @Param("nextDay") LocalDate nextDay,
-                                     @Param("startTime") LocalTime startTime);
+  @Query("""
+      SELECT t FROM WorklogEntity t WHERE
+      (t.date = :currentDay AND (t.startTime >= :startTime OR t.startTime IS NULL))
+      OR (t.date = :nextDay AND t.startTime < :startTime)
+      OR (t.date > :currentDay AND t.date < :nextDay)
+     """)
+  List<WorklogEntity> findAllInRange(
+      @Param("currentDay") LocalDate currentDay,
+      @Param("nextDay") LocalDate nextDay,
+      @Param("startTime") LocalTime startTime);
+
+  List<WorklogEntity> findAllByDateAndCommentAndTicket(LocalDate date, String comment, String ticket);
+
 
   List<WorklogEntity> findAllByTicket(String ticket);
 }

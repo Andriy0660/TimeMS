@@ -51,7 +51,6 @@ export default function TimeLog({
   setHoveredConflictedIds,
   onSync,
   isJiraEditMode,
-  processedTimeLogsArray
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -546,8 +545,6 @@ export default function TimeLog({
                       ticket: timeLog.ticket,
                       date: dateTimeService.getFormattedDate(timeLog.date),
                       description: timeLog.description,
-                      totalSpent: dateTimeService.getTotalSpent(
-                        {timeLogs: processedTimeLogsArray, ticket, date: timeLog.date, description})
                     })}
                   >
                     <ListItemIcon>

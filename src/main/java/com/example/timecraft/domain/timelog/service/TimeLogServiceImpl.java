@@ -81,6 +81,11 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   @Override
+  public List<TimeLogEntity> findAllByDateAndDescriptionAndTicket(final LocalDate date, final String description, final String ticket) {
+    return repository.findAllByDateAndDescriptionAndTicket(date, description, ticket);
+  }
+
+  @Override
   public List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
     final LocalTime startTime = LocalTime.of(offset, 0);
     final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
