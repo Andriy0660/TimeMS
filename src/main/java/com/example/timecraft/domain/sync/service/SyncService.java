@@ -1,13 +1,13 @@
-package com.example.timecraft.domain.logsync.service;
+package com.example.timecraft.domain.sync.service;
 
-import com.example.timecraft.domain.logsync.dto.SyncFromJiraRequest;
-import com.example.timecraft.domain.logsync.dto.SyncIntoJiraRequest;
+import com.example.timecraft.domain.sync.dto.SyncFromJiraRequest;
+import com.example.timecraft.domain.sync.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 
-public interface LogSyncService {
+public interface SyncService {
   void syncFromJira(SyncFromJiraRequest request);
 
   void syncIntoJira(SyncIntoJiraRequest request);

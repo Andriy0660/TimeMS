@@ -2,7 +2,7 @@ import {useMutation, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import worklogApi from "../api/worklogApi.js";
 import useAppContext from "../context/useAppContext.js";
-import logSyncApi from "../api/logSyncApi.js";
+import syncApi from "../api/syncApi.js";
 
 export default function useTimeLogMutations() {
   const queryClient = useQueryClient();
@@ -45,7 +45,7 @@ export default function useTimeLogMutations() {
   });
 
   const {mutateAsync: syncIntoJira} = useMutation({
-    mutationFn: (body) => logSyncApi.syncIntoJira(body),
+    mutationFn: (body) => syncApi.syncIntoJira(body),
     onSuccess: async () => {
       queryClient.invalidateQueries(worklogApi.key);
       queryClient.invalidateQueries(timeLogApi.key);
@@ -64,7 +64,7 @@ export default function useTimeLogMutations() {
   });
 
   const {mutateAsync: syncFromJira} = useMutation({
-    mutationFn: (body) => logSyncApi.syncFromJira(body),
+    mutationFn: (body) => syncApi.syncFromJira(body),
     onSuccess: async () => {
       queryClient.invalidateQueries(worklogApi.key);
       queryClient.invalidateQueries(timeLogApi.key);

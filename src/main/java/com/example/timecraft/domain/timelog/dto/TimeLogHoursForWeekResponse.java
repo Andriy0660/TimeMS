@@ -3,7 +3,7 @@ package com.example.timecraft.domain.timelog.dto;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.example.timecraft.domain.logsync.model.Status;
+import com.example.timecraft.domain.sync.model.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

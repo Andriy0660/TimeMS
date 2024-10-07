@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.logsync.service;
+package com.example.timecraft.domain.sync.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,10 +15,10 @@ import com.example.timecraft.domain.jira.worklog.dto.JiraUpdateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
-import com.example.timecraft.domain.logsync.dto.SyncFromJiraRequest;
-import com.example.timecraft.domain.logsync.dto.SyncIntoJiraRequest;
-import com.example.timecraft.domain.logsync.model.Status;
-import com.example.timecraft.domain.logsync.util.LogSyncUtil;
+import com.example.timecraft.domain.sync.dto.SyncFromJiraRequest;
+import com.example.timecraft.domain.sync.dto.SyncIntoJiraRequest;
+import com.example.timecraft.domain.sync.model.Status;
+import com.example.timecraft.domain.sync.util.SyncUtil;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class LogSyncServiceImpl implements LogSyncService {
+public class SyncServiceImpl implements SyncService {
   private final TimeLogService timeLogService;
   private final WorklogService worklogService;
   private final JiraWorklogService jiraWorklogService;
@@ -45,7 +45,7 @@ public class LogSyncServiceImpl implements LogSyncService {
     List<TimeLogEntity> timeLogEntityList = getTimeLogsForDay(request.getDate());
     timeLogEntityList = timeLogEntityList
         .stream()
-        .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getDescription(), request.getDescription()))
+        .filter(entity -> SyncUtil.areDescriptionsEqual(entity.getDescription(), request.getDescription()))
         .filter(entity -> Objects.equals(entity.getTicket(), request.getTicket()))
         .toList();
     timeLogService.delete(timeLogEntityList);
@@ -53,7 +53,7 @@ public class LogSyncServiceImpl implements LogSyncService {
     List<WorklogEntity> worklogEntityList = getWorklogsForDay(request.getDate());
     worklogEntityList = worklogEntityList
         .stream()
-        .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getComment(), request.getDescription()))
+        .filter(entity -> SyncUtil.areDescriptionsEqual(entity.getComment(), request.getDescription()))
         .filter(entity -> Objects.equals(entity.getTicket(), request.getTicket()))
         .toList();
 
@@ -75,7 +75,7 @@ public class LogSyncServiceImpl implements LogSyncService {
     List<WorklogEntity> worklogEntities = worklogService.getAllWorklogEntitiesInMode("Day", request.getDate(), offset);
     worklogEntities = worklogEntities
         .stream()
-        .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getComment(), request.getDescription()))
+        .filter(entity -> SyncUtil.areDescriptionsEqual(entity.getComment(), request.getDescription()))
         .filter(entity -> Objects.equals(entity.getTicket(), request.getTicket()))
         .toList();
 
@@ -164,17 +164,17 @@ public class LogSyncServiceImpl implements LogSyncService {
     List<WorklogEntity> worklogEntityList = getWorklogsForDay(date);
     timeLogEntityList = timeLogEntityList
         .stream()
-        .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getDescription(), description))
+        .filter(entity -> SyncUtil.areDescriptionsEqual(entity.getDescription(), description))
         .filter(entity -> Objects.equals(entity.getTicket(), ticket))
         .toList();
 
     worklogEntityList = worklogEntityList
         .stream()
-        .filter(entity -> LogSyncUtil.areDescriptionsEqual(entity.getComment(), description))
+        .filter(entity -> SyncUtil.areDescriptionsEqual(entity.getComment(), description))
         .filter(entity -> Objects.equals(entity.getTicket(), ticket))
         .toList();
 
-    boolean isCompatibleInTime = LogSyncUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
+    boolean isCompatibleInTime = SyncUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
     if (isCompatibleInTime) {
       return Status.SYNCED;
     } else if (!timeLogEntityList.isEmpty() && !worklogEntityList.isEmpty()) {

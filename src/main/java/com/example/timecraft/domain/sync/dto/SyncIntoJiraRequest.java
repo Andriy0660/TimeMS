@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.logsync.dto;
+package com.example.timecraft.domain.sync.dto;
 
 import java.time.LocalDate;
 

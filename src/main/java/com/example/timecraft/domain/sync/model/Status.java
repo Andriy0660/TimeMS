@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.logsync.model;
+package com.example.timecraft.domain.sync.model;
 
 public enum Status {
   SYNCED,
