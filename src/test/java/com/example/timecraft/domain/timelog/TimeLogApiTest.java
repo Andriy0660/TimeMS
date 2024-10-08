@@ -235,18 +235,18 @@ class TimeLogApiTest {
                 .build()
         )).build();
 
-    int initialSize = getSize(mvc, "All", LocalDate.now(clock), 3);
+    int initialSize = getSize(mvc, "Month", LocalDate.now(clock), 3);
 
     mvc.perform(post("/time-logs/importTimeLogs")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
-    int newSize = getSize(mvc, "All", LocalDate.now(clock), 3);
+    int newSize = getSize(mvc, "Month", LocalDate.now(clock), 3);
 
     assertEquals(initialSize + 2, newSize);
 
     mvc.perform(get("/time-logs")
-            .param("mode", "All")
+            .param("mode", "Month")
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
