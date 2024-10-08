@@ -20,7 +20,7 @@ public class SyncJiraController {
   private final SyncJiraApiService syncJiraApiService;
 
   @PostMapping("/from")
-  public void syncFromJira(@RequestBody SyncFromJiraRequest request) {
+  public void syncFromJira(@RequestBody final SyncFromJiraRequest request) {
     syncJiraApiService.syncFromJira(request);
   }
 
@@ -35,7 +35,7 @@ public class SyncJiraController {
   }
 
   @PostMapping("/{ticket}")
-  public void syncWorklogsForIssue(@PathVariable String ticket) {
+  public void syncWorklogsForIssue(@PathVariable final String ticket) {
     syncJiraApiService.syncWorklogsForTicket(ticket);
   }
 

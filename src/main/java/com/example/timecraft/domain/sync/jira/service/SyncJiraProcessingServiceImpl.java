@@ -26,9 +26,9 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
   private final TimeLogSyncService timeLogSyncService;
   private final WorklogSyncService worklogSyncService;
 
-  public TimeLogListResponse processTimeLogDtos(TimeLogListResponse response) {
+  public TimeLogListResponse processTimeLogDtos(final TimeLogListResponse response) {
     final int offset = props.getTimeConfig().getOffset();
-    List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
+    final List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
     return new TimeLogListResponse(
         timeLogDtos.stream().peek(timeLogDto ->
             timeLogDto.setSyncStatus(
@@ -40,15 +40,15 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
         ).toList());
   }
 
-  public TimeLogHoursForWeekResponse processWeekDayInfos(TimeLogHoursForWeekResponse response) {
-    List<TimeLogHoursForWeekResponse.DayInfo> dayInfos = response.getItems();
+  public TimeLogHoursForWeekResponse processWeekDayInfos(final TimeLogHoursForWeekResponse response) {
+    final List<TimeLogHoursForWeekResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekResponse(
         dayInfos.stream()
             .peek(dayInfo -> dayInfo.setSyncStatus(determineSyncStatusForDay(dayInfo.getDate())))
             .toList());
   }
 
-  private SyncStatus determineSyncStatusForDay(LocalDate date) {
+  private SyncStatus determineSyncStatusForDay(final LocalDate date) {
     if (hasTimeLogsSyncStatusForDay(date, SyncStatus.NOT_SYNCED) ||
         hasWorklogsSyncStatusForDay(date, SyncStatus.NOT_SYNCED)) {
       return SyncStatus.NOT_SYNCED;
@@ -60,17 +60,17 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
     }
   }
 
-  public TimeLogHoursForMonthResponse processMonthDayInfos(TimeLogHoursForMonthResponse response) {
-    List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
+  public TimeLogHoursForMonthResponse processMonthDayInfos(final TimeLogHoursForMonthResponse response) {
+    final List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
         dayInfos.stream()
             .peek(dayInfo -> dayInfo.setSyncStatus(determineSyncStatusForDay(dayInfo.getDate())))
             .toList());
   }
 
-  public WorklogListResponse processWorklogDtos(WorklogListResponse response) {
+  public WorklogListResponse processWorklogDtos(final WorklogListResponse response) {
     final int offset = props.getTimeConfig().getOffset();
-    List<WorklogListResponse.WorklogDto> worklogDtos = response.getItems();
+    final List<WorklogListResponse.WorklogDto> worklogDtos = response.getItems();
     return new WorklogListResponse(
         worklogDtos.stream().peek(worklogDto -> worklogDto.setSyncStatus(
             getSyncStatus(
@@ -82,10 +82,10 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
   }
 
   private SyncStatus getSyncStatus(final LocalDate date, final String ticket, final String description) {
-    List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
-    List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
+    final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
+    final List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
-    boolean isCompatibleInTime = SyncJiraUtils.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
+    final boolean isCompatibleInTime = SyncJiraUtils.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
     if (isCompatibleInTime) {
       return SyncStatus.SYNCED;
     } else if (!timeLogEntityList.isEmpty() && !worklogEntityList.isEmpty()) {
@@ -95,7 +95,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
     }
   }
 
-  private boolean hasTimeLogsSyncStatusForDay(LocalDate date, SyncStatus syncStatus) {
+  private boolean hasTimeLogsSyncStatusForDay(final LocalDate date, final SyncStatus syncStatus) {
     final int offset = props.getTimeConfig().getOffset();
     return timeLogSyncService.getAllByDate(date).stream().anyMatch(
         timeLogEntity -> getSyncStatus(
@@ -106,7 +106,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
     );
   }
 
-  private boolean hasWorklogsSyncStatusForDay(LocalDate date, SyncStatus syncStatus) {
+  private boolean hasWorklogsSyncStatusForDay(final LocalDate date, final SyncStatus syncStatus) {
     return worklogSyncService.getAllByDate(date).stream()
         .anyMatch(
             worklogEntity -> getSyncStatus(worklogEntity.getDate(), worklogEntity.getTicket(), worklogEntity.getComment()).equals(syncStatus)

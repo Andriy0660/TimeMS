@@ -6,11 +6,11 @@ import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 
 public interface SyncJiraProcessingService {
-  TimeLogListResponse processTimeLogDtos(TimeLogListResponse response);
+  TimeLogListResponse processTimeLogDtos(final TimeLogListResponse response);
 
-  TimeLogHoursForWeekResponse processWeekDayInfos(TimeLogHoursForWeekResponse response);
+  TimeLogHoursForWeekResponse processWeekDayInfos(final TimeLogHoursForWeekResponse response);
 
-  TimeLogHoursForMonthResponse processMonthDayInfos(TimeLogHoursForMonthResponse response);
+  TimeLogHoursForMonthResponse processMonthDayInfos(final TimeLogHoursForMonthResponse response);
 
-  WorklogListResponse processWorklogDtos(WorklogListResponse response);
+  WorklogListResponse processWorklogDtos(final WorklogListResponse response);
 }

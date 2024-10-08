@@ -81,18 +81,14 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
     final LocalTime startTime = LocalTime.of(offset, 0);
     final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
 
-    if ("All".equals(mode)) {
-      return repository.findAll();
-    } else {
-      return repository.findAllInRange(dateRange[0], dateRange[1], startTime);
-    }
+    return repository.findAllInRange(dateRange[0], dateRange[1], startTime);
   }
 
   private String mapTotalTime(final LocalTime startTime, final LocalTime endTime) {
     if (startTime == null || endTime == null) {
       return null;
     }
-    Duration duration = getDurationBetweenStartAndEndTime(startTime, endTime);
+    final Duration duration = getDurationBetweenStartAndEndTime(startTime, endTime);
     return formatDurationHM(duration);
   }
 
@@ -147,9 +143,9 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
   @Override
   public void divide(final long timeLogId) {
     final int offset = props.getTimeConfig().getOffset();
-    LocalTime startOfDay = LocalTime.of(offset, 0);
+    final LocalTime startOfDay = LocalTime.of(offset, 0);
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
-    TimeLogEntity secondEntity = TimeLogEntity.builder()
+    final TimeLogEntity secondEntity = TimeLogEntity.builder()
         .startTime(startOfDay)
         .endTime(timeLogEntity.getEndTime())
         .description(timeLogEntity.getDescription())
@@ -164,7 +160,7 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
     repository.save(secondEntity);
   }
 
-  private boolean isSameTimeLog(TimeLogEntity timeLogEntity, TimeLogImportRequest.TimeLogDto timeLogDto) {
+  private boolean isSameTimeLog(final TimeLogEntity timeLogEntity, final TimeLogImportRequest.TimeLogDto timeLogDto) {
     return Objects.equals(timeLogEntity.getTicket(), timeLogDto.getTicket())
         && Objects.equals(timeLogEntity.getStartTime(), timeLogDto.getStartTime())
         && Objects.equals(timeLogEntity.getEndTime(), timeLogDto.getEndTime())
@@ -201,7 +197,7 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
     }
   }
 
-  private void stopOtherTimeLogs(Long excludedId) {
+  private void stopOtherTimeLogs(final Long excludedId) {
     repository.findAllByEndTimeIsNull().forEach((timeLogEntity) -> {
       if (timeLogEntity.getId().equals(excludedId) || timeLogEntity.getStartTime() == null) {
         return;
@@ -215,7 +211,7 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
   @Override
   public TimeLogGetResponse get(final long timeLogId) {
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
-    TimeLogGetResponse response = mapper.toGetResponse(timeLogEntity);
+    final TimeLogGetResponse response = mapper.toGetResponse(timeLogEntity);
     response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
     return response;
   }
@@ -233,8 +229,8 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
   public TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date) {
     final int offset = props.getTimeConfig().getOffset();
 
-    LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-    LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+    final LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    final LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
     final LocalTime startOfDay = LocalTime.of(offset, 0);
     final List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startOfDay);
@@ -250,7 +246,7 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
     final List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
     LocalDate currentDay = startOfWeek;
     while (!currentDay.isAfter(endOfWeek)) {
-      List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
+      final List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
 
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
@@ -264,7 +260,7 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
     return dayInfoList;
   }
 
-  public boolean hasConflictsForDay(List<TimeLogEntity> entitiesForDay) {
+  public boolean hasConflictsForDay(final List<TimeLogEntity> entitiesForDay) {
     for (TimeLogEntity entity : entitiesForDay) {
       if (isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
         return true;
@@ -284,7 +280,8 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
   }
 
   private List<TimeLogHoursForWeekResponse.TicketDuration> getTicketDurationsForDay(
-      final List<TimeLogEntity> entitiesForDay, final Set<String> tickets) {
+      final List<TimeLogEntity> entitiesForDay,
+      final Set<String> tickets) {
 
     final List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = new ArrayList<>();
     Duration totalForDay = Duration.ZERO;
@@ -362,7 +359,7 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
     mapper.fromUpdateRequest(request, timeLogEntity);
     timeLogEntity = repository.save(timeLogEntity);
 
-    TimeLogUpdateResponse response = mapper.toUpdateResponse(timeLogEntity);
+    final TimeLogUpdateResponse response = mapper.toUpdateResponse(timeLogEntity);
     response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
     return response;
   }

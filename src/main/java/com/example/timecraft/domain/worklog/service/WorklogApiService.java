@@ -9,7 +9,7 @@ import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 public interface WorklogApiService {
   WorklogListResponse list(final String mode, final LocalDate date);
 
-  WorklogCreateFromTimeLogResponse createFromTimeLog(WorklogCreateFromTimeLogRequest request);
+  WorklogCreateFromTimeLogResponse createFromTimeLog(final WorklogCreateFromTimeLogRequest request);
 
   void delete(final String ticket, final Long id);
 

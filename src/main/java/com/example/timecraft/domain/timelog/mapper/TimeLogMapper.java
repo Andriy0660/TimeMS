@@ -27,9 +27,9 @@ public interface TimeLogMapper {
 
   TimeLogGetResponse toGetResponse(final TimeLogEntity entity);
 
-  void fromUpdateRequest(TimeLogUpdateRequest request, @MappingTarget TimeLogEntity entity);
+  void fromUpdateRequest(final TimeLogUpdateRequest request, @MappingTarget final TimeLogEntity entity);
 
-  TimeLogUpdateResponse toUpdateResponse(TimeLogEntity entity);
+  TimeLogUpdateResponse toUpdateResponse(final TimeLogEntity entity);
 
   TimeLogEntity fromCreateFromWorklogRequest(final TimeLogCreateFromWorklogRequest request);
 
@@ -37,5 +37,5 @@ public interface TimeLogMapper {
 
   @Mapping(source = "comment", target = "description")
   @Mapping(target = "id", ignore = true)
-  TimeLogEntity worklogToTimeLog(WorklogEntity worklogEntity);
+  TimeLogEntity worklogToTimeLog(final WorklogEntity worklogEntity);
 }

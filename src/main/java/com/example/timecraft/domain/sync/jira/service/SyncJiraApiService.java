@@ -5,9 +5,9 @@ import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
 
 public interface SyncJiraApiService {
-  void syncFromJira(SyncFromJiraRequest request);
+  void syncFromJira(final SyncFromJiraRequest request);
 
-  void syncIntoJira(SyncIntoJiraRequest request);
+  void syncIntoJira(final SyncIntoJiraRequest request);
 
   SyncJiraProgressResponse getProgress();
 

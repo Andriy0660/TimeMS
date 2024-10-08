@@ -20,17 +20,14 @@ public class TimeLogUtils {
         return new LocalDate[]{date, date.plusDays(1)};
       }
       case "Week" -> {
-        LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        final LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        final LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
         return new LocalDate[]{startOfWeek, endOfWeek.plusDays(1)};
       }
       case "Month" -> {
-        LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
+        final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
+        final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
         return new LocalDate[]{startOfMonth, endOfMonth.plusDays(1)};
-      }
-      case "All" -> {
-        return null;
       }
       default -> throw new BadRequestException("Invalid time mode");
     }
@@ -38,7 +35,7 @@ public class TimeLogUtils {
 
   public static int getDurationInSecondsForTimelog(final LocalTime startTime, final LocalTime endTime) {
     if (startTime == null || endTime == null) return 0;
-    int duration = (int) Duration.between(startTime, endTime).toSeconds();
+    final int duration = (int) Duration.between(startTime, endTime).toSeconds();
     return duration < 0 ? 3600 * 24 + duration : duration;
   }
 
@@ -49,7 +46,7 @@ public class TimeLogUtils {
         : date;
   }
 
-  public static String generateColor(String ticket, String descr) {
+  public static String generateColor(final String ticket, final String descr) {
     if (descr == null) return null;
     String input = descr;
     if (ticket != null) {
@@ -65,7 +62,7 @@ public class TimeLogUtils {
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
-    byte[] hashBytes = digest.digest(input.getBytes());
+    final byte[] hashBytes = digest.digest(input.getBytes());
 
     int rgb = getRgb(hashBytes);
 

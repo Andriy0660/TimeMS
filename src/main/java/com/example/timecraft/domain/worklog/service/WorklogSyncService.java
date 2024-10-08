@@ -15,7 +15,7 @@ public interface WorklogSyncService {
 
   List<WorklogEntity> getAllByDate(final LocalDate date);
 
-  List<WorklogEntity> getAllByDateAndCommentAndTicket(LocalDate date, String comment, String ticket);
+  List<WorklogEntity> getAllByDateAndCommentAndTicket(final LocalDate date, final String comment, final String ticket);
 
   void save(final WorklogEntity entity);
 

@@ -21,7 +21,7 @@ public class TimeLogSyncServiceImpl implements TimeLogSyncService {
   @Override
   public List<TimeLogEntity> getAllByDate(final LocalDate date) {
     final int offset = props.getTimeConfig().getOffset();
-    LocalTime startTime = LocalTime.of(offset, 0);
+    final LocalTime startTime = LocalTime.of(offset, 0);
     return repository.findAllInRange(date, date.plusDays(1), startTime);
   }
 

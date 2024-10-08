@@ -36,7 +36,7 @@ public class WorklogController {
   }
 
   @DeleteMapping("/{issueKey}/{worklogId}")
-  public void delete(@PathVariable String issueKey, @PathVariable Long worklogId) {
+  public void delete(@PathVariable final String issueKey, @PathVariable final Long worklogId) {
     worklogApiService.delete(issueKey, worklogId);
   }
 

@@ -18,16 +18,16 @@ public class SyncJiraUtils {
     if (timeLogs.isEmpty() || worklogs.isEmpty()) {
       return false;
     }
-    int totalTimeLogDurationInSeconds = timeLogs.stream()
+    final int totalTimeLogDurationInSeconds = timeLogs.stream()
         .map((timeLogEntity -> TimeLogUtils.getDurationInSecondsForTimelog(timeLogEntity.getStartTime(), timeLogEntity.getEndTime())))
         .reduce(0, Integer::sum);
-    int totalWorklogDurationInSeconds = worklogs.stream().map(WorklogEntity::getTimeSpentSeconds).reduce(0, Integer::sum);
+    final int totalWorklogDurationInSeconds = worklogs.stream().map(WorklogEntity::getTimeSpentSeconds).reduce(0, Integer::sum);
     return totalTimeLogDurationInSeconds == totalWorklogDurationInSeconds;
   }
 
   public static String removeNonLetterAndDigitCharacters(String input) {
-    if(input == null) return null;
-    StringBuilder result = new StringBuilder();
+    if (input == null) return null;
+    final StringBuilder result = new StringBuilder();
     for (char c : input.toCharArray()) {
       if (Character.isLetter(c) || Character.isDigit(c)) {
         result.append(c);
