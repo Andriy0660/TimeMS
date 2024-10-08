@@ -107,10 +107,10 @@ public class TimeLogApiTestUtils {
         .build();
   }
 
-  public static int getSize(final MockMvc mvc, final String mode, final LocalDate date, final int offset) throws Exception {
+  public static int getSize(final MockMvc mvc, final LocalDate startDate, final LocalDate endDate, final int offset) throws Exception {
     MvcResult resultBefore = mvc.perform(get("/time-logs")
-            .param("mode", mode)
-            .param("date", date.toString())
+            .param("startDate", startDate.toString())
+            .param("endDate", endDate.toString())
             .param("offset", String.valueOf(offset))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())

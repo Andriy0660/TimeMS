@@ -19,7 +19,6 @@ import {viewMode} from "../consts/viewMode.js";
 
 export default function TimeLogPage() {
   const {date, mode} = useAppContext();
-
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
   const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
   const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);

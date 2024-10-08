@@ -15,7 +15,6 @@ import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
-import com.example.timecraft.domain.timelog.model.ViewMode;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;

@@ -36,7 +36,6 @@ import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
-import com.example.timecraft.domain.timelog.model.ViewMode;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
@@ -54,9 +53,12 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
   private final AppProperties props;
 
   @Override
-  public TimeLogListResponse list(final ViewMode mode, final LocalDate date) {
+  public TimeLogListResponse list(final LocalDate startDate, final LocalDate endDate) {
     final int offset = props.getTimeConfig().getOffset();
-    final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date, offset);
+    final LocalTime startTime = LocalTime.of(offset, 0);
+
+    final List<TimeLogEntity> timeLogEntityList = repository.findAllInRange(startDate, endDate, startTime);
+
 
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(timeLogEntity -> {
@@ -75,14 +77,6 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
             .thenComparing(TimeLogListResponse.TimeLogDto::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())))
         .toList();
     return new TimeLogListResponse(timeLogDtoList);
-  }
-
-  @Override
-  public List<TimeLogEntity> getAllTimeLogEntitiesInMode(final ViewMode mode, final LocalDate date, final int offset) {
-    final LocalTime startTime = LocalTime.of(offset, 0);
-    final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
-
-    return repository.findAllInRange(dateRange[0], dateRange[1], startTime);
   }
 
   private String mapTotalTime(final LocalTime startTime, final LocalTime endTime) {
@@ -242,12 +236,13 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
   private List<TimeLogHoursForWeekResponse.DayInfo> getDayInfoList(final List<TimeLogEntity> entities, final LocalDate startOfWeek,
                                                                    final LocalDate endOfWeek) {
     final int offset = props.getTimeConfig().getOffset();
+    final LocalTime startTime = LocalTime.of(offset, 0);
     final Set<String> tickets = getTicketsForWeek(entities);
 
     final List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
     LocalDate currentDay = startOfWeek;
     while (!currentDay.isAfter(endOfWeek)) {
-      final List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode(ViewMode.DAY, currentDay, offset);
+      final List<TimeLogEntity> entitiesForDay = repository.findAllInRange(currentDay, currentDay.plusDays(1), startTime);
 
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
@@ -311,6 +306,7 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
   @Override
   public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date) {
     final int offset = props.getTimeConfig().getOffset();
+    final LocalTime startTime = LocalTime.of(offset, 0);
     final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
     final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
 
@@ -318,7 +314,7 @@ public class TimeLogApiServiceImpl implements TimeLogApiService {
     Duration totalDuration = Duration.ZERO;
     LocalDate currentDay = startOfMonth;
     while (!currentDay.isAfter(endOfMonth)) {
-      List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode(ViewMode.DAY, currentDay, offset);
+      List<TimeLogEntity> entitiesForDay = repository.findAllInRange(currentDay, currentDay.plusDays(1), startTime);
 
       final Duration durationForDay = getDurationForDay(entitiesForDay);
       totalDuration = totalDuration.plus(durationForDay);

@@ -28,7 +28,6 @@ import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
-import com.example.timecraft.domain.timelog.model.ViewMode;
 import com.example.timecraft.domain.timelog.service.TimeLogApiService;
 import lombok.RequiredArgsConstructor;
 
@@ -40,8 +39,8 @@ public class TimeLogController {
   private final SyncJiraProcessingService syncJiraProcessingService;
 
   @GetMapping
-  public TimeLogListResponse list(@RequestParam final ViewMode mode, @RequestParam final LocalDate date) {
-    return syncJiraProcessingService.processTimeLogDtos(timeLogApiService.list(mode, date));
+  public TimeLogListResponse list(@RequestParam final LocalDate startDate, @RequestParam final LocalDate endDate) {
+    return syncJiraProcessingService.processTimeLogDtos(timeLogApiService.list(startDate, endDate));
   }
 
   @PostMapping

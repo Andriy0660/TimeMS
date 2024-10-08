@@ -1,38 +1,14 @@
 package com.example.timecraft.domain.timelog.util;
 
 import java.awt.*;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.stream.Collectors;
 
-import com.example.timecraft.core.exception.BadRequestException;
-import com.example.timecraft.domain.timelog.model.ViewMode;
-
 public class TimeLogUtils {
-  public static LocalDate[] calculateDateRange(final ViewMode mode, final LocalDate date) {
-    switch (mode) {
-      case ViewMode.DAY -> {
-        return new LocalDate[]{date, date.plusDays(1)};
-      }
-      case ViewMode.WEEK -> {
-        final LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        final LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        return new LocalDate[]{startOfWeek, endOfWeek.plusDays(1)};
-      }
-      case ViewMode.MONTH -> {
-        final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
-        final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
-        return new LocalDate[]{startOfMonth, endOfMonth.plusDays(1)};
-      }
-      default -> throw new BadRequestException("Invalid time mode");
-    }
-  }
 
   public static int getDurationInSecondsForTimelog(final LocalTime startTime, final LocalTime endTime) {
     if (startTime == null || endTime == null) return 0;
