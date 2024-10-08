@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.timecraft.domain.sync.jira.service.SyncJiraProcessingService;
+import com.example.timecraft.domain.timelog.model.ViewMode;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
@@ -26,8 +27,8 @@ public class WorklogController {
   private final SyncJiraProcessingService syncJiraProcessingService;
 
   @GetMapping()
-  public WorklogListResponse listWorklogs(@RequestParam final String mode, @RequestParam final LocalDate date) {
-    return syncJiraProcessingService.processWorklogDtos(worklogApiService.list(mode, date));
+  public WorklogListResponse listWorklogs(@RequestParam final LocalDate date) {
+    return syncJiraProcessingService.processWorklogDtos(worklogApiService.list(date));
   }
 
   @PostMapping

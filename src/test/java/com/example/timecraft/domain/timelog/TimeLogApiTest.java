@@ -24,6 +24,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
+import com.example.timecraft.domain.timelog.model.ViewMode;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils;
@@ -44,6 +45,7 @@ import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -87,7 +89,7 @@ class TimeLogApiTest {
 
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Day")
+            .param("mode", ViewMode.DAY.toString())
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -110,7 +112,7 @@ class TimeLogApiTest {
     timeLog3 = timeLogRepository.save(timeLog3);
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Week")
+            .param("mode", ViewMode.WEEK.toString())
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -134,7 +136,7 @@ class TimeLogApiTest {
 
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Month")
+            .param("mode", ViewMode.MONTH.toString())
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -151,13 +153,13 @@ class TimeLogApiTest {
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.detail").value("Invalid time mode"));
+        .andExpect(jsonPath("$.detail").value(startsWith("Invalid argument type of parameter:")));
   }
 
   @Test
   void shouldGetBadRequestWhenInvalidType() throws Exception {
     mvc.perform(get("/time-logs")
-            .param("mode", "Day")
+            .param("mode", ViewMode.DAY.toString())
             .param("date", "invalid-type")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
@@ -166,7 +168,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldCreateTimeLog() throws Exception {
-    int initialSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
+    int initialSize = getSize(mvc, ViewMode.DAY.toString(), LocalDate.now(clock), 3);
 
     TimeLogCreateRequest request = new TimeLogCreateRequest("TMC-1", LocalDate.now(clock), LocalTime.of(9, 30, 0), "some descr");
 
@@ -175,7 +177,7 @@ class TimeLogApiTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    int newSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
+    int newSize = getSize(mvc, ViewMode.DAY.toString(), LocalDate.now(clock), 3);
     assertEquals(initialSize + 1, newSize);
   }
 
@@ -235,18 +237,18 @@ class TimeLogApiTest {
                 .build()
         )).build();
 
-    int initialSize = getSize(mvc, "Month", LocalDate.now(clock), 3);
+    int initialSize = getSize(mvc, ViewMode.MONTH.toString(), LocalDate.now(clock), 3);
 
     mvc.perform(post("/time-logs/importTimeLogs")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
-    int newSize = getSize(mvc, "Month", LocalDate.now(clock), 3);
+    int newSize = getSize(mvc, ViewMode.MONTH.toString(), LocalDate.now(clock), 3);
 
     assertEquals(initialSize + 2, newSize);
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Month")
+            .param("mode", ViewMode.MONTH.toString())
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -311,7 +313,7 @@ class TimeLogApiTest {
         .andExpect(jsonPath("$.ticket").value(request.getTicket()));
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Day")
+            .param("mode", ViewMode.DAY.toString())
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -371,20 +373,20 @@ class TimeLogApiTest {
     TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     timeLog1 = timeLogRepository.save(timeLog1);
 
-    int initialSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
+    int initialSize = getSize(mvc, ViewMode.DAY.toString(), LocalDate.now(clock), 3);
 
     mvc.perform(delete("/time-logs/{id}", timeLog1.getId())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Day")
+            .param("mode", ViewMode.DAY.toString())
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items", not(matchTimeLog(timeLog1))));
 
-    int newSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
+    int newSize = getSize(mvc, ViewMode.DAY.toString(), LocalDate.now(clock), 3);
     assertEquals(initialSize - 1, newSize);
   }
 

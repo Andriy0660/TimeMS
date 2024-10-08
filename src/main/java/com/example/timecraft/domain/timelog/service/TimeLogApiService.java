@@ -17,12 +17,13 @@ import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
+import com.example.timecraft.domain.timelog.model.ViewMode;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 
 public interface TimeLogApiService {
-  TimeLogListResponse list(final String mode, final LocalDate date);
+  TimeLogListResponse list(final ViewMode mode, final LocalDate date);
 
-  List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset);
+  List<TimeLogEntity> getAllTimeLogEntitiesInMode(final ViewMode mode, final LocalDate date, final int offset);
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 

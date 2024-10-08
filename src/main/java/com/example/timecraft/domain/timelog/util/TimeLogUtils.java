@@ -12,19 +12,20 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.stream.Collectors;
 
 import com.example.timecraft.core.exception.BadRequestException;
+import com.example.timecraft.domain.timelog.model.ViewMode;
 
 public class TimeLogUtils {
-  public static LocalDate[] calculateDateRange(final String mode, final LocalDate date) {
+  public static LocalDate[] calculateDateRange(final ViewMode mode, final LocalDate date) {
     switch (mode) {
-      case "Day" -> {
+      case ViewMode.DAY -> {
         return new LocalDate[]{date, date.plusDays(1)};
       }
-      case "Week" -> {
+      case ViewMode.WEEK -> {
         final LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         final LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
         return new LocalDate[]{startOfWeek, endOfWeek.plusDays(1)};
       }
-      case "Month" -> {
+      case ViewMode.MONTH -> {
         final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
         final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
         return new LocalDate[]{startOfMonth, endOfMonth.plusDays(1)};

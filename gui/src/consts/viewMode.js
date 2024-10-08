@@ -1,5 +1,5 @@
 export const viewMode = {
-  DAY: "Day",
-  WEEK: "Week",
-  MONTH: "Month"
+  DAY: "DAY",
+  WEEK: "WEEK",
+  MONTH: "MONTH"
 }
