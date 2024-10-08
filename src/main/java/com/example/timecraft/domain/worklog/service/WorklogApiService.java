@@ -11,6 +11,6 @@ public interface WorklogApiService {
 
   WorklogCreateFromTimeLogResponse createFromTimeLog(WorklogCreateFromTimeLogRequest request);
 
-  void delete(final String issueKey, final Long id);
+  void delete(final String ticket, final Long id);
 
 }

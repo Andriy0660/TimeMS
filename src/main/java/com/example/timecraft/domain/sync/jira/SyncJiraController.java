@@ -34,9 +34,9 @@ public class SyncJiraController {
     syncJiraApiService.syncAllWorklogs();
   }
 
-  @PostMapping("/{issueKey}")
-  public void syncWorklogsForIssue(@PathVariable String issueKey) {
-    syncJiraApiService.syncWorklogsForIssue(issueKey);
+  @PostMapping("/{ticket}")
+  public void syncWorklogsForIssue(@PathVariable String ticket) {
+    syncJiraApiService.syncWorklogsForTicket(ticket);
   }
 
   @GetMapping("/progress")

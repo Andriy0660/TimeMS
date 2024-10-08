@@ -24,8 +24,8 @@ import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
 import com.example.timecraft.domain.sync.jira.model.SyncJiraProgress;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
-import com.example.timecraft.domain.timelog.service.DurationService;
-import com.example.timecraft.domain.timelog.service.TimeLogService;
+import com.example.timecraft.domain.timelog.service.TimeLogSyncService;
+import com.example.timecraft.domain.timelog.util.DurationUtils;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.service.WorklogSyncService;
@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class SyncJiraApiServiceImpl implements SyncJiraApiService {
-  private final TimeLogService timeLogService;
+  private final TimeLogSyncService timeLogSyncService;
   private final WorklogSyncService worklogSyncService;
   private final JiraWorklogService jiraWorklogService;
   private final SyncJiraProgress syncJiraProgress;
@@ -48,11 +48,11 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
     String description = request.getDescription();
     String ticket = request.getTicket();
 
-    List<TimeLogEntity> timeLogEntityList = timeLogService.findAllByDateAndDescriptionAndTicket(date, description, ticket);
+    List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
     List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
-    timeLogService.delete(timeLogEntityList);
-    timeLogService.saveAll(worklogEntityList.stream().map(worklogEntity -> {
+    timeLogSyncService.delete(timeLogEntityList);
+    timeLogSyncService.saveAll(worklogEntityList.stream().map(worklogEntity -> {
       TimeLogEntity entity = timeLogMapper.worklogToTimeLog(worklogEntity);
       entity.setEndTime(worklogEntity.getStartTime().plusSeconds(worklogEntity.getTimeSpentSeconds()));
       return entity;
@@ -66,7 +66,7 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
     String description = request.getDescription();
     String ticket = request.getTicket();
 
-    List<TimeLogEntity> timeLogEntityList = timeLogService.findAllByDateAndDescriptionAndTicket(date, description, ticket);
+    List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
     List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
     int totalSpentSeconds = getTotalSpentSeconds(timeLogEntityList);
@@ -100,7 +100,7 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
       } catch (HttpClientErrorException.NotFound e) {
         throw new BadRequestException("Synchronization mismatch");
       } finally {
-        syncWorklogsForIssue(ticket);
+        syncWorklogsForTicket(ticket);
       }
     }
   }
@@ -120,12 +120,12 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
         .isInProgress(syncJiraProgress.isInProgress())
         .progress(syncJiraProgress.getProgress())
         .worklogInfos(syncJiraProgress.getWorklogInfos())
-        .duration(DurationService.formatDurationHMS(duration))
+        .duration(DurationUtils.formatDurationHMS(duration))
         .lastSyncedAt(syncJiraProgress.getEndTime())
         .totalIssues(syncJiraProgress.getTotalIssues())
         .currentIssueNumber(syncJiraProgress.getCurrentIssueNumber())
-        .totalTimeSpent(DurationService.formatDurationDH(Duration.ofSeconds(syncJiraProgress.getTotalTimeSpent())))
-        .totalEstimate(DurationService.formatDurationDH(Duration.ofSeconds(syncJiraProgress.getTotalEstimate())))
+        .totalTimeSpent(DurationUtils.formatDurationDH(Duration.ofSeconds(syncJiraProgress.getTotalTimeSpent())))
+        .totalEstimate(DurationUtils.formatDurationDH(Duration.ofSeconds(syncJiraProgress.getTotalEstimate())))
         .build();
   }
 
@@ -149,9 +149,9 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
   }
 
   @Override
-  public void syncWorklogsForIssue(final String issueKey) {
-    List<WorklogEntity> currentWorklogs = worklogSyncService.getAllByTicket(issueKey);
-    List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchWorklogDtosForIssue(issueKey)
+  public void syncWorklogsForTicket(final String ticket) {
+    List<WorklogEntity> currentWorklogs = worklogSyncService.getAllByTicket(ticket);
+    List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchWorklogDtosForIssue(ticket)
         .stream()
         .map(worklogMapper::toWorklogEntity)
         .toList();

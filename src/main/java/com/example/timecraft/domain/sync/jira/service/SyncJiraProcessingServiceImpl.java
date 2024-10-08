@@ -6,13 +6,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.timecraft.core.config.AppProperties;
-import com.example.timecraft.domain.sync.jira.util.SyncJiraUtil;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
-import com.example.timecraft.domain.timelog.service.TimeLogService;
+import com.example.timecraft.domain.timelog.service.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService {
   private final AppProperties props;
-  private final TimeLogService timeLogService;
+  private final TimeLogSyncService timeLogSyncService;
   private final WorklogSyncService worklogSyncService;
 
   public TimeLogListResponse processTimeLogDtos(TimeLogListResponse response) {
@@ -82,10 +82,10 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
   }
 
   private SyncStatus getSyncStatus(final LocalDate date, final String ticket, final String description) {
-    List<TimeLogEntity> timeLogEntityList = timeLogService.findAllByDateAndDescriptionAndTicket(date, description, ticket);
+    List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
     List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
-    boolean isCompatibleInTime = SyncJiraUtil.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
+    boolean isCompatibleInTime = SyncJiraUtils.isWorklogsAndTimeLogsCompatibleInTime(timeLogEntityList, worklogEntityList);
     if (isCompatibleInTime) {
       return SyncStatus.SYNCED;
     } else if (!timeLogEntityList.isEmpty() && !worklogEntityList.isEmpty()) {
@@ -97,18 +97,13 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
 
   private boolean hasTimeLogsSyncStatusForDay(LocalDate date, SyncStatus syncStatus) {
     final int offset = props.getTimeConfig().getOffset();
-    return getTimeLogsForDay(date).stream().anyMatch(
+    return timeLogSyncService.getAllByDate(date).stream().anyMatch(
         timeLogEntity -> getSyncStatus(
             TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
             timeLogEntity.getTicket(),
             timeLogEntity.getDescription()
         ).equals(syncStatus)
     );
-  }
-
-  private List<TimeLogEntity> getTimeLogsForDay(final LocalDate date) {
-    final int offset = props.getTimeConfig().getOffset();
-    return timeLogService.getAllTimeLogEntitiesInMode("Day", date, offset);
   }
 
   private boolean hasWorklogsSyncStatusForDay(LocalDate date, SyncStatus syncStatus) {

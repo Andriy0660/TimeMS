@@ -7,7 +7,7 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 
-public class SyncJiraUtil {
+public class SyncJiraUtils {
   public static boolean areDescriptionsEqual(String descr1, String descr2) {
     descr1 = descr1 != null ? removeNonLetterAndDigitCharacters(descr1) : null;
     descr2 = descr2 != null ? removeNonLetterAndDigitCharacters(descr2) : null;

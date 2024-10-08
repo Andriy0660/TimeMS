@@ -19,9 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.timecraft.core.config.AppProperties;
-import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
-import com.example.timecraft.domain.sync.jira.util.SyncJiraUtil;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
@@ -42,12 +41,12 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import lombok.RequiredArgsConstructor;
 
-import static com.example.timecraft.domain.timelog.service.DurationService.formatDurationHM;
+import static com.example.timecraft.domain.timelog.util.DurationUtils.formatDurationHM;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class TimeLogServiceImpl implements TimeLogService {
+public class TimeLogApiServiceImpl implements TimeLogApiService {
   private final TimeLogRepository repository;
   private final TimeLogMapper mapper;
   private final Clock clock;
@@ -65,7 +64,7 @@ public class TimeLogServiceImpl implements TimeLogService {
           if (timeLogDto.getDescription() != null || timeLogDto.getTicket() != null) {
             timeLogDto.setColor(TimeLogUtils.generateColor(
                 timeLogEntity.getTicket(),
-                SyncJiraUtil.removeNonLetterAndDigitCharacters(timeLogEntity.getDescription())
+                SyncJiraUtils.removeNonLetterAndDigitCharacters(timeLogEntity.getDescription())
             ));
           }
           return timeLogDto;
@@ -78,14 +77,6 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   @Override
-  public List<TimeLogEntity> findAllByDateAndDescriptionAndTicket(final LocalDate date, final String description, final String ticket) {
-    final int offset = props.getTimeConfig().getOffset();
-    return repository.findAllByDateAndTicket(date, date.plusDays(1), LocalTime.of(offset, 0), ticket).stream()
-        .filter(timeLogEntity -> SyncJiraUtil.areDescriptionsEqual(timeLogEntity.getDescription(), description))
-        .toList();
-  }
-
-  @Override
   public List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
     final LocalTime startTime = LocalTime.of(offset, 0);
     final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
@@ -95,11 +86,6 @@ public class TimeLogServiceImpl implements TimeLogService {
     } else {
       return repository.findAllInRange(dateRange[0], dateRange[1], startTime);
     }
-  }
-
-  @Override
-  public void saveAll(final List<TimeLogEntity> entities) {
-    repository.saveAll(entities);
   }
 
   private String mapTotalTime(final LocalTime startTime, final LocalTime endTime) {
@@ -385,11 +371,6 @@ public class TimeLogServiceImpl implements TimeLogService {
   public void delete(final long timeLogId) {
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
     repository.delete(timeLogEntity);
-  }
-
-  @Override
-  public void delete(final List<TimeLogEntity> entities) {
-    repository.deleteAll(entities);
   }
 
   @Override

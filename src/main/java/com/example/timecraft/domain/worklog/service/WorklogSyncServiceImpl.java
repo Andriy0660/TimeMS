@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.example.timecraft.domain.sync.jira.util.SyncJiraUtil;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.persistence.WorklogRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ public class WorklogSyncServiceImpl implements WorklogSyncService {
   @Override
   public List<WorklogEntity> getAllByDateAndCommentAndTicket(final LocalDate date, final String comment, final String ticket) {
     return repository.findAllByDateAndTicket(date, ticket).stream()
-        .filter(worklogEntity -> SyncJiraUtil.areDescriptionsEqual(worklogEntity.getComment(), comment))
+        .filter(worklogEntity -> SyncJiraUtils.areDescriptionsEqual(worklogEntity.getComment(), comment))
         .toList();
   }
 

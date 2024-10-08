@@ -13,5 +13,5 @@ public interface SyncJiraApiService {
 
   void syncAllWorklogs();
 
-  void syncWorklogsForIssue(final String issueKey);
+  void syncWorklogsForTicket(final String ticket);
 }

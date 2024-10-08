@@ -14,7 +14,7 @@ import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
-import com.example.timecraft.domain.sync.jira.util.SyncJiraUtil;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
@@ -39,7 +39,7 @@ public class WorklogApiServiceImpl implements WorklogApiService {
           WorklogListResponse.WorklogDto worklogDto = mapper.toListItem(worklogEntity);
           worklogDto.setColor(TimeLogUtils.generateColor(
               worklogEntity.getTicket(),
-              SyncJiraUtil.removeNonLetterAndDigitCharacters(worklogEntity.getComment())
+              SyncJiraUtils.removeNonLetterAndDigitCharacters(worklogEntity.getComment())
           ));
           return worklogDto;
         })
@@ -65,9 +65,9 @@ public class WorklogApiServiceImpl implements WorklogApiService {
   }
 
   @Override
-  public void delete(final String issueKey, final Long id) {
+  public void delete(final String ticket, final Long id) {
     try {
-      jiraWorklogService.delete(issueKey, id);
+      jiraWorklogService.delete(ticket, id);
     } catch (HttpClientErrorException.NotFound e) {
       throw new BadRequestException("Worklog is already deleted from jira. Please synchronize worklogs for this ticket");
     }
