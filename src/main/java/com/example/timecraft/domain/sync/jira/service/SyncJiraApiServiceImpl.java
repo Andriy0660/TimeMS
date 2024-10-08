@@ -71,10 +71,12 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
 
     final int totalSpentSeconds = getTotalSpentSeconds(timeLogEntityList);
 
-    deleteAllWorklogsForTicketExceptFirst(worklogEntityList, ticket);
+    if (worklogEntityList.isEmpty()) {
+      throw new BadRequestException("There is no worklog associated with the given ticket");
+    }
 
-    final Long id = worklogEntityList.getFirst().getId();
-    final JiraWorklogDto updated = jiraWorklogService.update(ticket, id, JiraWorklogUpdateDto.builder()
+    deleteWorklogsForTicket(worklogEntityList.stream().skip(1).toList(), ticket);
+    final JiraWorklogDto updated = jiraWorklogService.update(ticket, worklogEntityList.getFirst().getId(), JiraWorklogUpdateDto.builder()
         .started(JiraWorklogUtils.getJiraStartedTime(dateTime))
         .timeSpentSeconds(totalSpentSeconds)
         .build());
@@ -90,18 +92,13 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
     }).reduce(Duration.ZERO, Duration::plus).toSeconds();
   }
 
-  private void deleteAllWorklogsForTicketExceptFirst(final List<WorklogEntity> worklogEntityList, final String ticket) {
-    final int worklogCount = worklogEntityList.size();
-    if (worklogCount == 0) {
-      throw new BadRequestException("There is no worklog associated with the given ticket");
-    } else if (worklogCount > 1) {
-      try {
-        worklogEntityList.stream().skip(1).forEach(worklog -> jiraWorklogService.delete(ticket, worklog.getId()));
-      } catch (HttpClientErrorException.NotFound e) {
-        throw new BadRequestException("Synchronization mismatch");
-      } finally {
-        syncWorklogsForTicket(ticket);
-      }
+  private void deleteWorklogsForTicket(final List<WorklogEntity> worklogEntityList, final String ticket) {
+    try {
+      worklogEntityList.forEach(worklog -> jiraWorklogService.delete(ticket, worklog.getId()));
+    } catch (HttpClientErrorException.NotFound e) {
+      throw new BadRequestException("Synchronization mismatch");
+    } finally {
+      syncWorklogsForTicket(ticket);
     }
   }
 
