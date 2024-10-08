@@ -90,7 +90,7 @@ export default function WeekPage() {
           isActive={view === weekViewMode.LIST}
           onClick={() => setView(weekViewMode.LIST)}
         />
-        {view === weekViewMode && <FormControlLabel
+        {view === weekViewMode.LIST && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
