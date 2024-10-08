@@ -412,8 +412,8 @@ export default function TimeLog({
           {timeLog.isConflicted && (
             <Tooltip
               title="Conflicted"
-              onMouseEnter={() => setHoveredConflictedIds(timeLog.conflictedIds)}
-              onMouseLeave={() => setHoveredConflictedIds([])}
+              onMouseEnter={() => setHoveredConflictedIds?.(timeLog.conflictedIds)}
+              onMouseLeave={() => setHoveredConflictedIds?.([])}
             >
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
