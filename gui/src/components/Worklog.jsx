@@ -95,7 +95,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
         <div>
           {isHovered && (
             <>
-              {!worklog.syncStatus === syncStatus.SYNCED && <Tooltip title="Save to my time logs">
+              {worklog.syncStatus === syncStatus.NOT_SYNCED && <Tooltip title="Save to my time logs">
                 <IconButton
                   onClick={() => handleCreateTimeLogFromWorklog({
                     ticket: worklog.ticket,
