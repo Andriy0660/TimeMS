@@ -1,274 +1,110 @@
 package com.example.timecraft.domain.jira.worklog.service;
 
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import com.example.timecraft.core.config.AppProperties;
-import com.example.timecraft.core.exception.BadRequestException;
-import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
-import com.example.timecraft.domain.jira.worklog.dto.JiraUpdateWorklogDto;
+import com.example.timecraft.domain.jira.worklog.dto.IssueDto;
+import com.example.timecraft.domain.jira.worklog.dto.JiraSearchResponse;
+import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogCreateDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
-import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
+import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogUpdateDto;
+import com.example.timecraft.domain.jira.worklog.mapper.JiraWorklogMapper;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
 import com.example.timecraft.domain.sync.jira.model.SyncJiraProgress;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 @Service
 @RequiredArgsConstructor
 public class JiraWorklogServiceImpl implements JiraWorklogService {
-  public static final DateTimeFormatter JIRA_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-  private final RestTemplate restTemplate;
-  private final AppProperties appProperties;
-  private final ObjectMapper objectMapper;
+  private final AppProperties props;
+  private final JiraWorklogHttpClient jiraWorklogHttpClient;
+  private final JiraWorklogMapper worklogMapper;
   private final SyncJiraProgress syncJiraProgress;
-  private final int workingDayDurationInHours = 8;
-
 
   @Override
-  public List<JiraWorklogDto> fetchAllWorkLogDtos() {
+  public List<JiraWorklogDto> listAll() {
     try {
-      List<JiraWorklogDto> allJiraWorklogDtos = new ArrayList<>();
-      List<Issue> issues = fetchAllIssues();
-      double step = 100. / issues.size();
-      for (Issue issue : issues) {
-        String issueKey = issue.getKey();
-        List<JiraWorklogDto> worklogsForKey = fetchWorklogDtosForIssue(issueKey);
-        allJiraWorklogDtos.addAll(worklogsForKey);
+      final List<JiraWorklogDto> allWorklogDtos = new ArrayList<>();
+      final List<IssueDto> issues = fetchAllIssues();
 
-        updateProgressStatus(issue, step, worklogsForKey);
+      double progressStep = 100.0 / issues.size();
+
+      for (IssueDto issue : issues) {
+        final String issueKey = issue.getKey();
+        final List<JiraWorklogDto> worklogsForIssue = listForIssue(issueKey);
+        allWorklogDtos.addAll(worklogsForIssue);
+
+        updateProgressStatus(issue, progressStep, worklogsForIssue);
       }
-      return allJiraWorklogDtos;
+
+      return allWorklogDtos;
     } catch (Exception e) {
       syncJiraProgress.clearProgress();
       throw new RuntimeException("Error fetching all worklogs", e);
     }
   }
 
-  private void updateProgressStatus(final Issue issue, final double step, final List<JiraWorklogDto> worklogsForKey) {
+  private List<IssueDto> fetchAllIssues() {
+    final List<IssueDto> issues = new ArrayList<>();
+    int startAt = 0;
+    final int maxResults = 100;
+    int total;
+
+    do {
+      final JiraSearchResponse jiraResponse = jiraWorklogHttpClient.searchIssues(startAt, maxResults);
+      if (jiraResponse != null && jiraResponse.getIssues() != null) {
+        issues.addAll(jiraResponse.getIssues());
+        total = jiraResponse.getTotal();
+        syncJiraProgress.setTotalIssues(total);
+      } else {
+        break;
+      }
+
+      startAt += maxResults;
+    } while (startAt < total);
+
+    return issues;
+  }
+
+  private void updateProgressStatus(final IssueDto issue, final double step, final List<JiraWorklogDto> worklogsForKey) {
+    final int workingDayDurationInHours = props.getTimeConfig().getWorkingDayDurationInHours();
+
     syncJiraProgress.setProgress(syncJiraProgress.getProgress() + step);
     syncJiraProgress.setCurrentIssueNumber(syncJiraProgress.getCurrentIssueNumber() + 1);
     syncJiraProgress.setTotalEstimate(syncJiraProgress.getTotalEstimate() + issue.getFields().getTimeoriginalestimate() * (24 / workingDayDurationInHours));
     syncJiraProgress.setTotalTimeSpent(syncJiraProgress.getTotalTimeSpent() + issue.getFields().getTimespent() * (24 / workingDayDurationInHours));
-    List<SyncJiraProgressResponse.WorklogInfo> worklogInfos = new ArrayList<>();
+    final List<SyncJiraProgressResponse.WorklogInfo> worklogInfos = new ArrayList<>();
     for (JiraWorklogDto dto : worklogsForKey) {
       worklogInfos.add(new SyncJiraProgressResponse.WorklogInfo(dto.getDate(), dto.getIssueKey(), dto.getComment()));
     }
     syncJiraProgress.setWorklogInfos(worklogInfos);
   }
 
-  private List<Issue> fetchAllIssues() {
-    List<Issue> issues = new ArrayList<>();
-    int startAt = 0;
-    int maxResults = 100;
-    int total = 0;
-
-    do {
-      JiraSearchResponse jiraResponse = fetchIssuesPage(startAt, maxResults);
-      if (jiraResponse.getIssues() != null) {
-        issues.addAll(jiraResponse.getIssues());
-        total = jiraResponse.getTotal();
-        syncJiraProgress.setTotalIssues(total);
-      }
-
-      startAt += maxResults;
-
-    } while (startAt < total);
-
-    return issues;
-  }
-
-  private JiraSearchResponse fetchIssuesPage(int startAt, int maxResults) {
-    String url = appProperties.getJira().getUrl() + "/rest/api/3/search?&startAt=" + startAt + "&maxResults=" + maxResults;
-
-    HttpHeaders headers = getHttpHeaders();
-
-    HttpEntity<String> entity = new HttpEntity<>(headers);
-    ResponseEntity<JiraSearchResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, JiraSearchResponse.class);
-
-    return response.getBody();
-  }
-
-  private HttpHeaders getHttpHeaders() {
-    HttpHeaders headers = new HttpHeaders();
-    String auth = appProperties.getJira().getEmail() + ":" + appProperties.getJira().getToken();
-    String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
-    headers.set("Authorization", "Basic " + encodedAuth);
-    headers.set("Content-Type", "application/json");
-    return headers;
+  @Override
+  public List<JiraWorklogDto> listForIssue(final String issueKey) {
+    final String accountId = worklogMapper.parseJiraAccountId(jiraWorklogHttpClient.getJiraAccountId());
+    final String jsonResponse = jiraWorklogHttpClient.getWorklogsForIssue(issueKey);
+    return worklogMapper.parseWorklogs(jsonResponse, issueKey, accountId);
   }
 
   @Override
-  public List<JiraWorklogDto> fetchWorklogDtosForIssue(String issueKey) {
-    String accountId = getJiraAccountId();
-    String url = appProperties.getJira().getUrl() + "/rest/api/3/issue/" + issueKey + "/worklog";
-
-    HttpHeaders headers = getHttpHeaders();
-
-    HttpEntity<String> entity = new HttpEntity<>(headers);
-
-    ResponseEntity<String> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, String.class);
-
-    if (response.getStatusCode().is2xxSuccessful()) {
-      String jsonResponse = response.getBody();
-      return parseWorklogs(jsonResponse, issueKey, accountId);
-    } else {
-      throw new RuntimeException("Failed to fetch worklogs for " + issueKey + " : " + response.getStatusCode());
-    }
-  }
-
-  private List<JiraWorklogDto> parseWorklogs(String jsonData, String issueKey, String accountId) {
-    JsonNode rootNode = null;
-    try {
-      rootNode = objectMapper.readTree(jsonData);
-    } catch (JsonProcessingException e) {
-      throw new BadRequestException("Error parsing worklog for " + issueKey);
-    }
-    List<JiraWorklogDto> jiraWorklogDtos = new ArrayList<>();
-
-    for (JsonNode worklogNode : rootNode.path("worklogs")) {
-      if (!worklogNode.path("author").path("accountId").asText().equals(accountId)) {
-        continue;
-      }
-      JiraWorklogDto jiraWorklogDto = parseJiraWorklog(worklogNode);
-      jiraWorklogDto.setIssueKey(issueKey);
-      jiraWorklogDtos.add(jiraWorklogDto);
-    }
-
-    return jiraWorklogDtos;
-  }
-
-  private JiraWorklogDto parseJiraWorklog(final JsonNode rootNode) {
-    JiraWorklogDto jiraWorklogDto = new JiraWorklogDto();
-    LocalTime startTime = LocalTime.parse(rootNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER);
-    LocalDateTime updated = LocalDateTime.parse(rootNode.path("updated").asText(), JIRA_DATE_TIME_FORMATTER);
-
-    jiraWorklogDto.setId(Long.parseLong(rootNode.path("id").asText()));
-    jiraWorklogDto.setAuthor(rootNode.path("author").path("displayName").asText());
-    jiraWorklogDto.setDate(LocalDate.parse(rootNode.path("started").asText(), JIRA_DATE_TIME_FORMATTER));
-    jiraWorklogDto.setStartTime(LocalTime.of(startTime.getHour(), startTime.getMinute()));
-    jiraWorklogDto.setComment(JiraWorklogUtils.getTextFromAdf(rootNode.path("comment")));
-    jiraWorklogDto.setTimeSpentSeconds(Integer.parseInt(rootNode.path("timeSpentSeconds").asText()));
-    jiraWorklogDto.setUpdated(updated);
-    return jiraWorklogDto;
-  }
-
-  private String getJiraAccountId() {
-    String url = appProperties.getJira().getUrl() + "/rest/api/3/myself";
-    HttpHeaders headers = getHttpHeaders();
-    HttpEntity<String> entity = new HttpEntity<>(headers);
-
-    ResponseEntity<Author> response = restTemplate.exchange(url, HttpMethod.GET, entity, Author.class);
-
-    if (response.getStatusCode() == HttpStatus.OK) {
-      Author author = response.getBody();
-      return author.getAccountId();
-    } else {
-      throw new RuntimeException("Failed to fetch JIRA account id : " + response.getStatusCode());
-    }
+  public JiraWorklogDto create(final String issueKey, final JiraWorklogCreateDto createDto) {
+    final String worklogJson = jiraWorklogHttpClient.createWorklog(issueKey, createDto);
+    return worklogMapper.parseWorklogResponse(worklogJson, issueKey);
   }
 
   @Override
-  public JiraWorklogDto create(final String issueKey, final JiraCreateWorklogDto createWorklogDto) {
-    String url = appProperties.getJira().getUrl() + "/rest/api/3/issue/" + issueKey + "/worklog";
-    HttpHeaders headers = getHttpHeaders();
-    HttpEntity<JiraCreateWorklogDto> entity = new HttpEntity<>(createWorklogDto, headers);
-
-    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-
-    if (response.getStatusCode() == HttpStatus.CREATED) {
-      String worklogJson = response.getBody();
-      try {
-        JiraWorklogDto jiraWorklogDto = parseJiraWorklog(objectMapper.readTree(worklogJson));
-        jiraWorklogDto.setIssueKey(issueKey);
-        return jiraWorklogDto;
-      } catch (JsonProcessingException e) {
-        throw new RuntimeException("Error parsing worklog for " + issueKey);
-      }
-    } else {
-      throw new RuntimeException("Failed to create worklog. SyncStatus code: " + response.getStatusCode());
-    }
+  public JiraWorklogDto update(final String issueKey, final Long id, final JiraWorklogUpdateDto updateDto) {
+    final String worklogJson = jiraWorklogHttpClient.updateWorklog(issueKey, id, updateDto);
+    return worklogMapper.parseWorklogResponse(worklogJson, issueKey);
   }
-
-  @Override
-  public JiraWorklogDto update(final String issueKey, final Long id, final JiraUpdateWorklogDto dto) {
-    String url = appProperties.getJira().getUrl() + "/rest/api/3/issue/" + issueKey + "/worklog/" + id;
-    HttpHeaders headers = getHttpHeaders();
-    HttpEntity<JiraUpdateWorklogDto> entity = new HttpEntity<>(dto, headers);
-
-    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
-
-    if (response.getStatusCode() == HttpStatus.OK) {
-      String worklogJson = response.getBody();
-      try {
-        JiraWorklogDto jiraWorklogDto = parseJiraWorklog(objectMapper.readTree(worklogJson));
-        jiraWorklogDto.setIssueKey(issueKey);
-        return jiraWorklogDto;
-      } catch (JsonProcessingException e) {
-        throw new RuntimeException("Error parsing worklog for " + issueKey);
-      }
-    } else {
-      throw new RuntimeException("Failed to update worklog. SyncStatus code: " + response.getStatusCode());
-    }
-  }
-
 
   @Override
   public void delete(final String issueKey, final Long id) {
-    String url = appProperties.getJira().getUrl() + "/rest/api/3/issue/" + issueKey + "/worklog/" + id;
-
-    HttpHeaders headers = getHttpHeaders();
-
-    HttpEntity<String> entity = new HttpEntity<>(headers);
-    ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, Void.class);
-
-    if (!response.getStatusCode().is2xxSuccessful()) {
-      throw new RuntimeException("Failed to delete worklog with " + id + " for " + issueKey + " : " + response.getStatusCode());
-    }
+    jiraWorklogHttpClient.deleteWorklog(issueKey, id);
   }
 
-  @Getter
-  @Setter
-  public static class JiraSearchResponse {
-    private List<Issue> issues;
-    private Integer total;
-  }
-
-  @Getter
-  @Setter
-  public static class Issue {
-    private String key;
-    private Fields fields;
-
-    @Getter
-    @Setter
-    public static class Fields {
-      private int timespent;
-      private int timeoriginalestimate;
-    }
-  }
-
-  @Getter
-  @Setter
-  public static class Author {
-    private String accountId;
-  }
 }

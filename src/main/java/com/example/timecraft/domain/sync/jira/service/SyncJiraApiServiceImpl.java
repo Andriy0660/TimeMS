@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.example.timecraft.core.exception.BadRequestException;
-import com.example.timecraft.domain.jira.worklog.dto.JiraUpdateWorklogDto;
+import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogUpdateDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
@@ -44,12 +44,12 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
 
   @Override
   public void syncFromJira(final SyncFromJiraRequest request) {
-    LocalDate date = request.getDate();
-    String description = request.getDescription();
-    String ticket = request.getTicket();
+    final LocalDate date = request.getDate();
+    final String description = request.getDescription();
+    final String ticket = request.getTicket();
 
-    List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
-    List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
+    final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
+    final List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
     timeLogSyncService.delete(timeLogEntityList);
     timeLogSyncService.saveAll(worklogEntityList.stream().map(worklogEntity -> {
@@ -61,20 +61,20 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
 
   @Override
   public void syncIntoJira(final SyncIntoJiraRequest request) {
-    LocalDate date = request.getDate();
-    LocalDateTime dateTime = LocalDateTime.of(date, LocalTime.of(10, 0));
-    String description = request.getDescription();
-    String ticket = request.getTicket();
+    final LocalDate date = request.getDate();
+    final LocalDateTime dateTime = LocalDateTime.of(date, LocalTime.of(10, 0));
+    final String description = request.getDescription();
+    final String ticket = request.getTicket();
 
-    List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
-    List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
+    final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
+    final List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
-    int totalSpentSeconds = getTotalSpentSeconds(timeLogEntityList);
+    final int totalSpentSeconds = getTotalSpentSeconds(timeLogEntityList);
 
     deleteAllWorklogsForTicketExceptFirst(worklogEntityList, ticket);
 
     final Long id = worklogEntityList.getFirst().getId();
-    JiraWorklogDto updated = jiraWorklogService.update(ticket, id, JiraUpdateWorklogDto.builder()
+    final JiraWorklogDto updated = jiraWorklogService.update(ticket, id, JiraWorklogUpdateDto.builder()
         .started(JiraWorklogUtils.getJiraStartedTime(dateTime))
         .timeSpentSeconds(totalSpentSeconds)
         .build());
@@ -91,7 +91,7 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
   }
 
   private void deleteAllWorklogsForTicketExceptFirst(final List<WorklogEntity> worklogEntityList, final String ticket) {
-    int worklogCount = worklogEntityList.size();
+    final int worklogCount = worklogEntityList.size();
     if (worklogCount == 0) {
       throw new BadRequestException("There is no worklog associated with the given ticket");
     } else if (worklogCount > 1) {
@@ -137,8 +137,8 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
     syncJiraProgress.setStartTime(LocalDateTime.now(clock));
     syncJiraProgress.setIsInProgress(true);
 
-    List<WorklogEntity> currentWorklogs = worklogSyncService.getAll();
-    List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchAllWorkLogDtos()
+    final List<WorklogEntity> currentWorklogs = worklogSyncService.getAll();
+    final List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.listAll()
         .stream()
         .map(worklogMapper::toWorklogEntity)
         .toList();
@@ -150,8 +150,8 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
 
   @Override
   public void syncWorklogsForTicket(final String ticket) {
-    List<WorklogEntity> currentWorklogs = worklogSyncService.getAllByTicket(ticket);
-    List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchWorklogDtosForIssue(ticket)
+    final List<WorklogEntity> currentWorklogs = worklogSyncService.getAllByTicket(ticket);
+    final List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.listForIssue(ticket)
         .stream()
         .map(worklogMapper::toWorklogEntity)
         .toList();
@@ -161,14 +161,14 @@ public class SyncJiraApiServiceImpl implements SyncJiraApiService {
 
   private void syncWorklogs(final List<WorklogEntity> currentWorklogs, final List<WorklogEntity> worklogEntitiesFromJira) {
     for (WorklogEntity worklogEntityFromJira : worklogEntitiesFromJira) {
-      Optional<WorklogEntity> worklogOpt = worklogSyncService.getById(worklogEntityFromJira.getId());
+      final Optional<WorklogEntity> worklogOpt = worklogSyncService.getById(worklogEntityFromJira.getId());
       if (worklogOpt.isEmpty()
           || worklogOpt.get().getUpdated() == null
           || worklogOpt.get().getUpdated().isBefore(worklogEntityFromJira.getUpdated())) {
         worklogSyncService.save(worklogEntityFromJira);
       }
     }
-    Set<Long> jiraWorklogIds = worklogEntitiesFromJira.stream()
+    final Set<Long> jiraWorklogIds = worklogEntitiesFromJira.stream()
         .map(WorklogEntity::getId)
         .collect(Collectors.toSet());
 

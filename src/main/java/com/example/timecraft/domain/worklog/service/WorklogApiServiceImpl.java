@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.example.timecraft.core.exception.BadRequestException;
-import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
+import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogCreateDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
@@ -33,7 +33,7 @@ public class WorklogApiServiceImpl implements WorklogApiService {
 
   @Override
   public WorklogListResponse list(final String mode, final LocalDate date) {
-    List<WorklogEntity> worklogEntityList = repository.findAllByDate(date);
+    final List<WorklogEntity> worklogEntityList = repository.findAllByDate(date);
     final List<WorklogListResponse.WorklogDto> timeLogDtoList = worklogEntityList.stream()
         .map(worklogEntity -> {
           WorklogListResponse.WorklogDto worklogDto = mapper.toListItem(worklogEntity);
@@ -52,14 +52,14 @@ public class WorklogApiServiceImpl implements WorklogApiService {
 
   @Override
   public WorklogCreateFromTimeLogResponse createFromTimeLog(final WorklogCreateFromTimeLogRequest request) {
-    LocalDateTime dateTime = LocalDateTime.of(request.getDate(), LocalTime.of(10, 0));
-    JiraWorklogDto created = jiraWorklogService.create(request.getTicket(), JiraCreateWorklogDto.builder()
+    final LocalDateTime dateTime = LocalDateTime.of(request.getDate(), LocalTime.of(10, 0));
+    final JiraWorklogDto created = jiraWorklogService.create(request.getTicket(), JiraWorklogCreateDto.builder()
         .started(JiraWorklogUtils.getJiraStartedTime(dateTime))
         .comment(JiraWorklogUtils.getJiraComment(request.getDescription()))
         .timeSpentSeconds(TimeLogUtils.getDurationInSecondsForTimelog(request.getStartTime(), request.getEndTime()))
         .build());
 
-    WorklogEntity entity = mapper.toWorklogEntity(created);
+    final WorklogEntity entity = mapper.toWorklogEntity(created);
     repository.save(entity);
     return mapper.toCreateResponse(entity);
   }
@@ -68,6 +68,7 @@ public class WorklogApiServiceImpl implements WorklogApiService {
   public void delete(final String ticket, final Long id) {
     try {
       jiraWorklogService.delete(ticket, id);
+      repository.deleteById(id);
     } catch (HttpClientErrorException.NotFound e) {
       throw new BadRequestException("Worklog is already deleted from jira. Please synchronize worklogs for this ticket");
     }
