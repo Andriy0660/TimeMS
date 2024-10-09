@@ -19,7 +19,7 @@ import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from "@mui/icons-material/Reorder.js";
 import {monthViewMode} from "../consts/monthViewMode.js";
-import ModeIcon from "../components/ModeIcon.jsx";
+import ViewModeIcon from "../components/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import {syncStatus} from "../consts/syncStatus.js";
 
@@ -85,7 +85,7 @@ export default function MonthPage() {
       <div className="flex justify-between p-1">
           <div>
             {dayInfo && dayjs(cellDate).$M === date.$M && (
-              <TimeLogStatusIcons syncStatus={dayInfo.jiraSyncInfo.status} isConflicted={dayInfo.conflicted} />
+              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} syncStatus={dayInfo.jiraSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
             )}
           </div>
         <div>
@@ -111,13 +111,13 @@ export default function MonthPage() {
   return (
     <div className="my-6 w-2/3 mx-auto">
       <div className="flex items-center mb-2">
-        <ModeIcon
+        <ViewModeIcon
           title={monthViewMode.CALENDAR}
           icon={<GoTable />}
           isActive={view === monthViewMode.CALENDAR}
           onClick={() => setView(monthViewMode.CALENDAR)}
         />
-        <ModeIcon
+        <ViewModeIcon
           title={monthViewMode.LIST}
           icon={<ReorderIcon />}
           isActive={view === monthViewMode.LIST}

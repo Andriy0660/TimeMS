@@ -27,8 +27,8 @@ import classNames from "classnames";
 import Connector from "./Connector.jsx";
 import Brightness1Icon from "@mui/icons-material/Brightness1";
 import {syncStatus} from "../consts/syncStatus.js";
-import TimeLogSyncIcon from "./TimeLogSyncIcon.jsx";
 import SyncJiraButtons from "./SyncJiraButtons.jsx";
+import TimeLogStatusIcons from "./TimeLogStatusIcons.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -156,6 +156,9 @@ export default function TimeLog({
   const {execute: handleDeleteTimeLog, isExecuting: isDeleteLoading} = useAsyncCall({
     fn: onDelete,
   })
+  const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
+    fn: changeDate
+  })
   const {execute: handleCreateWorklog, isExecuting: isCreatingWorklogLoading} = useAsyncCall({
     fn: onWorklogCreate,
   })
@@ -164,9 +167,6 @@ export default function TimeLog({
   })
   const {execute: handleSyncFromJira, isExecuting: isSyncingFromJira} = useAsyncCall({
     fn: onSyncFromJira,
-  })
-  const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
-    fn: changeDate
   })
   const {execute: handleSyncForTicket, isExecuting: isSyncing} = useAsyncCall({
     fn: onSync
@@ -383,38 +383,29 @@ export default function TimeLog({
   return (
     <div
       ref={timeLogRef}
-      className={classNames({
-        "bg-blue-50" : status === "InProgress",
-        "bg-blue-100" : hovered,
-        "bg-rose-100": hoveredConflictedIds?.includes(timeLog.id)
-      })}
-
       onMouseEnter={() => {
         setIsHovered(true);
         setHoveredProgressIntervalId?.(timeLog.id);
+        setHoveredConflictedIds?.(timeLog.conflictedIds)
       }}
       onMouseLeave={() => {
         setIsHovered(false);
         setHoveredProgressIntervalId?.(null);
+        setHoveredConflictedIds?.([])
       }}
     >
       <div ref={timeLogUpperPartRef} className="flex justify-between">
-        <div className="flex items-center">
+        <div
+          className={classNames("flex items-center",{
+            "bg-blue-50": status === "InProgress",
+            "bg-blue-100": hovered,
+            "bg-rose-100": hoveredConflictedIds?.includes(timeLog.id)
+          })}>
           {isEditing ? getEditableFields() : getNonEditableFields()}
 
           {statusConfig[status].label ? <Duration duration={statusConfig[status].label} /> : null}
 
-          {isJiraSyncingEnabled && timeLog.startTime && timeLog.endTime && <TimeLogSyncIcon status={timeLog.jiraSyncInfo.status}/>}
-
-          {timeLog.isConflicted && (
-            <Tooltip
-              title="Conflicted"
-              onMouseEnter={() => setHoveredConflictedIds?.(timeLog.conflictedIds)}
-              onMouseLeave={() => setHoveredConflictedIds?.([])}
-            >
-              <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
-            </Tooltip>
-          )}
+          <TimeLogStatusIcons isConflicted={timeLog.isConflicted} jiraSyncStatus={timeLog.jiraSyncInfo.status} />
 
           {timeLog.endTime?.isAfter(isTimeLogInNextDay.startTime
               ? dateTimeService.getStartOfDay(timeLog.startTime)
@@ -549,7 +540,34 @@ export default function TimeLog({
 
           </div>
           }
-          {isJiraSyncingEnabled && isJiraEditMode && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />}
+          {isJiraSyncingEnabled && isJiraEditMode && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && (
+            <>
+              <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />
+              {isHovered && (
+                <>
+                  {
+                    timeLogRefs.map((timeLogRef, index1) => {
+                      const targetColor = timeLog.jiraSyncInfo.color;
+                      return worklogRefs.map((worklogRef, index2) => {
+                        if (timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.jiraSyncInfo.color === targetColor) {
+                          return (
+                            <Connector
+                              key={`${index1}${index2}`}
+                              startElement={timeLogRef.ref.current}
+                              endElement={worklogRef.ref.current}
+                              color={targetColor}
+                              dashed={timeLog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED}
+                            />
+                          );
+                        }
+                        return null;
+                      })
+                    })
+                  }
+                </>
+              )}
+            </>
+          )}
         </div>
       </div>
       <ConfirmationModal
@@ -564,26 +582,6 @@ export default function TimeLog({
       >
         Are you sure you want to delete this time log?
       </ConfirmationModal>
-
-      {isJiraSyncingEnabled && isJiraEditMode && isHovered && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED &&
-          timeLogRefs.map((timeLogRef, index1) => {
-            const targetColor = timeLog.jiraSyncInfo.color;
-            return worklogRefs.map((worklogRef, index2) => {
-              if(timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.jiraSyncInfo.color === targetColor) {
-                return (
-                  <Connector
-                    key={`${index1}${index2}`}
-                    startElement={timeLogRef.ref.current}
-                    endElement={worklogRef.ref.current}
-                    color={targetColor}
-                    dashed={timeLog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED}
-                  />
-                );
-              }
-              return null;
-            })
-          })
-      }
 
       {!groupByDescription &&
         <Description className="w-fit" description={description} ids={[timeLog.id]} isJiraEditMode={isJiraEditMode} setGroupDescription={setGroupDescription} />}

@@ -1,15 +1,15 @@
 import {Tooltip} from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber.js";
-import SyncDisabledIcon from '@mui/icons-material/SyncDisabled';
-import {syncStatus as syncStatusObj} from "../consts/syncStatus.js";
-import {SyncProblem} from "@mui/icons-material";
+import TimeLogJiraSyncStatusIcon from "./TimeLogJiraSyncStatusIcon.jsx";
+import useAppContext from "../context/useAppContext.js";
+import {deepOrange} from "@mui/material/colors";
 
-export default function TimeLogStatusIcons({isConflicted, syncStatus}) {
+export default function TimeLogStatusIcons({isConflicted, jiraSyncStatus, showOnlyNotSuccessfullySynced}) {
+  const {isJiraSyncingEnabled} = useAppContext();
   return (
     <>
-      {syncStatus === syncStatusObj.PARTIAL_SYNCED && <Tooltip title="Partial synchronized"><SyncProblem size="large" color="warning" className="mr-1 text-xl" /></Tooltip>}
-      {syncStatus === syncStatusObj.NOT_SYNCED && <Tooltip title="Not synchronized"><SyncDisabledIcon size="large" color="error" className="mr-1 text-xl" /></Tooltip>}
-      {isConflicted && <Tooltip title="Conflicted"><WarningAmberIcon size="small" color="error" className="mr-1 text-xl" /></Tooltip>}
+      {isConflicted && <Tooltip className="mr-1" title="Conflicted"><WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" /></Tooltip>}
+      {isJiraSyncingEnabled && <TimeLogJiraSyncStatusIcon status={jiraSyncStatus} showOnlyNotSuccessfullySynced={showOnlyNotSuccessfullySynced} /> }
     </>
   )
 }

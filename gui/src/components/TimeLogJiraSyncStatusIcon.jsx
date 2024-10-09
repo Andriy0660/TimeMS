@@ -4,11 +4,10 @@ import DoneIcon from "@mui/icons-material/Done.js";
 import SyncProblemIcon from "@mui/icons-material/SyncProblem.js";
 import SyncDisabledIcon from "@mui/icons-material/SyncDisabled.js";
 
-export default function TimeLogSyncIcon({status}) {
+export default function TimeLogJiraSyncStatusIcon({showOnlyNotSuccessfullySynced, status}) {
   return (
     <>
-      {
-        status === syncStatus.SYNCED && (
+      {!showOnlyNotSuccessfullySynced && status === syncStatus.SYNCED && (
           <Tooltip title="Synchronized">
             <DoneIcon color="success" />
           </Tooltip>

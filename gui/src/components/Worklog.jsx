@@ -13,7 +13,7 @@ import useAppContext from "../context/useAppContext.js";
 import Connector from "./Connector.jsx";
 import Brightness1Icon from "@mui/icons-material/Brightness1.js";
 import {syncStatus} from "../consts/syncStatus.js";
-import TimeLogSyncIcon from "./TimeLogSyncIcon.jsx";
+import TimeLogJiraSyncStatusIcon from "./TimeLogJiraSyncStatusIcon.jsx";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
@@ -57,7 +57,33 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
     >
       <div className="flex justify-between">
         <div className="flex items-center">
-          {isJiraSyncingEnabled && isJiraEditMode && worklog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && <Brightness1Icon className="mr-2" sx={{color: worklog.jiraSyncInfo.color}} />}
+          {isJiraSyncingEnabled && isJiraEditMode && worklog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && (
+            <>
+              <Brightness1Icon className="mr-2" sx={{color: worklog.jiraSyncInfo.color}} />
+              {isHovered && (
+                <>
+                  {
+                    worklogRefs.map((worklogRef, index1) => {
+                    const targetColor = worklog.jiraSyncInfo.color;
+                    return timeLogRefs.map((timeLogRef, index2) => {
+                      if (timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.jiraSyncInfo.color === targetColor) {
+                        return (
+                          <Connector
+                            key={`${index1}${index2}`}
+                            startElement={timeLogRef.ref.current}
+                            endElement={worklogRef.ref.current}
+                            color={targetColor}
+                            dashed={worklog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED}
+                          />
+                        );
+                      }
+                      return null;
+                    })
+                  })}
+                </>
+              )}
+            </>
+          )}
 
           <div className="flex mr-4 my-1">
             {isTimeLogInNextDay.startTime &&
@@ -89,7 +115,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
             {worklog.ticket}
           </div>
           <Duration duration={dateTimeService.formatDuration(worklog.timeSpentSeconds / 60)} />
-          <TimeLogSyncIcon status={worklog.jiraSyncInfo.status}/>
+          {isJiraSyncingEnabled && <TimeLogJiraSyncStatusIcon status={worklog.jiraSyncInfo.status}/> }
         </div>
         <div>
           {isHovered && (
@@ -142,26 +168,6 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
       <div className="flex items-center">
           {worklog.comment}
       </div>
-
-      {isHovered && isJiraEditMode && worklog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED &&
-        worklogRefs.map((worklogRef, index1) => {
-          const targetColor = worklog.jiraSyncInfo.color;
-          return timeLogRefs.map((timeLogRef, index2) => {
-            if (timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.jiraSyncInfo.color === targetColor) {
-              return (
-                <Connector
-                  key={`${index1}${index2}`}
-                  startElement={timeLogRef.ref.current}
-                  endElement={worklogRef.ref.current}
-                  color={targetColor}
-                  dashed={worklog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED}
-                />
-              );
-            }
-            return null;
-          })
-        })
-      }
 
       {isDeleteLoading || isCreateLoading && <LinearProgress />}
     </div>
