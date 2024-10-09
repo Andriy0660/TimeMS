@@ -51,8 +51,11 @@ const timeLogProcessingService = {
   },
 
   processData(data, selectedTickets) {
-    const filteredData = this.filterByTickets(data, selectedTickets);
-    const builtTimeLog = this.buildTimeLog(filteredData);
+    let processedData = data ? Array.from(data) : [];
+    if (selectedTickets) {
+      processedData = this.filterByTickets(data, selectedTickets);
+    }
+    const builtTimeLog = this.buildTimeLog(processedData);
     return this.markAsConflicted(builtTimeLog);
   },
 

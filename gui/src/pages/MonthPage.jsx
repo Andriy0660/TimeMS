@@ -27,7 +27,7 @@ export default function MonthPage() {
   const offset = startHourOfDay;
   const [calendarApi, setCalendarApi] = useState(null);
   const [view, setView] = useState(monthViewMode.CALENDAR);
-  const {date, setDate, addAlert, mode} = useAppContext();
+  const {isJiraSyncingEnabled, date, setDate, addAlert, mode} = useAppContext();
   const {changeView} = useViewChanger();
 
   const {data, isPending} = useQuery({
@@ -70,7 +70,7 @@ export default function MonthPage() {
   const getDayCellClassNames = ({dow: dayOfWeek, date: cellDate}) => {
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
     const {conflicted} = dayInfo || {};
-    if ((dayInfo?.jiraSyncInfo.status === syncStatus.NOT_SYNCED || conflicted) && dayjs(cellDate).$M === date.$M) {
+    if (((isJiraSyncingEnabled && dayInfo?.jiraSyncInfo.status === syncStatus.NOT_SYNCED) || conflicted) && dayjs(cellDate).$M === date.$M) {
       return ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
     } else if (dayOfWeek === 0 || dayOfWeek === 6) {
       return ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"];
@@ -85,7 +85,7 @@ export default function MonthPage() {
       <div className="flex justify-between p-1">
           <div>
             {dayInfo && dayjs(cellDate).$M === date.$M && (
-              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} syncStatus={dayInfo.jiraSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
+              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} jiraSyncStatus={dayInfo.jiraSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
             )}
           </div>
         <div>

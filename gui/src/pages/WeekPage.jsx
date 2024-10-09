@@ -27,7 +27,7 @@ export default function WeekPage() {
 
   const {changeView} = useViewChanger();
   const [view, setView] = useState(weekViewMode.TABLE);
-  const {date, setDate, addAlert, mode} = useAppContext();
+  const {isJiraSyncingEnabled, date, setDate, addAlert, mode} = useAppContext();
 
   const {
     data,
@@ -125,27 +125,30 @@ export default function WeekPage() {
           </TableHead>
           <TableBody>
             {data[0]?.ticketDurations.map(({ticket}) => (
-              <TableRow key={ticket}>
-                <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
-                {data.map(dayInfo => {
-                  const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
-                  return (
-                    <CustomTableCell
-                      key={`${dayInfo.date}-${ticket}`}
-                      isBold={ticket === "Total"}
-                      isHover={ticket === "Total"}
-                      onClick={() => {
-                        if (ticket === "Total") {
-                          handleClick(dayInfo.date);
-                        }
-                      }}
-                    >
-                      {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
-                    </CustomTableCell>
-                  );
-                })}
-                <CustomTableCell isBold>{getTotalTimeForTicket(ticket)}</CustomTableCell>
-              </TableRow>
+              <>
+                {(isJiraSyncingEnabled || ticket === "Total") && <TableRow key={ticket}>
+                  <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
+                  {data.map(dayInfo => {
+                    const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
+                    return (
+                      <CustomTableCell
+                        key={`${dayInfo.date}-${ticket}`}
+                        isBold={ticket === "Total"}
+                        isHover={ticket === "Total"}
+                        onClick={() => {
+                          if (ticket === "Total") {
+                            handleClick(dayInfo.date);
+                          }
+                        }}
+                      >
+                        {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
+                      </CustomTableCell>
+                    );
+                  })}
+                  <CustomTableCell isBold>{getTotalTimeForTicket(ticket)}</CustomTableCell>
+                </TableRow>
+                }
+              </>
             ))
             }
           </TableBody>

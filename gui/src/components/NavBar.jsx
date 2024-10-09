@@ -29,7 +29,7 @@ import {viewMode} from "../consts/viewMode.js";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
-  const {date, setDate, mode} = useAppContext();
+  const {isJiraSyncingEnabled, date, setDate, mode} = useAppContext();
 
   useDateInUrl(date);
   const {changeView} = useViewChanger();
@@ -55,13 +55,14 @@ export default function NavBar() {
           </Link>
         </ListItem>
 
-        <ListItem disablePadding>
+        {isJiraSyncingEnabled && <ListItem disablePadding>
           <Link to="/app/syncWorklogs" className="text-inherit no-underline w-full">
             <ListItemButton>
               <ListItemText primary="Sync Worklogs" />
             </ListItemButton>
           </Link>
         </ListItem>
+        }
 
         <ListItem disablePadding>
           <Link to="/app/info" className="text-inherit no-underline w-full">
@@ -114,7 +115,7 @@ export default function NavBar() {
             <SettingsBackupRestoreIcon />
           </IconButton>
         </Tooltip>
-        <SyncWorklogsButton>Sync Worklogs</SyncWorklogsButton>
+        {isJiraSyncingEnabled && <SyncWorklogsButton>Sync Worklogs</SyncWorklogsButton>}
       </Toolbar>
       <Drawer open={open} onClose={toggleMenu(false)}>
         {DrawerList}

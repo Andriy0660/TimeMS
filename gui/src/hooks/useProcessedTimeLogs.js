@@ -8,7 +8,7 @@ import useAppContext from "../context/useAppContext.js";
 
 export default function useProcessedTimeLogs() {
   const queryParams = new URLSearchParams(location.search);
-  const {date, addAlert, mode} = useAppContext();
+  const {isJiraSyncingEnabled, date, addAlert, mode} = useAppContext();
   const [timeLogs, setTimeLogs] = useState([]);
   const [totalTimeLabel, setTotalTimeLabel] = useState("")
 
@@ -40,11 +40,16 @@ export default function useProcessedTimeLogs() {
 
   const processedDataRef = useRef([]);
   useEffect(() => {
-    const processedData = timeLogProcessingService.processData(data, selectedTickets);
-    processedDataRef.current = processedData;
+    let processedData;
 
-    const filterTickets = getFilterTickets(data);
-    updateSelectedTicketsIfNeeded(filterTickets);
+    if (isJiraSyncingEnabled) {
+      processedData = timeLogProcessingService.processData(data, selectedTickets);
+      const filterTickets = getFilterTickets(data);
+      updateSelectedTicketsIfNeeded(filterTickets);
+    } else {
+      processedData = timeLogProcessingService.processData(data);
+    }
+    processedDataRef.current = processedData;
 
     const groupedData = groupAndSortData(processedData, groupByDescription);
     const label = calculateTotalTimeLabel(groupedData, groupByDescription);

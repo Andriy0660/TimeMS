@@ -225,7 +225,7 @@ export default function TimeLog({
         error: endTimeError,
         setError: setEndTimeError
       })}
-      <div className="mr-4">
+      {isJiraSyncingEnabled && <div className="mr-4">
         <TextField
           error={!isTicketFieldValid}
           name="ticket"
@@ -238,6 +238,7 @@ export default function TimeLog({
           inputProps={{style: {textTransform: "uppercase"}}}
         />
       </div>
+      }
     </>;
   }
 
@@ -320,7 +321,7 @@ export default function TimeLog({
         </>
       )}
 
-      {ticket && (
+      {isJiraSyncingEnabled && ticket && (
         <>
           {(startTime || endTime) &&
             <VerticalDivider />
