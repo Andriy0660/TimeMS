@@ -14,11 +14,10 @@ import Connector from "./Connector.jsx";
 import Brightness1Icon from "@mui/icons-material/Brightness1.js";
 import {syncStatus} from "../consts/syncStatus.js";
 import TimeLogSyncIcon from "./TimeLogSyncIcon.jsx";
-import * as timeLog from "../consts/syncStatus.js";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
-  const {worklogRefs, setWorklogRefs, timeLogRefs} = useAppContext();
+  const {isJiraSyncingEnabled, worklogRefs, setWorklogRefs, timeLogRefs} = useAppContext();
 
   useEffect(() => {
     if (worklogRef.current && isJiraEditMode) {
@@ -49,6 +48,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
   const {execute: handleCreateTimeLogFromWorklog, isExecuting: isCreateLoading} = useAsyncCall({
     fn: onTimeLogCreate,
   })
+
   return (
     <div className="mb-2 px-4 py-1 shadow-md rounded-md bg-gray-50"
          ref={worklogRef}
@@ -57,7 +57,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
     >
       <div className="flex justify-between">
         <div className="flex items-center">
-          {isJiraEditMode && worklog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && <Brightness1Icon className="mr-2" sx={{color: worklog.jiraSyncInfo.color}} />}
+          {isJiraSyncingEnabled && isJiraEditMode && worklog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && <Brightness1Icon className="mr-2" sx={{color: worklog.jiraSyncInfo.color}} />}
 
           <div className="flex mr-4 my-1">
             {isTimeLogInNextDay.startTime &&

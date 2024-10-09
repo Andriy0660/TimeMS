@@ -14,6 +14,7 @@ export const AppProvider = ({children}) => {
   const queryParams = new URLSearchParams(location.search);
   const [mode, setMode] = useState(queryParams.get("mode") || viewMode.DAY);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs())
+  const isJiraSyncingEnabled = true;
 
   const queryClient = useQueryClient();
   const [timeLogRefs, setTimeLogRefs] = useState([]);
@@ -80,6 +81,7 @@ export const AppProvider = ({children}) => {
         transition: Bounce
       />
       <AppContext.Provider value={{
+        isJiraSyncingEnabled,
         date,
         setDate,
         addAlert,

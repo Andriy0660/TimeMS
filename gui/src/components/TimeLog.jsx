@@ -20,9 +20,7 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Description from "./Description.jsx";
 import {deepOrange} from "@mui/material/colors";
-import SyncIcon from '@mui/icons-material/Sync';
 import Duration from "./Duration.jsx";
-import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import VerticalDivider from "./VerticalDivider.jsx";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import classNames from "classnames";
@@ -30,8 +28,7 @@ import Connector from "./Connector.jsx";
 import Brightness1Icon from "@mui/icons-material/Brightness1";
 import {syncStatus} from "../consts/syncStatus.js";
 import TimeLogSyncIcon from "./TimeLogSyncIcon.jsx";
-import CallMissedOutgoingIcon from '@mui/icons-material/CallMissedOutgoing';
-import CallMissedIcon from '@mui/icons-material/CallMissed';
+import SyncJiraButtons from "./SyncJiraButtons.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -68,7 +65,7 @@ export default function TimeLog({
 
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
-  const {addAlert, worklogRefs, timeLogRefs, setTimeLogRefs} = useAppContext();
+  const {isJiraSyncingEnabled, addAlert, worklogRefs, timeLogRefs, setTimeLogRefs} = useAppContext();
 
   const timeLogRef = useRef(null);
   const timeLogUpperPartRef = useRef(null);
@@ -171,7 +168,7 @@ export default function TimeLog({
   const {execute: handleChangeDate, isExecuting: isChangingDate} = useAsyncCall({
     fn: changeDate
   })
-  const {execute: handleSync, isExecuting: isSyncing} = useAsyncCall({
+  const {execute: handleSyncForTicket, isExecuting: isSyncing} = useAsyncCall({
     fn: onSync
   })
 
@@ -407,7 +404,7 @@ export default function TimeLog({
 
           {statusConfig[status].label ? <Duration duration={statusConfig[status].label} /> : null}
 
-          {timeLog.startTime && timeLog.endTime && <TimeLogSyncIcon status={timeLog.jiraSyncInfo.status}/>}
+          {isJiraSyncingEnabled && timeLog.startTime && timeLog.endTime && <TimeLogSyncIcon status={timeLog.jiraSyncInfo.status}/>}
 
           {timeLog.isConflicted && (
             <Tooltip
@@ -509,68 +506,13 @@ export default function TimeLog({
                 </MenuItem>
               )}
 
-              {timeLog.ticket && (
-                <MenuItem onClick={() => handleSync(timeLog.ticket)}>
-                  <ListItemIcon>
-                    <SyncIcon color="primary" fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    <Typography className="text-sm">Synchronize</Typography>
-                  </ListItemText>
-                </MenuItem>
-              )}
-
-              {(timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.jiraSyncInfo.status === syncStatus.NOT_SYNCED) && (
-                <MenuItem onClick={() => handleCreateWorklog({
-                  ticket: timeLog.ticket,
-                  date: dateTimeService.getFormattedDate(timeLog.date),
-                  startTime: dateTimeService.getFormattedDateTime(timeLog.startTime),
-                  endTime: dateTimeService.getFormattedDateTime(timeLog.endTime),
-                  description: timeLog.description
-                })}>
-                  <ListItemIcon>
-                    <KeyboardDoubleArrowRightIcon color="primary" fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    <Typography className="text-sm">Save to worklogs</Typography>
-                  </ListItemText>
-                </MenuItem>
-              )}
-
-              {(timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED) && (
-                [
-                  <MenuItem
-                    key="to"
-                    onClick={() => handleSyncIntoJira({
-                      ticket: timeLog.ticket,
-                      date: dateTimeService.getFormattedDate(timeLog.date),
-                      description: timeLog.description,
-                    })}
-                  >
-                    <ListItemIcon>
-                      <CallMissedOutgoingIcon color="primary" fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>
-                      <Typography className="text-sm">Sync to jira</Typography>
-                    </ListItemText>
-                  </MenuItem>,
-                  <MenuItem
-                    key="from"
-                    onClick={() => handleSyncFromJira({
-                      ticket: timeLog.ticket,
-                      date: dateTimeService.getFormattedDate(timeLog.date),
-                      description: timeLog.description,
-                    })}
-                  >
-                    <ListItemIcon>
-                      <CallMissedIcon color="primary" fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>
-                      <Typography className="text-sm">Sync from jira</Typography>
-                    </ListItemText>
-                  </MenuItem>
-                ]
-              )}
+              {isJiraSyncingEnabled && <SyncJiraButtons
+                timeLog={timeLog}
+                handleCreateWorklog={handleCreateWorklog}
+                handleSyncForTicket={handleSyncForTicket}
+                handleSyncFromJira={handleSyncFromJira}
+                handleSyncIntoJira={handleSyncIntoJira}/>
+              }
 
               <MenuItem onClick={() => {
                 handleChangeDate({id: timeLog.id, isNext: false})
@@ -607,7 +549,7 @@ export default function TimeLog({
 
           </div>
           }
-          {isJiraEditMode && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />}
+          {isJiraSyncingEnabled && isJiraEditMode && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />}
         </div>
       </div>
       <ConfirmationModal
@@ -623,7 +565,7 @@ export default function TimeLog({
         Are you sure you want to delete this time log?
       </ConfirmationModal>
 
-      {isHovered && isJiraEditMode && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED &&
+      {isJiraSyncingEnabled && isJiraEditMode && isHovered && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED &&
           timeLogRefs.map((timeLogRef, index1) => {
             const targetColor = timeLog.jiraSyncInfo.color;
             return worklogRefs.map((worklogRef, index2) => {
@@ -645,7 +587,8 @@ export default function TimeLog({
 
       {!groupByDescription &&
         <Description className="w-fit" description={description} ids={[timeLog.id]} isJiraEditMode={isJiraEditMode} setGroupDescription={setGroupDescription} />}
-      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isSyncing || isCreatingWorklogLoading || isChangingDate || isSyncingIntoJira || isSyncingFromJira) &&
+      {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isCreatingWorklogLoading || isChangingDate
+          || isSyncingIntoJira || isSyncingFromJira || isSyncing) &&
         <LinearProgress />}
     </div>
   );

@@ -18,7 +18,7 @@ import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {viewMode} from "../consts/viewMode.js";
 
 export default function TimeLogPage() {
-  const {date, mode} = useAppContext();
+  const {isJiraSyncingEnabled, date, mode} = useAppContext();
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
   const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
   const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);
@@ -102,7 +102,7 @@ export default function TimeLogPage() {
             <IconButton className="mr-2" onClick={() => setSelectedTickets([])}>
               <ClearIcon />
             </IconButton>
-            <FormControlLabel
+            {isJiraSyncingEnabled && <FormControlLabel
               control={
                 <Switch
                   checked={isJiraEditMode}
@@ -113,6 +113,7 @@ export default function TimeLogPage() {
               labelPlacement="start"
               className="ml-12"
             />
+            }
             {modeDatePickerConfig[mode]}
 
           </div>
