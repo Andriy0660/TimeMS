@@ -59,7 +59,6 @@ export default function useProcessedTimeLogs() {
 
   function getFilterTickets(data) {
     const filterTickets = timeLogProcessingService.extractTickets(data);
-    filterTickets.push("Without ticket");
     setFilterTickets(filterTickets);
     return filterTickets;
   }

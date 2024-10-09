@@ -128,6 +128,9 @@ const timeLogProcessingService = {
 
   extractTickets(timeLogs) {
     const prefixes = timeLogs?.filter(timeLog => timeLog.ticket).map(timeLog => timeLog.ticket.split('-')[0]);
+    if (timeLogs?.some(timeLog => timeLog.ticket === null)) {
+      prefixes.push("Without ticket");
+    }
     return [...new Set(prefixes)];
   },
 };
