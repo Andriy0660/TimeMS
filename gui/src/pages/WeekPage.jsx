@@ -114,7 +114,7 @@ export default function WeekPage() {
                   key={dayInfo.date}
                   date={dayInfo.date}
                   isHover
-                  syncStatus={dayInfo?.syncStatus}
+                  syncStatus={dayInfo?.jiraSyncInfo.status}
                   isConflicted={dayInfo.conflicted}
                   onClick={() => handleClick(dayInfo.date)}
                 >

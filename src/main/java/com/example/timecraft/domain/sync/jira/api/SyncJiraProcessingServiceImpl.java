@@ -49,7 +49,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
     final List<TimeLogHoursForWeekResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekResponse(
         dayInfos.stream()
-            .peek(dayInfo -> dayInfo.setSyncStatus(determineSyncStatusForDay(dayInfo.getDate())))
+            .peek(dayInfo -> dayInfo.setJiraSyncInfo(JiraSyncInfo.builder().status(determineSyncStatusForDay(dayInfo.getDate())).build()))
             .toList());
   }
 
@@ -69,7 +69,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
     final List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
         dayInfos.stream()
-            .peek(dayInfo -> dayInfo.setSyncStatus(determineSyncStatusForDay(dayInfo.getDate())))
+            .peek(dayInfo -> dayInfo.setJiraSyncInfo(JiraSyncInfo.builder().status(determineSyncStatusForDay(dayInfo.getDate())).build()))
             .toList());
   }
 

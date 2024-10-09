@@ -70,7 +70,7 @@ export default function MonthPage() {
   const getDayCellClassNames = ({dow: dayOfWeek, date: cellDate}) => {
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
     const {conflicted} = dayInfo || {};
-    if ((dayInfo?.syncStatus === syncStatus.NOT_SYNCED || conflicted) && dayjs(cellDate).$M === date.$M) {
+    if ((dayInfo?.jiraSyncInfo.status === syncStatus.NOT_SYNCED || conflicted) && dayjs(cellDate).$M === date.$M) {
       return ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
     } else if (dayOfWeek === 0 || dayOfWeek === 6) {
       return ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"];
@@ -85,7 +85,7 @@ export default function MonthPage() {
       <div className="flex justify-between p-1">
           <div>
             {dayInfo && dayjs(cellDate).$M === date.$M && (
-              <TimeLogStatusIcons syncStatus={dayInfo.syncStatus} isConflicted={dayInfo.conflicted} />
+              <TimeLogStatusIcons syncStatus={dayInfo.jiraSyncInfo.status} isConflicted={dayInfo.conflicted} />
             )}
           </div>
         <div>
