@@ -107,8 +107,7 @@ export default function WeekPage() {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <CustomTableCell><></>
-              </CustomTableCell>
+              <CustomTableCell><></></CustomTableCell>
               {data.map(dayInfo => (
                 <CustomTableCell
                   key={dayInfo.date}
