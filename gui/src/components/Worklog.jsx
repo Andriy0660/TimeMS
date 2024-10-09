@@ -49,7 +49,6 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
   const {execute: handleCreateTimeLogFromWorklog, isExecuting: isCreateLoading} = useAsyncCall({
     fn: onTimeLogCreate,
   })
-
   return (
     <div className="mb-2 px-4 py-1 shadow-md rounded-md bg-gray-50"
          ref={worklogRef}
@@ -144,11 +143,11 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
           {worklog.comment}
       </div>
 
-      {isHovered && isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED &&
+      {isHovered && isJiraEditMode && worklog.syncStatus !== syncStatus.NOT_SYNCED &&
         worklogRefs.map((worklogRef, index1) => {
           const targetColor = worklog.color;
           return timeLogRefs.map((timeLogRef, index2) => {
-            if (timeLogRef.timeLog.color === targetColor && worklogRef.worklog.color === targetColor) {
+            if (timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.color === targetColor) {
               return (
                 <Connector
                   key={`${index1}${index2}`}

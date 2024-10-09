@@ -21,7 +21,7 @@ const worklogService = {
     const newWorklogs = [];
     for (let timeLog of timeLogs) {
       for (let worklog of worklogs) {
-        if(worklog.color === timeLog.color && worklog.syncStatus === syncStatus.SYNCED) {
+        if(worklog.color === timeLog.jiraSyncInfo.color && worklog.syncStatus === syncStatus.SYNCED) {
           newWorklogs.push(worklog);
           worklogs = worklogs.filter(worklog1 => worklog1 !== worklog);
         }

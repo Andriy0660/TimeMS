@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.timecraft.core.config.AppProperties;
+import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
@@ -31,12 +32,16 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
     final List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
     return new TimeLogListResponse(
         timeLogDtos.stream().peek(timeLogDto ->
-            timeLogDto.setSyncStatus(
-                getSyncStatus(
+            timeLogDto.setJiraSyncInfo(JiraSyncInfo.builder()
+                .status(getSyncStatus(
                     TimeLogUtils.getProcessedDate(timeLogDto.getDate(), timeLogDto.getStartTime(), offset),
                     timeLogDto.getTicket(),
-                    timeLogDto.getDescription())
-            )
+                    timeLogDto.getDescription()))
+                .color(TimeLogUtils.generateColor(
+                    timeLogDto.getTicket(),
+                    SyncJiraUtils.removeNonLetterAndDigitCharacters(timeLogDto.getDescription())
+                ))
+                .build())
         ).toList());
   }
 
