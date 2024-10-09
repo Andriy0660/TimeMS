@@ -1,5 +1,4 @@
-import Spinner from "./icons/Spinner.jsx";
-import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
+import {CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
 import Button from "@mui/material/Button";
 import {ExclamationMark} from "./icons/ExclamationMark.jsx";
 import {useState} from "react";
@@ -64,7 +63,7 @@ export default function ConfirmationModal({
         >
           Cancel
         </Button>
-        {isLoading ? <Spinner /> : <Button
+        {isLoading ? <CircularProgress size={25} /> : <Button
           color={color}
           variant="contained"
           size="large"
