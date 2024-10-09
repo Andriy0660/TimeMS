@@ -114,7 +114,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
           <div className="font-bold text-sm">
             {worklog.ticket}
           </div>
-          <Duration duration={dateTimeService.formatDuration(worklog.timeSpentSeconds / 60)} />
+          <Duration className="mx-2" duration={dateTimeService.formatDuration(worklog.timeSpentSeconds / 60)} />
           {isJiraSyncingEnabled && <TimeLogJiraSyncStatusIcon status={worklog.jiraSyncInfo.status}/> }
         </div>
         <div>

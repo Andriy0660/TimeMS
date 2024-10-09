@@ -1,12 +1,12 @@
 import {Chip} from "@mui/material";
 
-export default function Duration({duration}) {
+export default function Duration({duration, className}) {
   return <Chip
     label={duration}
     color="primary"
     variant="outlined"
     size="small"
-    className="shadow-md mx-2"
+    className={`shadow-md ${className}`}
   />;
 
 }

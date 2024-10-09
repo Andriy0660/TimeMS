@@ -225,7 +225,7 @@ export default function TimeLog({
         error: endTimeError,
         setError: setEndTimeError
       })}
-      <div className="mr-4 my-2">
+      <div className="mr-4">
         <TextField
           error={!isTicketFieldValid}
           name="ticket"
@@ -243,7 +243,7 @@ export default function TimeLog({
 
   const createTimeField = ({name, label, value, setValue, error, setError}) => {
     return (
-      <div className="mr-4 my-2">
+      <div className="mr-4">
         <TimeField
           name={name}
           error={error}
@@ -280,7 +280,7 @@ export default function TimeLog({
     return <>
       {(startTime || endTime) &&
         <div
-          className="flex mr-4 my-1 hover:bg-blue-100"
+          className="flex mr-4 hover:bg-blue-100"
           onClick={() => {
             setIsEditing(true);
             setEditedField("startTime");
@@ -302,7 +302,7 @@ export default function TimeLog({
         <>
           -
           <div
-            className="flex mx-4 my-1 hover:bg-blue-100"
+            className="flex mx-4 hover:bg-blue-100"
             onClick={() => {
               setIsEditing(true);
               setEditedField("endTime");
@@ -332,7 +332,7 @@ export default function TimeLog({
               setEditedField("ticket");
             }}
           >
-            <Typography className="font-bold my-1 text-sm">{ticket}</Typography>
+            <Typography className="font-bold text-sm">{ticket}</Typography>
           </div>
         </>
       )}
@@ -396,14 +396,14 @@ export default function TimeLog({
     >
       <div ref={timeLogUpperPartRef} className="flex justify-between">
         <div
-          className={classNames("flex items-center",{
+          className={classNames("flex items-center mb-1",{
             "bg-blue-50": status === "InProgress",
             "bg-blue-100": hovered,
             "bg-rose-100": hoveredConflictedIds?.includes(timeLog.id)
           })}>
           {isEditing ? getEditableFields() : getNonEditableFields()}
 
-          {statusConfig[status].label ? <Duration duration={statusConfig[status].label} /> : null}
+          {statusConfig[status].label ? <Duration className="mr-2" duration={statusConfig[status].label} /> : null}
 
           <TimeLogStatusIcons isConflicted={timeLog.isConflicted} jiraSyncStatus={timeLog.jiraSyncInfo.status} />
 
