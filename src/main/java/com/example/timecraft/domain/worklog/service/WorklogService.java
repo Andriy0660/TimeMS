@@ -6,7 +6,7 @@ import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 
-public interface WorklogApiService {
+public interface WorklogService {
   WorklogListResponse list(final LocalDate date);
 
   WorklogCreateFromTimeLogResponse createFromTimeLog(final WorklogCreateFromTimeLogRequest request);

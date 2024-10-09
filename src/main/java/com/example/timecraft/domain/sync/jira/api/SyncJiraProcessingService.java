@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.jira.service;
+package com.example.timecraft.domain.sync.jira.api;
 
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;

@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.timelog.service;
+package com.example.timecraft.domain.timelog.api;
 
 import java.time.LocalDate;
 import java.util.List;

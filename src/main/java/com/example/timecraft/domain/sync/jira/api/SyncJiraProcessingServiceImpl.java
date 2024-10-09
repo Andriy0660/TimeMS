@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.jira.service;
+package com.example.timecraft.domain.sync.jira.api;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -12,11 +12,11 @@ import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
-import com.example.timecraft.domain.timelog.service.TimeLogSyncService;
+import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
-import com.example.timecraft.domain.worklog.service.WorklogSyncService;
+import com.example.timecraft.domain.worklog.api.WorklogSyncService;
 import lombok.RequiredArgsConstructor;
 
 @Service

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.timecraft.domain.sync.jira.service.SyncJiraProcessingService;
+import com.example.timecraft.domain.sync.jira.api.SyncJiraProcessingService;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
@@ -28,79 +28,79 @@ import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
-import com.example.timecraft.domain.timelog.service.TimeLogApiService;
+import com.example.timecraft.domain.timelog.service.TimeLogService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/time-logs")
 public class TimeLogController {
-  private final TimeLogApiService timeLogApiService;
+  private final TimeLogService timeLogService;
   private final SyncJiraProcessingService syncJiraProcessingService;
 
   @GetMapping
   public TimeLogListResponse list(@RequestParam final LocalDate startDate, @RequestParam final LocalDate endDate) {
-    return syncJiraProcessingService.processTimeLogDtos(timeLogApiService.list(startDate, endDate));
+    return syncJiraProcessingService.processTimeLogDtos(timeLogService.list(startDate, endDate));
   }
 
   @PostMapping
   public TimeLogCreateResponse create(@RequestBody final TimeLogCreateRequest request) {
-    return timeLogApiService.create(request);
+    return timeLogService.create(request);
   }
 
   @PostMapping("/fromWorklog")
   public TimeLogCreateFormWorklogResponse createFromWorklog(@RequestBody final TimeLogCreateFromWorklogRequest request) {
-    return timeLogApiService.createFromWorklog(request);
+    return timeLogService.createFromWorklog(request);
   }
 
   @PostMapping("/importTimeLogs")
   public void importTimeLogs(@RequestBody final TimeLogImportRequest request) {
-    timeLogApiService.importTimeLogs(request);
+    timeLogService.importTimeLogs(request);
   }
 
   @PostMapping("/divide/{timeLogId}")
   public void divide(@PathVariable final long timeLogId) {
-    timeLogApiService.divide(timeLogId);
+    timeLogService.divide(timeLogId);
   }
 
   @GetMapping("/{timeLogId}")
   public TimeLogGetResponse get(@PathVariable final long timeLogId) {
-    return timeLogApiService.get(timeLogId);
+    return timeLogService.get(timeLogId);
   }
 
   @GetMapping("/config")
   public TimeLogConfigResponse getOffset() {
-    return timeLogApiService.getConfig();
+    return timeLogService.getConfig();
   }
 
   @GetMapping("/hoursForWeek")
   public TimeLogHoursForWeekResponse getHoursForWeek(@RequestParam final LocalDate date) {
-    return syncJiraProcessingService.processWeekDayInfos(timeLogApiService.getHoursForWeek(date));
+    return syncJiraProcessingService.processWeekDayInfos(timeLogService.getHoursForWeek(date));
   }
 
   @GetMapping("/hoursForMonth")
   public TimeLogHoursForMonthResponse getHoursForMonth(@RequestParam final LocalDate date) {
-    return syncJiraProcessingService.processMonthDayInfos(timeLogApiService.getHoursForMonth(date));
+    return syncJiraProcessingService.processMonthDayInfos(timeLogService.getHoursForMonth(date));
   }
 
   @PutMapping("/{timeLogId}")
   public TimeLogUpdateResponse update(@PathVariable final long timeLogId, @RequestBody final TimeLogUpdateRequest request) {
-    return timeLogApiService.update(timeLogId, request);
+    return timeLogService.update(timeLogId, request);
   }
 
   @DeleteMapping("/{timeLogId}")
   public void delete(@PathVariable final long timeLogId) {
-    timeLogApiService.delete(timeLogId);
+    timeLogService.delete(timeLogId);
   }
 
   @PatchMapping("/setGroupDescription")
   public void setGroupDescription(@RequestBody final TimeLogSetGroupDescrRequest request) {
-    timeLogApiService.setGroupDescription(request);
+    timeLogService.setGroupDescription(request);
   }
 
   @PatchMapping("/{timeLogId}/changeDate")
   public void changeDate(@PathVariable final long timeLogId, @RequestBody final TimeLogChangeDateRequest request) {
-    timeLogApiService.changeDate(timeLogId, request);
+    timeLogService.changeDate(timeLogId, request);
   }
 
 }

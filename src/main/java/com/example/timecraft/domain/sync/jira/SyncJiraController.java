@@ -10,37 +10,37 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
-import com.example.timecraft.domain.sync.jira.service.SyncJiraApiService;
+import com.example.timecraft.domain.sync.jira.service.SyncJiraService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/syncJira")
 public class SyncJiraController {
-  private final SyncJiraApiService syncJiraApiService;
+  private final SyncJiraService syncJiraService;
 
   @PostMapping("/from")
   public void syncFromJira(@RequestBody final SyncFromJiraRequest request) {
-    syncJiraApiService.syncFromJira(request);
+    syncJiraService.syncFromJira(request);
   }
 
   @PostMapping("/to")
   public void syncIntoJira(@RequestBody final SyncIntoJiraRequest request) {
-    syncJiraApiService.syncIntoJira(request);
+    syncJiraService.syncIntoJira(request);
   }
 
   @PostMapping("/syncAllWorklogs")
   public void syncWorklogs() {
-    syncJiraApiService.syncAllWorklogs();
+    syncJiraService.syncAllWorklogs();
   }
 
   @PostMapping("/{ticket}")
   public void syncWorklogsForIssue(@PathVariable final String ticket) {
-    syncJiraApiService.syncWorklogsForTicket(ticket);
+    syncJiraService.syncWorklogsForTicket(ticket);
   }
 
   @GetMapping("/progress")
   public SyncJiraProgressResponse getProgress() {
-    return syncJiraApiService.getProgress();
+    return syncJiraService.getProgress();
   }
 }

@@ -46,7 +46,7 @@ import static com.example.timecraft.domain.timelog.util.DurationUtils.formatDura
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class TimeLogApiServiceImpl implements TimeLogApiService {
+public class TimeLogServiceImpl implements TimeLogService {
   private final TimeLogRepository repository;
   private final TimeLogMapper mapper;
   private final Clock clock;

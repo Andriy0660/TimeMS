@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WorklogApiServiceImpl implements WorklogApiService {
+public class WorklogServiceImpl implements WorklogService {
   private final WorklogRepository repository;
   private final JiraWorklogService jiraWorklogService;
   private final WorklogMapper mapper;

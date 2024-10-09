@@ -4,7 +4,7 @@ import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
 
-public interface SyncJiraApiService {
+public interface SyncJiraService {
   void syncFromJira(final SyncFromJiraRequest request);
 
   void syncIntoJira(final SyncIntoJiraRequest request);

@@ -24,16 +24,16 @@ import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
 import com.example.timecraft.domain.sync.jira.model.SyncJiraProgress;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
-import com.example.timecraft.domain.timelog.service.TimeLogSyncService;
+import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.util.DurationUtils;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
-import com.example.timecraft.domain.worklog.service.WorklogSyncService;
+import com.example.timecraft.domain.worklog.api.WorklogSyncService;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class SyncJiraApiServiceImpl implements SyncJiraApiService {
+public class SyncJiraServiceImpl implements SyncJiraService {
   private final TimeLogSyncService timeLogSyncService;
   private final WorklogSyncService worklogSyncService;
   private final JiraWorklogService jiraWorklogService;
