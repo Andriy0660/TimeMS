@@ -10,7 +10,6 @@ import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
-import CustomTableCell from "../components/CustomTableCell.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import TimeLogList from "../components/TimeLogList.jsx";
 import {useState} from "react";
@@ -21,6 +20,8 @@ import ReorderIcon from '@mui/icons-material/Reorder';
 import {weekViewMode} from "../consts/weekViewMode.js";
 import ViewModeIcon from "../components/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
+import WeekTable from "../components/WeekTable.jsx";
+import WeekJiraTable from "../components/WeekJiraTable.jsx";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
@@ -30,12 +31,12 @@ export default function WeekPage() {
   const {isJiraSyncingEnabled, date, setDate, addAlert, mode} = useAppContext();
 
   const {
-    data,
+    data: dayInfos,
     isPending
   } = useQuery({
     queryKey: [timeLogApi.key, "week", date, offset],
     queryFn: () => {
-      return timeLogApi.getHoursForWeek({date: dateTimeService.getFormattedDate(date), offset});
+      return timeLogApi.getHoursForWeek({date: dateTimeService.getFormattedDate(date), includeTickets: isJiraSyncingEnabled});
     },
     onError: async (error) => {
       addAlert({
@@ -53,18 +54,9 @@ export default function WeekPage() {
     groupByDescription, setGroupByDescription, timeLogs
   } = useProcessedTimeLogs();
 
-  const handleClick = (date) => {
+  const handleClickDate = (date) => {
     setDate(dayjs(date))
     changeView(viewMode.DAY)
-  }
-
-  const getTotalTimeForTicket = (ticket) => {
-    const totalTime = data.reduce((result, {ticketDurations}) => {
-      const ticketDuration = ticketDurations.find(td => td.ticket === ticket);
-      result += dateTimeService.parseMinutes(ticketDuration.duration)
-      return result;
-    }, 0)
-    return dateTimeService.formatDuration(totalTime);
   }
 
   if (isPending) {
@@ -104,55 +96,13 @@ export default function WeekPage() {
         }
       </div>
       {view === weekViewMode.TABLE && <TableContainer className="flex mx-auto mb-3">
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <CustomTableCell><></></CustomTableCell>
-              {data.map(dayInfo => (
-                <CustomTableCell
-                  key={dayInfo.date}
-                  date={dayInfo.date}
-                  isHover
-                  jiraSyncStatus={dayInfo?.jiraSyncInfo.status}
-                  isConflicted={dayInfo.conflicted}
-                  onClick={() => handleClick(dayInfo.date)}
-                >
-                  <div>{dayInfo.dayName}</div>
-                </CustomTableCell>
-              ))}
-              <CustomTableCell isBold>Total</CustomTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data[0]?.ticketDurations.map(({ticket}) => (
-              <>
-                {(isJiraSyncingEnabled || ticket === "Total") && <TableRow key={ticket}>
-                  <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
-                  {data.map(dayInfo => {
-                    const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
-                    return (
-                      <CustomTableCell
-                        key={`${dayInfo.date}-${ticket}`}
-                        isBold={ticket === "Total"}
-                        isHover={ticket === "Total"}
-                        onClick={() => {
-                          if (ticket === "Total") {
-                            handleClick(dayInfo.date);
-                          }
-                        }}
-                      >
-                        {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
-                      </CustomTableCell>
-                    );
-                  })}
-                  <CustomTableCell isBold>{getTotalTimeForTicket(ticket)}</CustomTableCell>
-                </TableRow>
-                }
-              </>
-            ))
-            }
-          </TableBody>
-        </Table>
+        {isJiraSyncingEnabled && (
+          <WeekJiraTable dayInfos={dayInfos} handleClickDate={handleClickDate} />
+        )}
+
+        {!isJiraSyncingEnabled && (
+          <WeekTable dayInfos={dayInfos} handleClickDate={handleClickDate}/>
+        )}
       </TableContainer>
       }
       {view === weekViewMode.LIST && (

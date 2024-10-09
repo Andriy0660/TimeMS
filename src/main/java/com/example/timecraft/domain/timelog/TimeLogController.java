@@ -22,12 +22,12 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogWeekResponse;
 import com.example.timecraft.domain.timelog.service.TimeLogService;
 import lombok.RequiredArgsConstructor;
 
@@ -74,8 +74,9 @@ public class TimeLogController {
   }
 
   @GetMapping("/hoursForWeek")
-  public TimeLogHoursForWeekResponse getHoursForWeek(@RequestParam final LocalDate date) {
-    return syncJiraProcessingService.processWeekDayInfos(timeLogService.getHoursForWeek(date));
+  public TimeLogWeekResponse getHoursForWeek(@RequestParam final LocalDate date, @RequestParam final Boolean includeTickets) {
+    if (includeTickets) return syncJiraProcessingService.processWeekDayInfos(timeLogService.getHoursForWeekWithTickets(date));
+    else return timeLogService.getHoursForWeek(date);
   }
 
   @GetMapping("/hoursForMonth")
