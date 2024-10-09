@@ -1,6 +1,6 @@
 import {IconButton, Tooltip} from '@mui/material';
 
-export default function IconModeIcon({title, icon, isActive, onClick}) {
+export default function ModeIcon({title, icon, isActive, onClick}) {
   const activeIconClasses = "border-blue-400 border-solid border rounded";
 
   return (

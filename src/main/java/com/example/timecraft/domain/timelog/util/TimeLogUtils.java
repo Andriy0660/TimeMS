@@ -37,6 +37,7 @@ public class TimeLogUtils {
   }
 
   public static int getDurationInSecondsForTimelog(final LocalTime startTime, final LocalTime endTime) {
+    if (startTime == null || endTime == null) return 0;
     int duration = (int) Duration.between(startTime, endTime).toSeconds();
     return duration < 0 ? 3600 * 24 + duration : duration;
   }
@@ -49,6 +50,7 @@ public class TimeLogUtils {
   }
 
   public static String generateColor(String ticket, String descr) {
+    if (descr == null) return null;
     String input = descr;
     if (ticket != null) {
       input = input.concat(ticket.chars()

@@ -147,6 +147,7 @@ export default function TimeLogPage() {
             setHoveredProgressIntervalId={setHoveredProgressIntervalId}
             hoveredConflictedIds={hoveredConflictedIds}
             setHoveredConflictedIds={setHoveredConflictedIds}
+            processedTimeLogsArray={processedTimeLogsArray}
           />
         )}
         {isJiraEditMode && (
@@ -162,6 +163,7 @@ export default function TimeLogPage() {
                   setHoveredProgressIntervalId={setHoveredProgressIntervalId}
                   hoveredConflictedIds={hoveredConflictedIds}
                   setHoveredConflictedIds={setHoveredConflictedIds}
+                  processedTimeLogsArray={processedTimeLogsArray}
                 />
               </div>
               <div className="w-1/2 ml-6">

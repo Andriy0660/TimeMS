@@ -91,6 +91,11 @@ public class WorklogServiceImpl implements WorklogService {
   }
 
   @Override
+  public void save(final WorklogEntity entity) {
+    worklogRepository.save(entity);
+  }
+
+  @Override
   public void deleteUnsyncedWorklog(final String issueKey, final Long id) {
     try {
       jiraWorklogService.delete(issueKey, id);

@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
+import com.example.timecraft.domain.jira.worklog.dto.JiraUpdateWorklogDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
@@ -204,6 +205,28 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
       }
     } else {
       throw new RuntimeException("Failed to create worklog. Status code: " + response.getStatusCode());
+    }
+  }
+
+  @Override
+  public JiraWorklogDto update(final String issueKey, final Long id, final JiraUpdateWorklogDto dto) {
+    String url = appProperties.getJira().getUrl() + "/rest/api/3/issue/" + issueKey + "/worklog/" + id;
+    HttpHeaders headers = getHttpHeaders();
+    HttpEntity<JiraUpdateWorklogDto> entity = new HttpEntity<>(dto, headers);
+
+    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+
+    if (response.getStatusCode() == HttpStatus.OK) {
+      String worklogJson = response.getBody();
+      try {
+        JiraWorklogDto jiraWorklogDto = parseJiraWorklog(objectMapper.readTree(worklogJson));
+        jiraWorklogDto.setIssueKey(issueKey);
+        return jiraWorklogDto;
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException("Error parsing worklog for " + issueKey);
+      }
+    } else {
+      throw new RuntimeException("Failed to update worklog. Status code: " + response.getStatusCode());
     }
   }
 

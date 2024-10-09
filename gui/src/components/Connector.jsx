@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 
-export default function Connector({startElement, endElement, color}) {
+export default function Connector({startElement, endElement, color, dashed}) {
   const [positions, setPositions] = useState({startX: 0, startY: 0, endX: 0, endY: 0});
 
   const updatePositions = () => {
@@ -35,7 +35,8 @@ export default function Connector({startElement, endElement, color}) {
         y2={positions.endY}
         stroke={color}
         strokeWidth="2"
-      />
+        strokeDasharray={dashed ? "8 4" : "none"}
+    />
     </svg>
   );
 }

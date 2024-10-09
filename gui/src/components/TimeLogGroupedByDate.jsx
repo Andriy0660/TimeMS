@@ -3,6 +3,7 @@ import TimeLog from "./TimeLog.jsx";
 import dayjs from "dayjs";
 import TimeLogGroup from "./TimeLogGroup.jsx";
 import {viewMode} from "../consts/viewMode.js";
+import {syncStatus} from "../consts/syncStatus.js";
 
 export default function TimeLogGroupedByDate({
   date,
@@ -22,7 +23,7 @@ export default function TimeLogGroupedByDate({
       <div>
         {renderedInner ? renderedInner : logsForDate.map((timeLog) =>
 
-          <TimeLogGroup key={timeLog.id} isJiraEditMode={isJiraEditMode} isSynced={timeLog.synced} color={timeLog.color}>
+          <TimeLogGroup key={timeLog.id} isJiraEditMode={isJiraEditMode} isSynced={timeLog.syncStatus === syncStatus.SYNCED} color={timeLog.color}>
             <TimeLog
               timeLog={timeLog}
               isJiraEditMode={isJiraEditMode}

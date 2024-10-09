@@ -19,7 +19,7 @@ import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from '@mui/icons-material/Reorder';
 import {weekViewMode} from "../consts/weekViewMode.js";
-import IconModeIcon from "../components/IconModeIcon.jsx";
+import ModeIcon from "../components/ModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
 
 export default function WeekPage() {
@@ -78,13 +78,13 @@ export default function WeekPage() {
   return (
     <div className="w-3/5 mx-auto">
       <div className="flex justify-start my-2">
-        <IconModeIcon
+        <ModeIcon
           title={weekViewMode.TABLE}
           icon={<GoTable />}
           isActive={view === weekViewMode.TABLE}
           onClick={() => setView(weekViewMode.TABLE)}
         />
-        <IconModeIcon
+        <ModeIcon
           title={weekViewMode.LIST}
           icon={<ReorderIcon />}
           isActive={view === weekViewMode.LIST}
@@ -114,7 +114,7 @@ export default function WeekPage() {
                   key={dayInfo.date}
                   date={dayInfo.date}
                   isHover
-                  isSynced={dayInfo.synced}
+                  syncStatus={dayInfo?.syncStatus}
                   isConflicted={dayInfo.conflicted}
                   onClick={() => handleClick(dayInfo.date)}
                 >

@@ -65,10 +65,12 @@ public class TimeLogServiceImpl implements TimeLogService {
         .map(timeLogEntity -> {
           TimeLogListResponse.TimeLogDto timeLogDto = mapper.toListItem(timeLogEntity);
           timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime()));
-          timeLogDto.setColor(TimeLogUtils.generateColor(
-              timeLogEntity.getTicket(),
-              LogSyncUtil.removeNonLetterAndDigitCharacters(timeLogEntity.getDescription())
-          ));
+          if (timeLogDto.getDescription() != null || timeLogDto.getTicket() != null) {
+            timeLogDto.setColor(TimeLogUtils.generateColor(
+                timeLogEntity.getTicket(),
+                LogSyncUtil.removeNonLetterAndDigitCharacters(timeLogEntity.getDescription())
+            ));
+          }
           return timeLogDto;
         })
         .sorted(Comparator
@@ -88,6 +90,11 @@ public class TimeLogServiceImpl implements TimeLogService {
     } else {
       return repository.findAllInRange(dateRange[0], dateRange[1], startTime);
     }
+  }
+
+  @Override
+  public void saveAll(final List<TimeLogEntity> entities) {
+    repository.saveAll(entities);
   }
 
   private String mapTotalTime(final LocalTime startTime, final LocalTime endTime) {
@@ -373,6 +380,11 @@ public class TimeLogServiceImpl implements TimeLogService {
   public void delete(final long timeLogId) {
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
     repository.delete(timeLogEntity);
+  }
+
+  @Override
+  public void delete(final List<TimeLogEntity> entities) {
+    repository.deleteAll(entities);
   }
 
   @Override

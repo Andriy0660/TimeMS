@@ -24,6 +24,8 @@ public interface TimeLogService {
 
   List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset);
 
+  void saveAll(final List<TimeLogEntity> entities);
+
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 
   TimeLogCreateFormWorklogResponse createFromWorklog(final TimeLogCreateFromWorklogRequest request);
@@ -41,6 +43,8 @@ public interface TimeLogService {
   TimeLogUpdateResponse update(final long timeLogId, final TimeLogUpdateRequest request);
 
   void delete(final long timeLogId);
+
+  void delete(final List<TimeLogEntity> entities);
 
   void setGroupDescription(final TimeLogSetGroupDescrRequest request);
 

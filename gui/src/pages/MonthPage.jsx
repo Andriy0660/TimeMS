@@ -11,7 +11,7 @@ import timeLogApi from "../api/timeLogApi.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
-import StatusIcon from "../components/StatusIcon.jsx";
+import TimeLogStatusIcons from "../components/TimeLogStatusIcons.jsx";
 import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
 import TimeLogList from "../components/TimeLogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
@@ -19,8 +19,9 @@ import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from "@mui/icons-material/Reorder.js";
 import {monthViewMode} from "../consts/monthViewMode.js";
-import IconModeIcon from "../components/IconModeIcon.jsx";
+import ModeIcon from "../components/ModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
+import {syncStatus} from "../consts/syncStatus.js";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -68,8 +69,8 @@ export default function MonthPage() {
 
   const getDayCellClassNames = ({dow: dayOfWeek, date: cellDate}) => {
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
-    const {synced, conflicted} = dayInfo || {};
-    if ((!synced || conflicted) && dayjs(cellDate).$M === date.$M) {
+    const {conflicted} = dayInfo || {};
+    if ((dayInfo?.syncStatus === syncStatus.NOT_SYNCED || conflicted) && dayjs(cellDate).$M === date.$M) {
       return ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
     } else if (dayOfWeek === 0 || dayOfWeek === 6) {
       return ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"];
@@ -84,7 +85,7 @@ export default function MonthPage() {
       <div className="flex justify-between p-1">
           <div>
             {dayInfo && dayjs(cellDate).$M === date.$M && (
-              <StatusIcon isSynced={dayInfo.synced} isConflicted={dayInfo.conflicted} />
+              <TimeLogStatusIcons syncStatus={dayInfo.syncStatus} isConflicted={dayInfo.conflicted} />
             )}
           </div>
         <div>
@@ -110,13 +111,13 @@ export default function MonthPage() {
   return (
     <div className="my-6 w-2/3 mx-auto">
       <div className="flex items-center mb-2">
-        <IconModeIcon
+        <ModeIcon
           title={monthViewMode.CALENDAR}
           icon={<GoTable />}
           isActive={view === monthViewMode.CALENDAR}
           onClick={() => setView(monthViewMode.CALENDAR)}
         />
-        <IconModeIcon
+        <ModeIcon
           title={monthViewMode.LIST}
           icon={<ReorderIcon />}
           isActive={view === monthViewMode.LIST}

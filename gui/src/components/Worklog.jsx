@@ -6,28 +6,19 @@ import ConfirmationModal from "./ConfirmationModal.jsx";
 import {useEffect, useRef, useState} from "react";
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import useAsyncCall from "../hooks/useAsyncCall.js";
-import DoneIcon from "@mui/icons-material/Done.js";
-import SyncDisabledIcon from '@mui/icons-material/SyncDisabled';
 import {TiArrowForward} from "react-icons/ti";
 import dayjs from "dayjs";
 import VerticalDivider from "./VerticalDivider.jsx";
 import useAppContext from "../context/useAppContext.js";
 import Connector from "./Connector.jsx";
 import Brightness1Icon from "@mui/icons-material/Brightness1.js";
+import {syncStatus} from "../consts/syncStatus.js";
+import TimeLogSyncIcon from "./TimeLogSyncIcon.jsx";
+import * as timeLog from "../consts/syncStatus.js";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
-  const {setWorklogRefs, timeLogRefs} = useAppContext();
-
-  const [isWorkogAvailable, setIsWorklogAvailable] = useState(false);
-
-  useEffect(() => {
-    if (worklogRef.current) {
-      setIsWorklogAvailable(true);
-    } else {
-      setIsWorklogAvailable(false);
-    }
-  }, [worklogRef]);
+  const {worklogRefs, setWorklogRefs, timeLogRefs} = useAppContext();
 
   useEffect(() => {
     if (worklogRef.current && isJiraEditMode) {
@@ -67,7 +58,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
     >
       <div className="flex justify-between">
         <div className="flex items-center">
-          {isJiraEditMode && worklog.synced && <Brightness1Icon className="mr-2" sx={{color: worklog.color}} />}
+          {isJiraEditMode && worklog.syncStatus !== syncStatus.NOT_SYNCED && <Brightness1Icon className="mr-2" sx={{color: worklog.color}} />}
 
           <div className="flex mr-4 my-1">
             {isTimeLogInNextDay.startTime &&
@@ -99,23 +90,12 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
             {worklog.ticket}
           </div>
           <Duration duration={dateTimeService.formatDuration(worklog.timeSpentSeconds / 60)} />
-          {worklog.synced
-            ? (
-              <Tooltip title="Synchronized">
-                <DoneIcon color="success" />
-              </Tooltip>
-            )
-            : (
-              <Tooltip title="Not synchronized">
-                <SyncDisabledIcon color="error" />
-              </Tooltip>
-            )
-          }
+          <TimeLogSyncIcon status={worklog.syncStatus}/>
         </div>
         <div>
           {isHovered && (
             <>
-              {!worklog.synced && <Tooltip title="Save to my time logs">
+              {!worklog.syncStatus === syncStatus.SYNCED && <Tooltip title="Save to my time logs">
                 <IconButton
                   onClick={() => handleCreateTimeLogFromWorklog({
                     ticket: worklog.ticket,
@@ -163,19 +143,27 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
       <div className="flex items-center">
           {worklog.comment}
       </div>
-      {isHovered && isJiraEditMode && worklog.synced && isWorkogAvailable && timeLogRefs.map((timeLogRef, index) => {
-        if (worklog.color === timeLogRef.timeLog.color) {
-          return (
-            <Connector
-              key={index}
-              startElement={timeLogRef.ref.current}
-              endElement={worklogRef.current}
-              color={worklog.color}
-            />
-          );
-        }
-        return null;
-      })}
+
+      {isHovered && isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED &&
+        worklogRefs.map((worklogRef, index1) => {
+          const targetColor = worklog.color;
+          return timeLogRefs.map((timeLogRef, index2) => {
+            if (timeLogRef.timeLog.color === targetColor && worklogRef.worklog.color === targetColor) {
+              return (
+                <Connector
+                  key={`${index1}${index2}`}
+                  startElement={timeLogRef.ref.current}
+                  endElement={worklogRef.ref.current}
+                  color={targetColor}
+                  dashed={worklog.syncStatus === syncStatus.PARTIAL_SYNCED}
+                />
+              );
+            }
+            return null;
+          })
+        })
+      }
+
       {isDeleteLoading || isCreateLoading && <LinearProgress />}
     </div>
   )

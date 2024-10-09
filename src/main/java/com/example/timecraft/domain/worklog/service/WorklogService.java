@@ -16,6 +16,8 @@ public interface WorklogService {
 
   WorklogCreateFromTimeLogResponse createWorklogFromTimeLog(WorklogCreateFromTimeLogRequest request);
 
+  void save(final WorklogEntity entity);
+
   void deleteUnsyncedWorklog(final String issueKey, final Long id);
 
   WorklogProgressResponse getProgress();

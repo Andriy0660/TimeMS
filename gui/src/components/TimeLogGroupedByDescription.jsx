@@ -3,6 +3,7 @@ import Description from "./Description.jsx";
 import {Chip} from "@mui/material";
 import dateTimeService from "../service/dateTimeService.js";
 import TimeLogGroup from "./TimeLogGroup.jsx";
+import {syncStatus} from "../consts/syncStatus.js";
 
 export default function TimeLogGroupedByDescription({
   description,
@@ -20,7 +21,7 @@ export default function TimeLogGroupedByDescription({
   }, [])
 
   return (
-    <TimeLogGroup isJiraEditMode={isJiraEditMode} isSynced={logsForDescription[0]?.synced} color={logsForDescription[0]?.color}>
+    <TimeLogGroup isJiraEditMode={isJiraEditMode} isSynced={logsForDescription[0]?.syncStatus === syncStatus.SYNCED} color={logsForDescription[0]?.color}>
       {logsForDescription.map(timeLog => (
         <div key={timeLog.id}>
           <TimeLog
