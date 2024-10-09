@@ -14,8 +14,7 @@ import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogCreateDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
-import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
-import com.example.timecraft.domain.timelog.util.TimeLogUtils;
+import com.example.timecraft.domain.timelog.util.DurationUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
@@ -49,7 +48,7 @@ public class WorklogServiceImpl implements WorklogService {
     final JiraWorklogDto created = jiraWorklogService.create(request.getTicket(), JiraWorklogCreateDto.builder()
         .started(JiraWorklogUtils.getJiraStartedTime(dateTime))
         .comment(JiraWorklogUtils.getJiraComment(request.getDescription()))
-        .timeSpentSeconds(TimeLogUtils.getDurationInSecondsForTimelog(request.getStartTime(), request.getEndTime()))
+        .timeSpentSeconds(DurationUtils.getDurationInSecondsForTimelog(request.getStartTime(), request.getEndTime()))
         .build());
 
     final WorklogEntity entity = mapper.toWorklogEntity(created);

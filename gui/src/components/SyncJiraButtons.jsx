@@ -23,7 +23,7 @@ export default function SyncJiraButtons({timeLog, handleSyncForTicket, handleCre
     }
 
   {
-    (timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.syncStatus === syncStatus.NOT_SYNCED) && (
+    (timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.jiraSyncInfo.status === syncStatus.NOT_SYNCED) && (
       <MenuItem onClick={() => handleCreateWorklog({
         ticket: timeLog.ticket,
         date: dateTimeService.getFormattedDate(timeLog.date),
@@ -42,7 +42,7 @@ export default function SyncJiraButtons({timeLog, handleSyncForTicket, handleCre
   }
 
   {
-    (timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.syncStatus === syncStatus.PARTIAL_SYNCED) && (
+    (timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED) && (
       [
         <MenuItem
           key="to"

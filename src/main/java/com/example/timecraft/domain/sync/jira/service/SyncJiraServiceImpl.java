@@ -86,10 +86,10 @@ public class SyncJiraServiceImpl implements SyncJiraService {
   }
 
   private int getTotalSpentSeconds(final List<TimeLogEntity> timeLogEntityList) {
-    return (int) timeLogEntityList.stream().map(timeLogEntity -> {
-      if (timeLogEntity.getStartTime() == null || timeLogEntity.getEndTime() == null) return Duration.ZERO;
-      return Duration.between(timeLogEntity.getStartTime(), timeLogEntity.getEndTime());
-    }).reduce(Duration.ZERO, Duration::plus).toSeconds();
+    return timeLogEntityList.stream().map(timeLogEntity -> {
+      if (timeLogEntity.getStartTime() == null || timeLogEntity.getEndTime() == null) return 0;
+      return DurationUtils.getDurationInSecondsForTimelog(timeLogEntity.getStartTime(), timeLogEntity.getEndTime());
+    }).reduce(0, Integer::sum);
   }
 
   private void deleteWorklogsForTicket(final List<WorklogEntity> worklogEntityList, final String ticket) {

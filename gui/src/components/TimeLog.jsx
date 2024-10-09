@@ -9,17 +9,14 @@ import KeyboardTabOutlinedIcon from '@mui/icons-material/KeyboardTabOutlined';
 import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined';
 import StartOutlinedIcon from '@mui/icons-material/StartOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import Divider from "@mui/material/Divider";
-import useAppContext from "../context/useAppContext.js";
+import SplitscreenIcon from '@mui/icons-material/Splitscreen';import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import {TiArrowForward} from "react-icons/ti";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos.js";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Description from "./Description.jsx";
-import {deepOrange} from "@mui/material/colors";
 import Duration from "./Duration.jsx";
 import VerticalDivider from "./VerticalDivider.jsx";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -85,7 +82,6 @@ export default function TimeLog({
     }
   }, [timeLogRef])
 
-  const [divideMenuEl, setDivideMenuEl] = useState(null);
   const [moreActionsMenuEl, setMoreActionsMenuEl] = useState(null);
 
   useEffect(() => {
@@ -381,6 +377,10 @@ export default function TimeLog({
       text: "Start"
   }};
 
+  const isContinueUntilTomorrow = timeLog.endTime?.isAfter(isTimeLogInNextDay.startTime
+    ? dateTimeService.getStartOfDay(timeLog.startTime)
+    : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day")));
+
   return (
     <div
       ref={timeLogRef}
@@ -406,28 +406,7 @@ export default function TimeLog({
 
           {statusConfig[status].label ? <Duration className="mr-2" duration={statusConfig[status].label} /> : null}
 
-          <TimeLogStatusIcons isConflicted={timeLog.isConflicted} jiraSyncStatus={timeLog.jiraSyncInfo.status} />
-
-          {timeLog.endTime?.isAfter(isTimeLogInNextDay.startTime
-              ? dateTimeService.getStartOfDay(timeLog.startTime)
-              : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day"))) &&
-            <div>
-              <IconButton onClick={(event) => setDivideMenuEl(event.currentTarget)}>
-                <Tooltip title="Timelog continues tomorrow">
-                  <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
-                </Tooltip>
-              </IconButton>
-              <Menu
-                anchorEl={divideMenuEl}
-                open={!!divideMenuEl}
-                onClose={() => setDivideMenuEl(null)}
-              >
-                <MenuItem className="py-0 px-2" onClick={() => handleDivideTimeLog(timeLog.id)}>Divide into two days</MenuItem>
-                <Divider />
-                <MenuItem className="py-0 px-2" onClick={() => setDivideMenuEl(null)}>Cancel</MenuItem>
-              </Menu>
-            </div>
-          }
+          <TimeLogStatusIcons isConflicted={timeLog.isConflicted} isContinueUntilTomorrow={isContinueUntilTomorrow} jiraSyncStatus={timeLog.jiraSyncInfo.status} />
         </div>
 
         <div className="flex items-center">
@@ -497,7 +476,16 @@ export default function TimeLog({
                   </ListItemText>
                 </MenuItem>
               )}
-
+              {isContinueUntilTomorrow &&
+                <MenuItem onClick={() => handleDivideTimeLog(timeLog.id)}>
+                  <ListItemIcon>
+                    <SplitscreenIcon color="primary" fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Typography className="text-sm">Divide into two days</Typography>
+                  </ListItemText>
+                </MenuItem>
+              }
               {isJiraSyncingEnabled && <SyncJiraButtons
                 timeLog={timeLog}
                 handleCreateWorklog={handleCreateWorklog}
