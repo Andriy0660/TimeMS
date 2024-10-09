@@ -1,14 +1,14 @@
 import {useEffect, useState} from "react";
+import {timeLogGroupPaddingX} from "./TimeLogGroup.jsx";
 
 export default function Connector({startElement, endElement, color, dashed}) {
   const [positions, setPositions] = useState({startX: 0, startY: 0, endX: 0, endY: 0});
-
   const updatePositions = () => {
     if (startElement && endElement) {
       const startRect = startElement.getBoundingClientRect();
       const endRect = endElement.getBoundingClientRect();
 
-      const startX = startRect.right + 16;
+      const startX = startRect.right + timeLogGroupPaddingX;
       const startY = startRect.top + startRect.height / 2 + window.scrollY;
       const endX = endRect.left;
       const endY = endRect.top + endRect.height / 2 + window.scrollY;

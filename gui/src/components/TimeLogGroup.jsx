@@ -1,10 +1,11 @@
 import Divider from "@mui/material/Divider";
-
-export default function TimeLogGroup({children, isJiraEditMode, isSynced, color}) {
+const timeLogGroupPaddingX = 16;
+export default function TimeLogGroup({children, isJiraEditMode}) {
   return (
     <div>
       <div
-        className={`px-4 py-1 ${isJiraEditMode ? "shadow-md rounded-md mb-2" : "bg-gray-50"}`}
+        className={`bg-gray-50 ${isJiraEditMode ? "shadow-md rounded-md mb-2" : ""}`}
+        style={{padding: `4px ${timeLogGroupPaddingX}px 4px ${timeLogGroupPaddingX}px`}}
       >
         {children}
       </div>
@@ -12,3 +13,4 @@ export default function TimeLogGroup({children, isJiraEditMode, isSynced, color}
     </div>
   );
 }
+export {timeLogGroupPaddingX};
