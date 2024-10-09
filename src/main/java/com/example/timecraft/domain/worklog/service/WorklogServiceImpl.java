@@ -35,14 +35,7 @@ public class WorklogServiceImpl implements WorklogService {
   public WorklogListResponse list(final LocalDate date) {
     final List<WorklogEntity> worklogEntityList = repository.findAllByDate(date);
     final List<WorklogListResponse.WorklogDto> timeLogDtoList = worklogEntityList.stream()
-        .map(worklogEntity -> {
-          WorklogListResponse.WorklogDto worklogDto = mapper.toListItem(worklogEntity);
-          worklogDto.setColor(TimeLogUtils.generateColor(
-              worklogEntity.getTicket(),
-              SyncJiraUtils.removeNonLetterAndDigitCharacters(worklogEntity.getComment())
-          ));
-          return worklogDto;
-        })
+        .map(mapper::toListItem)
         .sorted(Comparator
             .comparing(WorklogListResponse.WorklogDto::getDate)
             .thenComparing(WorklogListResponse.WorklogDto::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())))

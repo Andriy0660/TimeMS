@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
 import com.example.timecraft.domain.sync.model.SyncStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,7 @@ public class WorklogListResponse {
     private Integer timeSpentSeconds;
     private SyncStatus syncStatus;
     private String color;
+    private JiraSyncInfo jiraSyncInfo;
   }
 }
 

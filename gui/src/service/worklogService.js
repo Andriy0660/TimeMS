@@ -21,13 +21,13 @@ const worklogService = {
     const newWorklogs = [];
     for (let timeLog of timeLogs) {
       for (let worklog of worklogs) {
-        if(worklog.color === timeLog.jiraSyncInfo.color && worklog.syncStatus === syncStatus.SYNCED) {
+        if(worklog.jiraSyncInfo.color === timeLog.jiraSyncInfo.color && worklog.jiraSyncInfo.status === syncStatus.SYNCED) {
           newWorklogs.push(worklog);
           worklogs = worklogs.filter(worklog1 => worklog1 !== worklog);
         }
       }
     }
-    const nonMatchingWorklogs = worklogs.filter(worklog => worklog.syncStatus !== syncStatus.SYNCED);
+    const nonMatchingWorklogs = worklogs.filter(worklog => worklog.jiraSyncInfo.status !== syncStatus.SYNCED);
     newWorklogs.push(...nonMatchingWorklogs);
     return newWorklogs;
   }

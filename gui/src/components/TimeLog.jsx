@@ -627,7 +627,7 @@ export default function TimeLog({
           timeLogRefs.map((timeLogRef, index1) => {
             const targetColor = timeLog.jiraSyncInfo.color;
             return worklogRefs.map((worklogRef, index2) => {
-              if(timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.color === targetColor) {
+              if(timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.jiraSyncInfo.color === targetColor) {
                 return (
                   <Connector
                     key={`${index1}${index2}`}

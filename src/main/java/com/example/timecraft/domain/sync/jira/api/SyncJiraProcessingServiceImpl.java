@@ -9,15 +9,15 @@ import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
+import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
-import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
+import com.example.timecraft.domain.worklog.api.WorklogSyncService;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
-import com.example.timecraft.domain.worklog.api.WorklogSyncService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -77,12 +77,17 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
     final int offset = props.getTimeConfig().getOffset();
     final List<WorklogListResponse.WorklogDto> worklogDtos = response.getItems();
     return new WorklogListResponse(
-        worklogDtos.stream().peek(worklogDto -> worklogDto.setSyncStatus(
-            getSyncStatus(
+        worklogDtos.stream().peek(worklogDto -> worklogDto.setJiraSyncInfo(JiraSyncInfo.builder()
+            .status(getSyncStatus(
                 TimeLogUtils.getProcessedDate(worklogDto.getDate(), worklogDto.getStartTime(), offset),
                 worklogDto.getTicket(),
-                worklogDto.getComment())
-        )).toList()
+                worklogDto.getComment()))
+            .color(TimeLogUtils.generateColor(
+                worklogDto.getTicket(),
+                SyncJiraUtils.removeNonLetterAndDigitCharacters(worklogDto.getComment())
+            ))
+            .build())
+        ).toList()
     );
   }
 

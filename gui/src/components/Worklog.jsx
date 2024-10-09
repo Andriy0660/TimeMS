@@ -57,7 +57,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
     >
       <div className="flex justify-between">
         <div className="flex items-center">
-          {isJiraEditMode && worklog.syncStatus !== syncStatus.NOT_SYNCED && <Brightness1Icon className="mr-2" sx={{color: worklog.color}} />}
+          {isJiraEditMode && worklog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && <Brightness1Icon className="mr-2" sx={{color: worklog.jiraSyncInfo.color}} />}
 
           <div className="flex mr-4 my-1">
             {isTimeLogInNextDay.startTime &&
@@ -89,12 +89,12 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
             {worklog.ticket}
           </div>
           <Duration duration={dateTimeService.formatDuration(worklog.timeSpentSeconds / 60)} />
-          <TimeLogSyncIcon status={worklog.syncStatus}/>
+          <TimeLogSyncIcon status={worklog.jiraSyncInfo.status}/>
         </div>
         <div>
           {isHovered && (
             <>
-              {worklog.syncStatus === syncStatus.NOT_SYNCED && <Tooltip title="Save to my time logs">
+              {worklog.jiraSyncInfo.status === syncStatus.NOT_SYNCED && <Tooltip title="Save to my time logs">
                 <IconButton
                   onClick={() => handleCreateTimeLogFromWorklog({
                     ticket: worklog.ticket,
@@ -143,18 +143,18 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
           {worklog.comment}
       </div>
 
-      {isHovered && isJiraEditMode && worklog.syncStatus !== syncStatus.NOT_SYNCED &&
+      {isHovered && isJiraEditMode && worklog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED &&
         worklogRefs.map((worklogRef, index1) => {
-          const targetColor = worklog.color;
+          const targetColor = worklog.jiraSyncInfo.color;
           return timeLogRefs.map((timeLogRef, index2) => {
-            if (timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.color === targetColor) {
+            if (timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.jiraSyncInfo.color === targetColor) {
               return (
                 <Connector
                   key={`${index1}${index2}`}
                   startElement={timeLogRef.ref.current}
                   endElement={worklogRef.ref.current}
                   color={targetColor}
-                  dashed={worklog.syncStatus === syncStatus.PARTIAL_SYNCED}
+                  dashed={worklog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED}
                 />
               );
             }
