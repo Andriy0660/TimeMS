@@ -5,7 +5,7 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import MonthPicker from "../components/MonthPicker..jsx";
 import WeekPicker from "../components/WeekPicker.jsx";
-import Label from "../components/Label.jsx";
+import BigLabel from "../components/BigLabel.jsx";
 import DayProgressBar from "../components/DayProgressBar.jsx";
 import ClearIcon from '@mui/icons-material/Clear';
 import fileService from "../service/fileService.js";
@@ -122,8 +122,8 @@ export default function TimeLogPage() {
 
           </div>
           <div className="flex justify-between items-center">
-            <Label label={date.format("dddd")} />
-            <Label label={totalTimeLabel} />
+            <BigLabel className="ml-4 mt-4" >{date.format("dddd")}</BigLabel>
+            <BigLabel className="ml-4 mt-4" >{totalTimeLabel}</BigLabel>
             <div className="flex items-center mt-8">
               <ImportButton className="mr-4" onImport={timeLogMutations.onImport} />
               <Button
