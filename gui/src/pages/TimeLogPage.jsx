@@ -64,7 +64,6 @@ export default function TimeLogPage() {
         <TimeLogCreateBar
           onCreate={timeLogMutations.onCreate}
           date={date}
-          canCreate={mode === viewMode.DAY}
         />
         <div className="flex flex-col">
           <div className="flex justify-center">
