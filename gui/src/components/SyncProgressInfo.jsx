@@ -1,6 +1,7 @@
 import {useState} from "react";
 
-export default function ProgressInfo({children, className}) {
+export default function SyncProgressInfo({children, className}) {
+
   const [isHovered, setHovered] = useState(false);
   return (
     <div
