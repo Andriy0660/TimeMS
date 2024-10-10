@@ -1,19 +1,18 @@
 import dateTimeService from "../service/dateTimeService.js";
 import Duration from "./Duration.jsx";
-import {Icon, IconButton, LinearProgress, Tooltip, Typography} from "@mui/material";
+import {IconButton, LinearProgress, Tooltip} from "@mui/material";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import {useEffect, useRef, useState} from "react";
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import useAsyncCall from "../hooks/useAsyncCall.js";
-import {TiArrowForward} from "react-icons/ti";
 import dayjs from "dayjs";
-import VerticalDivider from "./VerticalDivider.jsx";
 import useAppContext from "../context/useAppContext.js";
-import Connector from "./Connector.jsx";
 import Brightness1Icon from "@mui/icons-material/Brightness1.js";
 import {syncStatus} from "../consts/syncStatus.js";
 import TimeLogJiraSyncStatusIcon from "./TimeLogJiraSyncStatusIcon.jsx";
+import TimeLogNonEditableFields from "./TimeLogNonEditableFields.jsx";
+import TimeLogWorklogConnectors from "./TimeLogWorklogConnectors.jsx";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
@@ -71,37 +70,14 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
             </>
           )}
 
-          <div className="flex mr-4 my-1">
-            {isTimeLogInNextDay.startTime &&
-              <Tooltip className="flex items-center mr-1" title="Next day">
-                <Icon fontSize="small">
-                  <TiArrowForward />
-                </Icon>
-              </Tooltip>
-            }
-            <Typography className="text-sm font-bold">
-              {dateTimeService.getFormattedTime(startTime)}
-            </Typography>
-          </div>
-          -
-          <div className="flex mx-4 my-1">
-            {isTimeLogInNextDay.endTime &&
-              <Tooltip className="flex items-center mr-1" title="Next day">
-                <Icon fontSize="small">
-                  <TiArrowForward />
-                </Icon>
-              </Tooltip>
-            }
-            <Typography className={`text-sm font-bold`}>
-              {dateTimeService.getFormattedTime(endTime)}
-            </Typography>
-          </div>
-          <VerticalDivider />
-          <div className="font-bold text-sm">
-            {worklog.ticket}
-          </div>
+          <TimeLogNonEditableFields
+            startTime={startTime}
+            endTime={endTime}
+            ticket={worklog.ticket}
+            isTimeLogInNextDay={isTimeLogInNextDay}
+          />
           <Duration className="mx-2" duration={dateTimeService.formatDuration(worklog.timeSpentSeconds / 60)} />
-          {isJiraSyncingEnabled && <TimeLogJiraSyncStatusIcon status={worklog.jiraSyncInfo.status}/> }
+          {isJiraSyncingEnabled && <TimeLogJiraSyncStatusIcon status={worklog.jiraSyncInfo.status} />}
         </div>
         <div>
           {isHovered && (
@@ -152,7 +128,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
       </div>
 
       <div className="flex items-center">
-          {worklog.comment}
+        {worklog.comment}
       </div>
 
       {isDeleteLoading || isCreateLoading && <LinearProgress />}

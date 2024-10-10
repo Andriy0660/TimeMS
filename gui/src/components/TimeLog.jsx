@@ -23,6 +23,8 @@ import Brightness1Icon from "@mui/icons-material/Brightness1";
 import {syncStatus} from "../consts/syncStatus.js";
 import SyncJiraButtons from "./SyncJiraButtons.jsx";
 import TimeLogStatusIcons from "./TimeLogStatusIcons.jsx";
+import TimeLogEditableFields from "./TimeLogEditableFields.jsx";
+import TimeLogNonEditableFields from "./TimeLogNonEditableFields.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -48,9 +50,6 @@ export default function TimeLog({
   const [startTime, setStartTime] = useState(timeLog.startTime);
   const [endTime, setEndTime] = useState(timeLog.endTime);
   const [description, setDescription] = useState(timeLog.description || "");
-  const [totalTime, setTotalTime] = useState(timeLog.totalTime);
-
-  const status = timeLog.status
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedField, setEditedField] = useState(null);
@@ -63,6 +62,7 @@ export default function TimeLog({
 
   const timeLogRef = useRef(null);
   const timeLogUpperPartRef = useRef(null);
+  const [moreActionsMenuEl, setMoreActionsMenuEl] = useState(null);
 
   useEffect(() => {
     if (timeLogRef.current && isJiraEditMode) {
@@ -78,20 +78,6 @@ export default function TimeLog({
       });
     }
   }, [timeLogRef])
-
-  const [moreActionsMenuEl, setMoreActionsMenuEl] = useState(null);
-
-  useEffect(() => {
-    if (!isHovered || !isEditing) {
-      setMoreActionsMenuEl(null)
-    }
-  }, [isHovered, isEditing]);
-
-  function handleCloseMoreActionsMenu() {
-    setMoreActionsMenuEl(null);
-    setHoveredProgressIntervalId?.(null);
-    setIsHovered(false);
-  }
 
   useEffect(() => {
     initializeState();
@@ -200,179 +186,17 @@ export default function TimeLog({
     }
   }, [isEditing, editedField]);
 
-  function getEditableFields() {
-    return <>
-      {createTimeField({
-        name: "startTime",
-        label: "Start",
-        value: startTime,
-        setValue: setStartTime,
-        error: startTimeError,
-        setError: setStartTimeError
-      })}
-      {createTimeField({
-        name: "endTime",
-        label: "End",
-        value: endTime,
-        setValue: setEndTime,
-        error: endTimeError,
-        setError: setEndTimeError
-      })}
-      {isJiraSyncingEnabled && <div className="mr-4">
-        <TextField
-          error={!isTicketFieldValid}
-          name="ticket"
-          className="w-24"
-          label="Ticket"
-          size="small"
-          value={ticket}
-          onChange={(event) => setTicket(event.target.value)}
-          autoComplete="off"
-          inputProps={{style: {textTransform: "uppercase"}}}
-        />
-      </div>
-      }
-    </>;
-  }
-
-  const createTimeField = ({name, label, value, setValue, error, setError}) => {
-    return (
-      <div className="mr-4">
-        <TimeField
-          name={name}
-          error={error}
-          className="w-20"
-          label={label}
-          size="small"
-          value={value}
-          onChange={(timeToSet) => {
-            validateTimeFields(timeToSet, setError);
-            if (timeToSet === null) {
-              setValue(null);
-            } else if(timeToSet.isValid()){
-                const newValue = name === 'startTime'
-                  ? dateTimeService.buildStartTime(timeLog.date, timeToSet)
-                  : dateTimeService.buildEndTime(timeLog.date, startTime, timeToSet);
-                setValue(newValue);
-              }
-          }}
-          format="HH:mm"
-        />
-      </div>
-    );
-  };
-
-  function validateTimeFields(newTime, setError) {
-    if (newTime === null || (newTime.isValid && newTime.isValid())) {
-      setError(false);
-    } else {
-      setError(true);
+  useEffect(() => {
+    if (!isHovered || !isEditing) {
+      setMoreActionsMenuEl(null)
     }
+  }, [isHovered, isEditing]);
+
+  function handleCloseMoreActionsMenu() {
+    setMoreActionsMenuEl(null);
+    setHoveredProgressIntervalId?.(null);
+    setIsHovered(false);
   }
-
-  function getNonEditableFields() {
-    return <>
-      {(startTime || endTime) &&
-        <div
-          className="flex mr-4 hover:bg-blue-100"
-          onClick={() => {
-            setIsEditing(true);
-            setEditedField("startTime");
-          }}
-        >
-          {startTime && isTimeLogInNextDay.startTime &&
-            <Tooltip className="flex items-center mr-1" title="Next day">
-              <Icon fontSize="small">
-                <TiArrowForward />
-              </Icon>
-            </Tooltip>
-          }
-          <Typography className={`text-sm ${startTime ? "font-bold" : "text-xs leading-6"}`}>
-            {startTime ? dateTimeService.getFormattedTime(startTime) : "____"}
-          </Typography>
-        </div>
-      }
-      {endTime && (
-        <>
-          -
-          <div
-            className="flex mx-4 hover:bg-blue-100"
-            onClick={() => {
-              setIsEditing(true);
-              setEditedField("endTime");
-            }}
-          >
-            {endTime && isTimeLogInNextDay.endTime > 0 &&
-              <Tooltip className="flex items-center" title="Next day">
-                <Icon fontSize="small">
-                  <TiArrowForward/>
-                </Icon>
-              </Tooltip>
-            }
-            <Typography className="mx-1 font-bold text-sm">{dateTimeService.getFormattedTime(endTime)}</Typography>
-          </div>
-        </>
-      )}
-
-      {isJiraSyncingEnabled && ticket && (
-        <>
-          {(startTime || endTime) &&
-            <VerticalDivider />
-          }
-          <div
-            className="mr-4 hover:bg-blue-100"
-            onClick={() => {
-              setIsEditing(true);
-              setEditedField("ticket");
-            }}
-          >
-            <Typography className="font-bold text-sm">{ticket}</Typography>
-          </div>
-        </>
-      )}
-
-    </>;
-  }
-
-  const progressTime = status === "InProgress"
-    ? dateTimeService.formatDuration(dateTimeService.getDurationInMinutes(timeLog.startTime, null))
-    : null;
-
-  const statusConfig = {
-    Done: {
-      label: totalTime,
-      condition: true,
-      icon: <KeyboardTabOutlinedIcon color="primary" fontSize="small"/>,
-      onClick: () => handleCreateTimeLog({
-        ticket,
-        startTime: dateTimeService.getFormattedDateTime(currentTime),
-        description
-      }),
-      text: "Continue"
-    },
-    InProgress: {
-      label: progressTime,
-      condition: progressTime,
-      icon: <StopCircleOutlinedIcon color="warning" fontSize="small"/>,
-      onClick: () => handleUpdateTimeLog({
-          id: timeLog.id,
-          ticket,
-          startTime,
-          endTime: currentTime,
-      }),
-      text: "Stop"
-    },
-    Pending: {
-      label: 'Pending',
-      condition: dateTimeService.isSameDate(dayjs(timeLog.date), currentTime),
-      icon: <StartOutlinedIcon color="primary" fontSize="small"/>,
-      onClick: () => handleUpdateTimeLog({
-          id: timeLog.id,
-          ticket,
-          startTime: currentTime,
-      }),
-      text: "Start"
-  }};
 
   const isContinueUntilTomorrow = timeLog.endTime?.isAfter(isTimeLogInNextDay.startTime
     ? dateTimeService.getStartOfDay(timeLog.startTime)
@@ -394,16 +218,45 @@ export default function TimeLog({
     >
       <div ref={timeLogUpperPartRef} className="flex justify-between">
         <div
-          className={classNames("flex items-center mb-1",{
-            "bg-blue-50": status === "InProgress",
+          className={classNames("flex items-center mb-1", {
+            "bg-blue-50": timeLog.status === "InProgress",
             "bg-blue-100": hovered,
             "bg-rose-100": hoveredConflictedIds?.includes(timeLog.id)
           })}>
-          {isEditing ? getEditableFields() : getNonEditableFields()}
 
-          {statusConfig[status].label ? <Duration className="mr-2" duration={statusConfig[status].label} /> : null}
+          {isEditing && (
+            <TimeLogEditableFields
+              timeLog={timeLog}
+              startTime={startTime}
+              setStartTime={setStartTime}
+              startTimeError={startTimeError}
+              setStartTimeError={setStartTimeError}
+              endTime={endTime}
+              setEndTime={setEndTime}
+              endTimeError={endTimeError}
+              setEndTimeError={setEndTimeError}
+              ticket={ticket}
+              setTicket={setTicket}
+              isTicketFieldValid={isTicketFieldValid}
+            />
+          )}
+          {!isEditing && (
+            <TimeLogNonEditableFields
+              startTime={startTime}
+              endTime={endTime}
+              ticket={ticket}
+              isTimeLogInNextDay={isTimeLogInNextDay}
+              setIsEditing={setIsEditing}
+              setEditedField={setEditedField}
+            />
+          )}
 
-          <TimeLogStatusIcons isConflicted={timeLog.isConflicted} isContinueUntilTomorrow={isContinueUntilTomorrow} jiraSyncStatus={timeLog.jiraSyncInfo.status} />
+          <Duration className="mr-2" duration={timeLog.totalTime ? timeLog.totalTime : "Pending"} />
+          <TimeLogStatusIcons
+            isConflicted={timeLog.isConflicted}
+            isContinueUntilTomorrow={isContinueUntilTomorrow}
+            jiraSyncStatus={timeLog.jiraSyncInfo.status}
+          />
         </div>
 
         <div className="flex items-center">
@@ -555,7 +408,8 @@ export default function TimeLog({
       </ConfirmationModal>
 
       {!groupByDescription &&
-        <Description className="w-fit" description={description} ids={[timeLog.id]} isJiraEditMode={isJiraEditMode} setGroupDescription={setGroupDescription} />}
+        <TimeLogDescription className="w-fit" description={description} ids={[timeLog.id]} isJiraEditMode={isJiraEditMode}
+                            setGroupDescription={setGroupDescription} />}
       {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isCreatingWorklogLoading || isChangingDate
           || isSyncingIntoJira || isSyncingFromJira || isSyncing) &&
         <LinearProgress />}
