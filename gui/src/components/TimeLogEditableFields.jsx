@@ -22,6 +22,7 @@ export default function TimeLogEditableFields({
   return (
     <div className="flex items-center">
       <CustomTimeField
+        className="mr-4"
         name="startTime"
         label="Start"
         value={startTime}
@@ -33,6 +34,7 @@ export default function TimeLogEditableFields({
         }
       />
       <CustomTimeField
+        className="mr-4"
         name="endTime"
         label="End"
         value={endTime}
@@ -45,21 +47,19 @@ export default function TimeLogEditableFields({
       />
 
       {isJiraSyncingEnabled && (
-        <div className="mr-4">
-          <TextField
-            error={!isTicketFieldValid}
-            name="ticket"
-            className="w-24"
-            label="Ticket"
-            size="small"
-            value={ticket}
-            onChange={(event) => setTicket(event.target.value)}
-            autoComplete="off"
-            inputProps={{
-              style: {textTransform: "uppercase"}
-            }}
-          />
-        </div>
+        <TextField
+          error={!isTicketFieldValid}
+          name="ticket"
+          className="w-24 mr-4"
+          label="Ticket"
+          size="small"
+          value={ticket}
+          onChange={(event) => setTicket(event.target.value)}
+          autoComplete="off"
+          inputProps={{
+            style: {textTransform: "uppercase"}
+          }}
+        />
       )}
     </div>
   );

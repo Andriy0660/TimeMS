@@ -44,7 +44,7 @@ export default function TimeLogNonEditableFields({
 
       {isJiraSyncingEnabled && ticket && (
         <>
-          {(startTime || endTime) && <VerticalDivider />}
+          {(startTime || endTime) && <VerticalDivider className="my-0.5 mr-4" />}
           <TicketDisplay
             ticket={ticket}
             onClick={handleTimeClick("ticket")}
