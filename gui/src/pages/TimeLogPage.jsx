@@ -1,6 +1,6 @@
 import TimeLogList from "../components/TimeLogList.jsx";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
-import {Checkbox, CircularProgress, FormControl, FormControlLabel, IconButton, ListItemText, MenuItem, Select, Switch} from "@mui/material";
+import {CircularProgress, FormControlLabel, IconButton, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import MonthPicker from "../components/MonthPicker..jsx";
@@ -8,14 +8,18 @@ import WeekPicker from "../components/WeekPicker.jsx";
 import BigLabel from "../components/BigLabel.jsx";
 import DayProgressBar from "../components/DayProgressBar.jsx";
 import ClearIcon from '@mui/icons-material/Clear';
-import fileService from "../service/fileService.js";
-import Button from "@mui/material/Button";
 import ImportButton from "../components/ImportButton.jsx";
 import WorklogList from "../components/WorklogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import {useState} from "react";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {viewMode} from "../consts/viewMode.js";
+import {useQuery} from "@tanstack/react-query";
+import worklogApi from "../api/worklogApi.js";
+import worklogService from "../service/worklogService.js";
+import {startHourOfDay} from "../config/timeConfig.js";
+import ExportButton from "../components/ExportButton.jsx";
+import TimeLogSelectTicketsForm from "../components/TimeLogSelectTicketsForm.jsx";
 
 export default function TimeLogPage() {
   const {isJiraSyncingEnabled, date, mode} = useAppContext();
@@ -32,17 +36,20 @@ export default function TimeLogPage() {
 
   const timeLogMutations = useTimeLogMutations();
 
-  const saveFile = async () => {
-    const formattedText = fileService.convertToTxt(processedTimeLogsArray);
-    const blob = new Blob([formattedText], {type: "text/plain"});
-    const a = document.createElement('a');
-    a.download = `${dateTimeService.getFormattedDate(date)}-${mode}`
-    a.href = URL.createObjectURL(blob);
-    a.addEventListener("click", (e) => {
-      setTimeout(() => URL.revokeObjectURL(a.href), 30 * 1000);
-    });
-    a.click();
-  };
+  const {
+    data: worklogs,
+    isPending: isWorklogsListing,
+    error: listWorklogsError,
+  } = useQuery({
+    queryKey: [worklogApi.key, mode, date, startHourOfDay],
+    queryFn: () => {
+      return worklogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
+    },
+    initialData: () => [],
+    placeholderData: (prev) => prev,
+    retryDelay: 300,
+  });
+
 
   if (isListing) {
     return (
@@ -91,25 +98,8 @@ export default function TimeLogPage() {
 
             {isJiraSyncingEnabled && (
               <>
-                <FormControl className="mx-2">
-                  <Select
-                    size="small"
-                    multiple
-                    value={selectedTickets}
-                    onChange={(event) => setSelectedTickets(event.target.value)}
-                    renderValue={(selected) => (
-                      selected.length > 0 ? selected.join(", ") : <em>Select tickets</em>
-                    )}
-                    displayEmpty
-                  >
-                    {filterTickets.map((ticket) => (
-                      <MenuItem key={ticket} value={ticket}>
-                        <Checkbox size="small" checked={selectedTickets.indexOf(ticket) > -1} />
-                        <ListItemText primary={ticket} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <TimeLogSelectTicketsForm filterTickets={filterTickets} selectedTickets={selectedTickets}
+                                          setSelectedTickets={setSelectedTickets} />
                 <IconButton className="mr-2" onClick={() => setSelectedTickets([])}>
                   <ClearIcon />
                 </IconButton>
@@ -132,17 +122,11 @@ export default function TimeLogPage() {
 
           </div>
           <div className="flex justify-between items-center">
-            <BigLabel className="ml-4 mt-4" >{date.format("dddd")}</BigLabel>
-            <BigLabel className="ml-4 mt-4" >{totalTimeLabel}</BigLabel>
+            <BigLabel className="ml-4 mt-4">{date.format("dddd")}</BigLabel>
+            <BigLabel className="ml-4 mt-4">{totalTimeLabel}</BigLabel>
             <div className="flex items-center mt-8">
               <ImportButton className="mr-4" onImport={timeLogMutations.onImport} />
-              <Button
-                className="mr-4"
-                variant="outlined"
-                onClick={saveFile}
-              >
-                Export
-              </Button>
+              <ExportButton className="mr-4" processedTimeLogsArray={processedTimeLogsArray}/>
             </div>
 
           </div>
@@ -150,7 +134,7 @@ export default function TimeLogPage() {
       </div>
       <div className={`${isJiraEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
         {mode === viewMode.DAY && <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
-                                           hoveredProgressIntervalId={hoveredProgressIntervalId} />}
+                                                  hoveredProgressIntervalId={hoveredProgressIntervalId} />}
 
         {!isJiraEditMode ? (
           <TimeLogList {...commonTimeLogListProps} />
@@ -161,11 +145,10 @@ export default function TimeLogPage() {
             </div>
             <div className="w-1/2 ml-6">
               <WorklogList
+                worklogs={worklogService.processData(worklogs, processedTimeLogsArray, selectedTickets)}
+                isWorklogsListing={isWorklogsListing}
+                listWorklogsError={listWorklogsError}
                 isJiraEditMode={isJiraEditMode}
-                mode={mode}
-                date={date}
-                selectedTickets={selectedTickets}
-                timeLogs={processedTimeLogsArray}
               />
             </div>
           </div>

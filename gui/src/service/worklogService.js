@@ -1,6 +1,11 @@
 import {syncStatus} from "../consts/syncStatus.js";
 
 const worklogService = {
+  processData(worklogs, timeLogs, selectedTickets) {
+    const filteredWorklogs = this.filterByTickets(worklogs, selectedTickets);
+    return this.sortWorklogsByTimeLogs(filteredWorklogs, timeLogs)
+  },
+
   filterByTickets(worklogs, tickets) {
     if (tickets.length === 0) {
       return worklogs;

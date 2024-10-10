@@ -1,35 +1,15 @@
 import Worklog from "./Worklog.jsx";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import worklogApi from "../api/worklogApi.js";
 import useAppContext from "../context/useAppContext.js";
-import dateTimeService from "../service/dateTimeService.js";
-import {startHourOfDay} from "../config/timeConfig.js";
 import timeLogApi from "../api/timeLogApi.js";
 import {CircularProgress} from "@mui/material";
 import {useEffect} from "react";
-import worklogService from "../service/worklogService.js";
 import NoLogs from "./NoLogs.jsx";
 
-export default function WorklogList({mode, date, selectedTickets, isJiraEditMode, timeLogs}) {
+export default function WorklogList({worklogs, isWorklogsListing, listWorklogsError, isJiraEditMode}) {
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
-  const offset = startHourOfDay;
-
-  const {
-    data: worklogs,
-    isPending: isWorklogsListing,
-    error: listWorklogsError,
-  } = useQuery({
-    queryKey: [worklogApi.key, mode, date, offset],
-    queryFn: () => {
-      return worklogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
-    },
-    initialData: () => [],
-    placeholderData: (prev) => prev,
-    retryDelay: 300,
-  });
-  const filteredWorklogs = worklogService.filterByTickets(worklogs, selectedTickets);
-  const sortedWorklogs = worklogService.sortWorklogsByTimeLogs(filteredWorklogs, timeLogs)
 
   const {mutateAsync: createTimeLogFromWorklog} = useMutation({
     mutationFn: (body) => timeLogApi.createFromWorklog(body),
@@ -87,8 +67,8 @@ export default function WorklogList({mode, date, selectedTickets, isJiraEditMode
     <div className={`m-4`}>
       <div className="flex flex-col items-center">
         <div className="w-full overflow-x-auto">
-          {sortedWorklogs.length
-            ? sortedWorklogs.map(worklog =>
+          {worklogs.length
+            ? worklogs.map(worklog =>
               <Worklog
                 key={worklog.id}
                 worklog={worklog}
