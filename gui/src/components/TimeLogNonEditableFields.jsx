@@ -60,7 +60,7 @@ const TimeDisplay = ({time, isNextDay, onClick, className}) => {
   const placeholder = "____";
 
   return (
-    <div className={`hover:bg-blue-100 ${className}`} onClick={onClick}>
+    <div className={`flex hover:bg-blue-100 ${className}`} onClick={onClick}>
       {time && isNextDay && (
         <NextDayIndicator />
       )}
