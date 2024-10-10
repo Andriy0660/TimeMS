@@ -1,30 +1,22 @@
-import {Icon, IconButton, LinearProgress, ListItemIcon, ListItemText, Menu, MenuItem, TextField, Tooltip, Typography} from "@mui/material";
-import {TimeField} from "@mui/x-date-pickers";
-import dayjs from "dayjs";
+import {IconButton, LinearProgress, Tooltip} from "@mui/material";
 import {useEffect, useMemo, useRef, useState} from "react";
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import KeyboardTabOutlinedIcon from '@mui/icons-material/KeyboardTabOutlined';
-import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined';
-import StartOutlinedIcon from '@mui/icons-material/StartOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import SplitscreenIcon from '@mui/icons-material/Splitscreen';import useAppContext from "../context/useAppContext.js";
+import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import TimeLogDescription from "./TimeLogDescription.jsx";
 import Duration from "./Duration.jsx";
-import VerticalDivider from "./VerticalDivider.jsx";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import classNames from "classnames";
-import Connector from "./Connector.jsx";
 import Brightness1Icon from "@mui/icons-material/Brightness1";
 import {syncStatus} from "../consts/syncStatus.js";
-import SyncJiraButtons from "./SyncJiraButtons.jsx";
 import TimeLogStatusIcons from "./TimeLogStatusIcons.jsx";
 import TimeLogEditableFields from "./TimeLogEditableFields.jsx";
 import TimeLogNonEditableFields from "./TimeLogNonEditableFields.jsx";
+import TimeLogMoreActionsMenu from "./TimeLogMoreActionsMenu.jsx";
+import TimeLogWorklogConnectors from "./TimeLogWorklogConnectors.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -45,7 +37,6 @@ export default function TimeLog({
   onSync,
   isJiraEditMode,
 }) {
-  const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
   const [startTime, setStartTime] = useState(timeLog.startTime);
   const [endTime, setEndTime] = useState(timeLog.endTime);
@@ -88,7 +79,6 @@ export default function TimeLog({
     setStartTime(timeLog.startTime);
     setEndTime(timeLog.endTime);
     setDescription(timeLog.description || "");
-    setTotalTime(timeLog.totalTime || "");
   }
 
   const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(startTime, endTime);
@@ -269,116 +259,53 @@ export default function TimeLog({
               </Tooltip>
 
               <Tooltip title="Save">
-                  <span>
-                    <IconButton
-                      onClick={() => {
-                        handleUpdateTimeLog({
-                          id: timeLog.id, ticket, startTime, endTime,
-                        });
-
-                      }}
-                      className="mr-2 p-0"
-                      color="success"
-                      disabled={(startTimeError || endTimeError) || !isTicketFieldValid}
-                    >
-                      <SaveOutlinedIcon fontSize="small" />
-                    </IconButton>
-                  </span>
+                <span>
+                  <IconButton onClick={() => handleUpdateTimeLog({id: timeLog.id, ticket, startTime, endTime})}
+                    className="mr-2 p-0"
+                    color="success"
+                    disabled={startTimeError || endTimeError || !isTicketFieldValid}
+                  >
+                    <SaveOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </span>
               </Tooltip>
             </div>
           )}
 
-          {(isHovered && !isEditing) && <div onClick={() => handleCloseMoreActionsMenu()}>
-            <Tooltip title="More">
-              <IconButton
-                onClick={(event) => {
-                  event.stopPropagation()
-                  setMoreActionsMenuEl(event.currentTarget);
-                }}
-                color="primary"
-                className="p-0"
-              >
-                <MoreVertIcon />
-              </IconButton>
-            </Tooltip>
+          {(isHovered && !isEditing) && (
+            <div onClick={() => handleCloseMoreActionsMenu()}>
+              <Tooltip title="More">
+                <IconButton
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setMoreActionsMenuEl(event.currentTarget);
+                  }}
+                  color="primary"
+                  className="p-0"
+                >
+                  <MoreVertIcon />
+                </IconButton>
+              </Tooltip>
 
-            <Menu
-              anchorEl={moreActionsMenuEl}
-              open={!!moreActionsMenuEl}
-              onClose={() => handleCloseMoreActionsMenu()}
-            >
-              <MenuItem onClick={() => setIsEditing(true)}>
-                <ListItemIcon>
-                  <EditOutlinedIcon color="success" fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>
-                  <Typography className="text-sm">Edit</Typography>
-                </ListItemText>
-              </MenuItem>
-
-              {statusConfig[status].condition && (
-                <MenuItem onClick={statusConfig[status].onClick}>
-                  <ListItemIcon>
-                    {statusConfig[status].icon}
-                  </ListItemIcon>
-                  <ListItemText>
-                    <Typography className="text-sm">{statusConfig[status].text}</Typography>
-                  </ListItemText>
-                </MenuItem>
-              )}
-              {isContinueUntilTomorrow &&
-                <MenuItem onClick={() => handleDivideTimeLog(timeLog.id)}>
-                  <ListItemIcon>
-                    <SplitscreenIcon color="primary" fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>
-                    <Typography className="text-sm">Divide into two days</Typography>
-                  </ListItemText>
-                </MenuItem>
-              }
-              {isJiraSyncingEnabled && <SyncJiraButtons
+              <TimeLogMoreActionsMenu
+                moreActionsMenuEl={moreActionsMenuEl}
+                handleCloseMoreActionsMenu={handleCloseMoreActionsMenu}
                 timeLog={timeLog}
+                setIsEditing={setIsEditing}
+                isContinueUntilTomorrow={isContinueUntilTomorrow}
+                handleCreateTimeLog={handleCreateTimeLog}
+                handleUpdateTimeLog={handleUpdateTimeLog}
+                setShowDeleteModal={setShowDeleteModal}
+                handleDivideTimeLog={handleDivideTimeLog}
+                handleChangeDate={handleChangeDate}
+
                 handleCreateWorklog={handleCreateWorklog}
                 handleSyncForTicket={handleSyncForTicket}
                 handleSyncFromJira={handleSyncFromJira}
-                handleSyncIntoJira={handleSyncIntoJira}/>
-              }
-
-              <MenuItem onClick={() => {
-                handleChangeDate({id: timeLog.id, isNext: false})
-              }}>
-                <ListItemIcon>
-                  <ArrowBackIosIcon color="primary" fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>
-                  <Typography className="text-sm">To previous day</Typography>
-                </ListItemText>
-              </MenuItem>
-
-              <MenuItem onClick={() => {
-                handleChangeDate({id: timeLog.id, isNext: true})
-              }}>
-                <ListItemIcon>
-                  <ArrowForwardIosIcon color="primary" fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>
-                  <Typography className="text-sm">To next day</Typography>
-                </ListItemText>
-              </MenuItem>
-
-              <MenuItem onClick={() => setShowDeleteModal(true)}>
-                <ListItemIcon>
-                  <DeleteOutlineOutlinedIcon color="error" fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>
-                  <Typography className="text-sm">Delete</Typography>
-                </ListItemText>
-              </MenuItem>
-
-            </Menu>
-
-          </div>
-          }
+                handleSyncIntoJira={handleSyncIntoJira}
+              />
+            </div>
+          )}
           {isJiraSyncingEnabled && isJiraEditMode && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && (
             <>
               <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />

@@ -34,7 +34,7 @@ export default function TimeLogGroupedByDescription({
         </div>
       ))}
       <div className="flex items-center">
-        <Description description={description} ids={ids} setGroupDescription={setGroupDescription} isJiraEditMode={isJiraEditMode}/>
+        <TimeLogDescription description={description} ids={ids} setGroupDescription={setGroupDescription} isJiraEditMode={isJiraEditMode}/>
         {logsForDescription.length > 1 &&
           <Chip label={totalTimeLabel} className="shadow-md ml-2" color="primary" variant="outlined" size="small" />
         }
