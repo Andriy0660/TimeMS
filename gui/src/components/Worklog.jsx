@@ -61,26 +61,12 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
             <>
               <Brightness1Icon className="mr-2" sx={{color: worklog.jiraSyncInfo.color}} />
               {isHovered && (
-                <>
-                  {
-                    worklogRefs.map((worklogRef, index1) => {
-                    const targetColor = worklog.jiraSyncInfo.color;
-                    return timeLogRefs.map((timeLogRef, index2) => {
-                      if (timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.jiraSyncInfo.color === targetColor) {
-                        return (
-                          <Connector
-                            key={`${index1}${index2}`}
-                            startElement={timeLogRef.ref.current}
-                            endElement={worklogRef.ref.current}
-                            color={targetColor}
-                            dashed={worklog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED}
-                          />
-                        );
-                      }
-                      return null;
-                    })
-                  })}
-                </>
+                <TimeLogWorklogConnectors
+                  isHovered={isHovered}
+                  sourceRefs={timeLogRefs}
+                  targetRefs={worklogRefs}
+                  sourceItem={worklog}
+                />
               )}
             </>
           )}

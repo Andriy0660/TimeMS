@@ -533,27 +533,12 @@ export default function TimeLog({
             <>
               <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />
               {isHovered && (
-                <>
-                  {
-                    timeLogRefs.map((timeLogRef, index1) => {
-                      const targetColor = timeLog.jiraSyncInfo.color;
-                      return worklogRefs.map((worklogRef, index2) => {
-                        if (timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.jiraSyncInfo.color === targetColor) {
-                          return (
-                            <Connector
-                              key={`${index1}${index2}`}
-                              startElement={timeLogRef.ref.current}
-                              endElement={worklogRef.ref.current}
-                              color={targetColor}
-                              dashed={timeLog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED}
-                            />
-                          );
-                        }
-                        return null;
-                      })
-                    })
-                  }
-                </>
+                <TimeLogWorklogConnectors
+                  isHovered={isHovered}
+                  sourceRefs={timeLogRefs}
+                  targetRefs={worklogRefs}
+                  sourceItem={timeLog}
+                />
               )}
             </>
           )}
