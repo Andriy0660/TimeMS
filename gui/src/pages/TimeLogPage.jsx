@@ -58,6 +58,16 @@ export default function TimeLogPage() {
     All: null,
   };
 
+  const commonTimeLogListProps = {
+    timeLogs,
+    mode,
+    ...timeLogMutations,
+    hoveredTimeLogIds,
+    setHoveredProgressIntervalId,
+    hoveredConflictedIds,
+    setHoveredConflictedIds
+  };
+
   return (
     <div>
       <div className="w-3/5 mx-auto">
@@ -142,37 +152,23 @@ export default function TimeLogPage() {
         {mode === viewMode.DAY && <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
                                            hoveredProgressIntervalId={hoveredProgressIntervalId} />}
 
-        {!isJiraEditMode && (
-          <TimeLogList
-            timeLogs={timeLogs}
-            mode={mode}
-            {...timeLogMutations}
-            hoveredTimeLogIds={hoveredTimeLogIds}
-            setHoveredProgressIntervalId={setHoveredProgressIntervalId}
-            hoveredConflictedIds={hoveredConflictedIds}
-            setHoveredConflictedIds={setHoveredConflictedIds}
-          />
-        )}
-        {isJiraEditMode && (
-          <>
-            <div className="flex">
-              <div className="w-1/2 mr-6">
-                <TimeLogList
-                  timeLogs={timeLogs}
-                  mode={mode}
-                  isJiraEditMode
-                  {...timeLogMutations}
-                  hoveredTimeLogIds={hoveredTimeLogIds}
-                  setHoveredProgressIntervalId={setHoveredProgressIntervalId}
-                  hoveredConflictedIds={hoveredConflictedIds}
-                  setHoveredConflictedIds={setHoveredConflictedIds}
-                />
-              </div>
-              <div className="w-1/2 ml-6">
-                <WorklogList isJiraEditMode={isJiraEditMode} mode={mode} date={date} selectedTickets={selectedTickets} timeLogs={processedTimeLogsArray}/>
-              </div>
+        {!isJiraEditMode ? (
+          <TimeLogList {...commonTimeLogListProps} />
+        ) : (
+          <div className="flex">
+            <div className="w-1/2 mr-6">
+              <TimeLogList {...commonTimeLogListProps} isJiraEditMode />
             </div>
-          </>
+            <div className="w-1/2 ml-6">
+              <WorklogList
+                isJiraEditMode={isJiraEditMode}
+                mode={mode}
+                date={date}
+                selectedTickets={selectedTickets}
+                timeLogs={processedTimeLogsArray}
+              />
+            </div>
+          </div>
         )}
       </div>
     </div>
