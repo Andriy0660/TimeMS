@@ -19,7 +19,7 @@ public class SyncJiraUtils {
       return false;
     }
     final int totalTimeLogDurationInSeconds = timeLogs.stream()
-        .map((timeLogEntity -> DurationUtils.getDurationInSecondsForTimelog(timeLogEntity.getStartTime(), timeLogEntity.getEndTime())))
+        .map((timeLogEntity -> (int) DurationUtils.getDurationBetweenStartAndEndTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()).toSeconds()))
         .reduce(0, Integer::sum);
     final int totalWorklogDurationInSeconds = worklogs.stream().map(WorklogEntity::getTimeSpentSeconds).reduce(0, Integer::sum);
     return totalTimeLogDurationInSeconds == totalWorklogDurationInSeconds;

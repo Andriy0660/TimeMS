@@ -77,10 +77,10 @@ const timeLogProcessingService = {
   buildTimeLog(data) {
     let dataNotNull = data ? Array.from(data) : [];
 
-    const getStatus = ({totalTime, startTime}) => {
-      if (totalTime) {
+    const getStatus = ({startTime, endTime}) => {
+      if (startTime && endTime) {
         return "Done";
-      } else if (startTime) {
+      } else if (startTime && !endTime) {
         return "InProgress";
       } else return "Pending";
     }

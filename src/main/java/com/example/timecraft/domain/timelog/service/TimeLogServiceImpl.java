@@ -38,6 +38,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
+import com.example.timecraft.domain.timelog.util.DurationUtils;
 import lombok.RequiredArgsConstructor;
 
 import static com.example.timecraft.domain.timelog.util.DurationUtils.formatDurationHM;
@@ -73,19 +74,12 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   private String mapTotalTime(final LocalTime startTime, final LocalTime endTime) {
-    if (startTime == null || endTime == null) {
+    if (startTime == null) {
       return null;
     }
-    final Duration duration = getDurationBetweenStartAndEndTime(startTime, endTime);
+    final Duration duration = DurationUtils.getDurationBetweenStartAndEndTime(startTime,
+        endTime != null ? endTime : LocalTime.now(clock));
     return formatDurationHM(duration);
-  }
-
-  private Duration getDurationBetweenStartAndEndTime(final LocalTime startTime, final LocalTime endTime) {
-    Duration duration = Duration.between(startTime, endTime);
-    if (endTime.isBefore(startTime)) {
-      duration = duration.plusDays(1);
-    }
-    return duration;
   }
 
   @Override
@@ -225,7 +219,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     LocalDate currentDay = startOfWeek;
     while (!currentDay.isAfter(endOfWeek)) {
       final List<TimeLogEntity> entitiesForDay = repository.findAllInRange(currentDay, currentDay.plusDays(1), startOfDay);
-      Duration durationDorDay = getTotalDurationForDay(entitiesForDay, currentDay, startOfDay);
+      Duration durationDorDay = getDurationForDay(entitiesForDay);
 
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
@@ -237,17 +231,6 @@ public class TimeLogServiceImpl implements TimeLogService {
       currentDay = currentDay.plusDays(1);
     }
     return new TimeLogHoursForWeekResponse(dayInfoList);
-  }
-
-  private Duration getTotalDurationForDay(final List<TimeLogEntity> entitiesForDay, final LocalDate currentDay, final LocalTime startOfDay) {
-    Duration totalDuration = Duration.ZERO;
-    for (TimeLogEntity entity : entitiesForDay) {
-      if (entity.getStartTime() != null) {
-          totalDuration = totalDuration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(),
-              entity.getEndTime() != null ? entity.getEndTime() : LocalTime.now(clock)));
-      }
-    }
-    return totalDuration;
   }
 
   @Override
@@ -318,7 +301,7 @@ public class TimeLogServiceImpl implements TimeLogService {
         if (entity.getStartTime() != null) {
           String currentTicket = entity.getTicket() != null ? entity.getTicket() : "Without Ticket";
           if (currentTicket.equals(ticket)) {
-            Duration duration = getDurationBetweenStartAndEndTime(entity.getStartTime(),
+            Duration duration = DurationUtils.getDurationBetweenStartAndEndTime(entity.getStartTime(),
                 entity.getEndTime() != null ? entity.getEndTime() : LocalTime.now(clock));
             totalForTicket = totalForTicket.plus(duration);
             totalForDay = totalForDay.plus(duration);
@@ -363,7 +346,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     Duration duration = Duration.ZERO;
     for (TimeLogEntity entity : entities) {
       if (entity.getStartTime() != null) {
-        duration = duration.plus(getDurationBetweenStartAndEndTime(entity.getStartTime(),
+        duration = duration.plus(DurationUtils.getDurationBetweenStartAndEndTime(entity.getStartTime(),
             entity.getEndTime() != null ? entity.getEndTime() : LocalTime.now(clock)));
       }
     }

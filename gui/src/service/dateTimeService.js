@@ -99,10 +99,8 @@ const dateTimeService = {
   getTotalTimeForTimeLogs(timelogs) {
     let totalTime = 0;
     totalTime += timelogs.reduce((result, item) => {
-      if (item.status === "Done") {
+      if (item.status === "Done" || item.status === "InProgress") {
         result += dateTimeService.parseMinutes(item.totalTime);
-      } else if (item.status === "InProgress") {
-        result += dateTimeService.getDurationInMinutes(item.startTime, null) || 0;
       }
       return result;
     }, 0)
@@ -131,23 +129,14 @@ const dateTimeService = {
     const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
     return hoursMatch * 60 + minutesMatch;
   },
-  getDurationInMinutes(startTime, endTime) {
-    if (!startTime) return null;
 
-    const calculateDuration = (end) => {
-      if (end.isBefore(startTime)) return null;
-      const minutes = end.diff(startTime, "minute");
-      return minutes < 1440 ? minutes : null;
-    }
-
-    if (!endTime) {
-      const currentTime = dayjs();
-      return calculateDuration(currentTime);
-    }
-    return calculateDuration(endTime);
+  calculateDurationMinutes(startTime, endTime){
+    if (endTime.isBefore(startTime)) return null;
+    const minutes = endTime.diff(startTime, "minute");
+    return minutes < 1440 ? minutes : null;
   },
 
-   calculateDateRange(mode, inputDate) {
+  calculateDateRange(mode, inputDate) {
     let startDate, endDate;
     switch (mode) {
       case viewMode.DAY: {

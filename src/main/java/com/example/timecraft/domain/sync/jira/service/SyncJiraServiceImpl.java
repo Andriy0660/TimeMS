@@ -88,7 +88,7 @@ public class SyncJiraServiceImpl implements SyncJiraService {
   private int getTotalSpentSeconds(final List<TimeLogEntity> timeLogEntityList) {
     return timeLogEntityList.stream().map(timeLogEntity -> {
       if (timeLogEntity.getStartTime() == null || timeLogEntity.getEndTime() == null) return 0;
-      return DurationUtils.getDurationInSecondsForTimelog(timeLogEntity.getStartTime(), timeLogEntity.getEndTime());
+      return (int) DurationUtils.getDurationBetweenStartAndEndTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()).toSeconds();
     }).reduce(0, Integer::sum);
   }
 

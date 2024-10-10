@@ -48,7 +48,7 @@ public class WorklogServiceImpl implements WorklogService {
     final JiraWorklogDto created = jiraWorklogService.create(request.getTicket(), JiraWorklogCreateDto.builder()
         .started(JiraWorklogUtils.getJiraStartedTime(dateTime))
         .comment(JiraWorklogUtils.getJiraComment(request.getDescription()))
-        .timeSpentSeconds(DurationUtils.getDurationInSecondsForTimelog(request.getStartTime(), request.getEndTime()))
+        .timeSpentSeconds((int) DurationUtils.getDurationBetweenStartAndEndTime(request.getStartTime(), request.getEndTime()).toSeconds())
         .build());
 
     final WorklogEntity entity = mapper.toWorklogEntity(created);
