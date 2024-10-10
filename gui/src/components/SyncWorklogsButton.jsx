@@ -2,24 +2,43 @@ import {CircularProgress} from "@mui/material";
 import Button from "@mui/material/Button";
 import useAppContext from "../context/useAppContext.js";
 
-export default function SyncWorklogsButton({children}) {
+export default function SyncWorklogsButton({children, className}) {
   const {syncWorklogs, isSyncingLaunched, isSyncingRunning, progressInfo: {progress}} = useAppContext();
-  let buttonContent = null;
+
+  return (
+    <Button onClick={syncWorklogs} className={`bg-white ${className}`} sx={{color: "primary.main"}} disabled={isSyncingLaunched || isSyncingRunning}
+            variant="contained">
+      <ButtonContent
+        isSyncingLaunched={isSyncingLaunched}
+        isSyncingRunning={isSyncingRunning}
+        progress={progress}
+        className="ml-1"
+      >
+        {children}
+      </ButtonContent>
+    </Button>
+  )
+}
+
+function ButtonContent({
+  children,
+  isSyncingLaunched,
+  isSyncingRunning,
+  progress,
+  className
+}) {
   if (!isSyncingLaunched && !isSyncingRunning) {
-    buttonContent = <>{children}</>
-  } else if (isSyncingLaunched && !isSyncingRunning) {
-    buttonContent = <CircularProgress size={25} />
-  } else if (isSyncingLaunched || isSyncingRunning) {
-    buttonContent = <>
-      {`${Math.round(progress)}%`}
-      <CircularProgress className="ml-1" variant="determinate" size={25} value={progress} />
-    </>
+    return children;
+  }
+
+  if (isSyncingLaunched && !isSyncingRunning) {
+    return <CircularProgress size={25} />
   }
 
   return (
-    <Button onClick={syncWorklogs} className="mx-4 bg-white" sx={{color: "primary.main"}} disabled={isSyncingLaunched || isSyncingRunning}
-            variant="contained">
-      {buttonContent}
-    </Button>
-  )
+    <>
+      {`${Math.round(progress)}%`}
+      <CircularProgress className={className} variant="determinate" size={25} value={progress} />
+    </>
+  );
 }

@@ -115,7 +115,7 @@ export default function NavBar() {
             <SettingsBackupRestoreIcon />
           </IconButton>
         </Tooltip>
-        {isJiraSyncingEnabled && <SyncWorklogsButton>Sync Worklogs</SyncWorklogsButton>}
+        {isJiraSyncingEnabled && <SyncWorklogsButton className="mx-4">Sync Worklogs</SyncWorklogsButton>}
       </Toolbar>
       <Drawer open={open} onClose={toggleMenu(false)}>
         {DrawerList}
