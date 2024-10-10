@@ -1,5 +1,5 @@
 import TimeLog from "./TimeLog.jsx";
-import Description from "./Description.jsx";
+import TimeLogDescription from "./TimeLogDescription.jsx";
 import {Chip} from "@mui/material";
 import dateTimeService from "../service/dateTimeService.js";
 import TimeLogGroup from "./TimeLogGroup.jsx";

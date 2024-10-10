@@ -13,10 +13,7 @@ import SplitscreenIcon from '@mui/icons-material/Splitscreen';import useAppConte
 import dateTimeService from "../service/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
 import useAsyncCall from "../hooks/useAsyncCall.js";
-import {TiArrowForward} from "react-icons/ti";
-import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos.js";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
-import Description from "./Description.jsx";
+import TimeLogDescription from "./TimeLogDescription.jsx";
 import Duration from "./Duration.jsx";
 import VerticalDivider from "./VerticalDivider.jsx";
 import MoreVertIcon from '@mui/icons-material/MoreVert';

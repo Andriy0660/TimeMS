@@ -5,7 +5,7 @@ import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined.js";
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import classNames from "classnames";
 
-export default function Description({description, ids, setGroupDescription, isJiraEditMode, className}) {
+export default function TimeLogDescription({description, ids, setGroupDescription, isJiraEditMode, className}) {
   const [isEditing, setIsEditing] = useState(false);
   const [descriptionField, setDescriptionField] = useState(description)
   const descriptionFieldRef = useRef(null);
