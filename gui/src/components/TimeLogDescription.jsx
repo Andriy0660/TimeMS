@@ -1,11 +1,11 @@
-import {IconButton, LinearProgress, TextField, Tooltip} from "@mui/material";
+import {LinearProgress, TextField} from "@mui/material";
 import {useEffect, useRef, useState} from "react";
-import BackspaceOutlinedIcon from "@mui/icons-material/BackspaceOutlined.js";
-import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined.js";
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import classNames from "classnames";
+import ResetButton from "./ResetButton.jsx";
+import SaveButton from "./SaveButton.jsx";
 
-export default function TimeLogDescription({description, ids, setGroupDescription, isJiraEditMode, className}) {
+export default function TimeLogDescription({description, ids, setGroupDescription, className}) {
   const [isEditing, setIsEditing] = useState(false);
   const [descriptionField, setDescriptionField] = useState(description)
   const descriptionFieldRef = useRef(null);
@@ -43,7 +43,7 @@ export default function TimeLogDescription({description, ids, setGroupDescriptio
       ref={descriptionFieldRef}
       className={classNames(className, "text-justify whitespace-pre-wrap", {
         "w-full py-2": isEditing,
-        "hover:bg-blue-100": !isEditing && !isJiraEditMode,
+        "hover:bg-blue-100": !isEditing,
       })}
     >
       {isEditing ? (
@@ -63,27 +63,12 @@ export default function TimeLogDescription({description, ids, setGroupDescriptio
               }}
               autoFocus
             />
-
-            <Tooltip
-              title="Reset">
-              <IconButton
-                onClick={resetChanges}
-                className="ml-2">
-                <BackspaceOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-
-            <Tooltip title="Save">
-            <span>
-              <IconButton
-                onClick={() => handleSetGroupDescription({ids, description: descriptionField})}
-                color="success"
-                disabled={!isModified}
-              >
-                <SaveOutlinedIcon fontSize="small" />
-              </IconButton>
-            </span>
-            </Tooltip>
+            <ResetButton onReset={resetChanges} />
+            <SaveButton
+              onSave={() => handleSetGroupDescription({ids, description: descriptionField})}
+              className="mr-2 p-0"
+              disabled={!isModified}
+            />
           </div>
         </div>
       ) : (

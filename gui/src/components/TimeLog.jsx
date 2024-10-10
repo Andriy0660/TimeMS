@@ -17,6 +17,8 @@ import TimeLogEditableFields from "./TimeLogEditableFields.jsx";
 import TimeLogNonEditableFields from "./TimeLogNonEditableFields.jsx";
 import TimeLogMoreActionsMenu from "./TimeLogMoreActionsMenu.jsx";
 import TimeLogWorklogConnectors from "./TimeLogWorklogConnectors.jsx";
+import SaveButton from "./SaveButton.jsx";
+import ResetButton from "./ResetButton.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -252,23 +254,12 @@ export default function TimeLog({
         <div className="flex items-center">
           {(isEditing && !isJiraEditMode) && (
             <div>
-              <Tooltip title="Reset">
-                <IconButton onClick={() => resetChanges()} className="mr-1">
-                  <BackspaceOutlinedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-
-              <Tooltip title="Save">
-                <span>
-                  <IconButton onClick={() => handleUpdateTimeLog({id: timeLog.id, ticket, startTime, endTime})}
-                    className="mr-2 p-0"
-                    color="success"
-                    disabled={startTimeError || endTimeError || !isTicketFieldValid}
-                  >
-                    <SaveOutlinedIcon fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
+              <ResetButton onReset={resetChanges}/>
+              <SaveButton
+                onSave={() => handleUpdateTimeLog({id: timeLog.id, ticket, startTime, endTime})}
+                className="mr-2 p-0"
+                disabled={startTimeError || endTimeError || !isTicketFieldValid}
+              />
             </div>
           )}
 
