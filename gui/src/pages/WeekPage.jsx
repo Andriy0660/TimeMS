@@ -1,14 +1,10 @@
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import dayjs from "dayjs";
 import dateTimeService from "../service/dateTimeService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
+import {FormControlLabel, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import useViewChanger from "../hooks/useViewChanger.js";
 import TimeLogList from "../components/TimeLogList.jsx";
@@ -22,6 +18,7 @@ import ViewModeIcon from "../components/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import WeekTable from "../components/WeekTable.jsx";
 import WeekJiraTable from "../components/WeekJiraTable.jsx";
+import LoadingPage from "../components/LoadingPage.jsx";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
@@ -60,11 +57,7 @@ export default function WeekPage() {
   }
 
   if (isPending) {
-    return (
-      <div className="absolute inset-1/2">
-        <CircularProgress />
-      </div>
-    );
+    return <LoadingPage />
   }
 
   return (

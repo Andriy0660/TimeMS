@@ -1,8 +1,8 @@
 import {useEffect, useRef, useState} from 'react';
-import {CircularProgress} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import SyncProgressInfo from "../components/SyncProgressInfo.jsx";
 import SyncAllProgressInfo from "../components/SyncAllProgressInfo.jsx";
+import LoadingPage from "../components/LoadingPage.jsx";
 
 export default function SyncPage() {
   const {
@@ -38,11 +38,7 @@ export default function SyncPage() {
     if (displayedWorklogInfos.length > 0) {
       setDisplayedWorklogInfos([])
     }
-    return (
-      <div className="absolute inset-1/2">
-        <CircularProgress />
-      </div>
-    );
+    return <LoadingPage />
   }
 
   return (

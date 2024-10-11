@@ -12,7 +12,7 @@ import {startHourOfDay} from "../config/timeConfig.js";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import TimeLogStatusIcons from "../components/TimeLogStatusIcons.jsx";
-import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
+import {FormControlLabel, Switch} from "@mui/material";
 import TimeLogList from "../components/TimeLogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
@@ -22,6 +22,7 @@ import {monthViewMode} from "../consts/monthViewMode.js";
 import ViewModeIcon from "../components/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import {syncStatus} from "../consts/syncStatus.js";
+import LoadingPage from "../components/LoadingPage.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -101,11 +102,7 @@ export default function MonthPage() {
   }
 
   if(isPending) {
-    return (
-      <div className="absolute inset-1/2">
-        <CircularProgress />
-      </div>
-    );
+    return <LoadingPage />
   }
 
   return (

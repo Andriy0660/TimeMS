@@ -3,7 +3,7 @@ import {syncStatus} from "../consts/syncStatus.js";
 const worklogService = {
   processData(worklogs, timeLogs, selectedTickets) {
     const filteredWorklogs = this.filterByTickets(worklogs, selectedTickets);
-    return this.sortWorklogsByTimeLogs(filteredWorklogs, timeLogs)
+    return this.sortWorklogsByTimeLogsOrder(filteredWorklogs, timeLogs)
   },
 
   filterByTickets(worklogs, tickets) {
@@ -22,7 +22,7 @@ const worklogService = {
     return worklogs.filter(worklog => worklog.ticket === null);
   },
 
-  sortWorklogsByTimeLogs(worklogs, timeLogs) {
+  sortWorklogsByTimeLogsOrder(worklogs, timeLogs) {
     const newWorklogs = [];
     for (let timeLog of timeLogs) {
       for (let worklog of worklogs) {

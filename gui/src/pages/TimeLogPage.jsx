@@ -20,6 +20,7 @@ import worklogService from "../service/worklogService.js";
 import {startHourOfDay} from "../config/timeConfig.js";
 import ExportButton from "../components/ExportButton.jsx";
 import TimeLogSelectTicketsForm from "../components/TimeLogSelectTicketsForm.jsx";
+import LoadingPage from "../components/LoadingPage.jsx";
 
 export default function TimeLogPage() {
   const {isJiraSyncingEnabled, date, mode} = useAppContext();
@@ -52,11 +53,7 @@ export default function TimeLogPage() {
 
 
   if (isListing) {
-    return (
-      <div className="absolute inset-1/2">
-        <CircularProgress />
-      </div>
-    );
+    return <LoadingPage />
   }
 
   const modeDatePickerConfig = {
