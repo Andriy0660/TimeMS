@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import {endHourOfWorkingDay, startHourOfDay, startHourOfWorkingDay} from "../config/timeConfig.js";
 import weekday from "dayjs/plugin/weekday"
 import {viewMode} from "../consts/viewMode.js";
+import {timeLogStatus} from "../consts/timeLogStatus.js";
 
 dayjs.extend(weekday);
 dayjs().weekday(1); // Monday
@@ -93,7 +94,7 @@ const dateTimeService = {
   getTotalTimeForTimeLogs(timelogs) {
     let totalTime = 0;
     totalTime += timelogs.reduce((result, item) => {
-      if (item.status === "Done" || item.status === "InProgress") {
+      if (item.status === timeLogStatus.DONE || item.status === timeLogStatus.IN_PROGRESS) {
         result += dateTimeService.parseMinutes(item.totalTime);
       }
       return result;

@@ -19,6 +19,7 @@ import TimeLogMoreActionsMenu from "./TimeLogMoreActionsMenu.jsx";
 import TimeLogWorklogConnectors from "./TimeLogWorklogConnectors.jsx";
 import SaveButton from "./SaveButton.jsx";
 import ResetButton from "./ResetButton.jsx";
+import {timeLogStatus} from "../consts/timeLogStatus.js";
 
 export default function TimeLog({
   timeLog,
@@ -243,7 +244,7 @@ export default function TimeLog({
             />
           )}
 
-          <Duration className="mr-2" duration={timeLog.totalTime ? timeLog.totalTime : "Pending"} />
+          <Duration className="mr-2" duration={timeLog.totalTime ? timeLog.totalTime : timeLogStatus.PENDING} />
           <TimeLogStatusIcons
             isConflicted={timeLog.isConflicted}
             isContinueUntilTomorrow={isContinueUntilTomorrow}

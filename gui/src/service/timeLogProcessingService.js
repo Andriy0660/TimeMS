@@ -1,4 +1,5 @@
 import dateTimeService from "./dateTimeService.js";
+import {timeLogStatus} from "../consts/timeLogStatus.js";
 
 const timeLogProcessingService = {
   group(data, groupOrder) {
@@ -79,10 +80,10 @@ const timeLogProcessingService = {
 
     const getStatus = ({startTime, endTime}) => {
       if (startTime && endTime) {
-        return "Done";
+        return timeLogStatus.DONE;
       } else if (startTime && !endTime) {
-        return "InProgress";
-      } else return "Pending";
+        return timeLogStatus.IN_PROGRESS;
+      } else return timeLogStatus.PENDING;
     }
 
     return dataNotNull.map(timeLog => {
