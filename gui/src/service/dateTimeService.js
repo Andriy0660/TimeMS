@@ -10,53 +10,43 @@ const dateTimeService = {
   getFormattedTime(time) {
     return time && time.isValid() ? time.format("HH:mm") : null;
   },
+
   getFormattedDate(time) {
     return time && time.isValid() ? time.format("YYYY-MM-DD") : null;
   },
+
   getFormattedDateTime(time) {
     return time && time.isValid() ? time.format("YYYY-MM-DDTHH:mm") : null;
   },
-  isSameDate(date1, date2) {
-    if (!date1 && !date2) return true;
-    if (!date1 || !date2) return false;
-    return date1.isSame(date2, "date");
-  },
+
   isSameDateTime(date1, date2) {
     if (!date1 && !date2) return true;
     if (!date1 || !date2) return false;
     return date1.isSame(date2, "second");
   },
-  isTimeLogInNextDay(startTime, endTime) {
+
+  getIsTimeLogInNextDayInfo(startTime, endTime) {
+    const isNextDay = (dateTime) => {
+      return dateTime && dateTime.isValid() ? this.compareTimes(dateTime, this.getStartOfDay()) < 0 && this.compareTimes(dateTime, dayjs().startOf("day")) >= 0 : false;
+    }
     return {
-      startTime: this.isNextDay(startTime),
-      endTime: (endTime && this.isNextDay(startTime)) || this.isNextDay(endTime) || (startTime && endTime && this.compareTimes(startTime, endTime) > 0)
+      startTime: isNextDay(startTime),
+      endTime: (endTime && isNextDay(startTime)) || isNextDay(endTime) || (startTime && endTime && this.compareTimes(startTime, endTime) > 0)
     }
   },
-  isNextDay(dateTime) {
-    return dateTime && dateTime.isValid() ? this.compareTimes(dateTime, this.getStartOfDay()) < 0 && this.compareTimes(dateTime, dayjs().startOf("day")) >= 0 : false;
-  },
+
   getStartOfDay(date) {
     const baseDate = date ? dayjs(date, "YYYY-MM-DD") : dayjs().startOf("day");
     return baseDate.set("hour", startHourOfDay).set("minute", 0).set("second", 0);
   },
-  getStartOfWorkingDay(date) {
-    return dayjs(date, "YYYY-MM-DD").set("hour", startHourOfWorkingDay).set("minute", 0).set("second", 0);
-  },
-  getEndOfWorkingDay(date) {
-    return dayjs(date, "YYYY-MM-DD").set("hour", endHourOfWorkingDay).set("minute", 0).set("second", 0);
 
-  },
-  compareDates(date1, date2) {
-    date1 = dayjs(date1);
-    date2 = dayjs(date2);
-    if(date1.isSame(date2)) {
-      return 0;
-    } else if(date1.isBefore(date2)) {
-      return -1;
-    } else {
-      return 1;
+  getWorkingDayInfo(date) {
+    return {
+      startOfWorkingDay: dayjs(date, "YYYY-MM-DD").set("hour", startHourOfWorkingDay).set("minute", 0).set("second", 0),
+      endOfWorkingDay: dayjs(date, "YYYY-MM-DD").set("hour", endHourOfWorkingDay).set("minute", 0).set("second", 0)
     }
   },
+
   compareTimes(time1, time2) {
     if (time1 === null) return 1;
     if (time2 === null) return -1;
@@ -64,6 +54,7 @@ const dateTimeService = {
     const t2 = time2.hour() * 60 + time2.minute();
     return t1 - t2;
   },
+
   buildDate(date, startTime) {
     date = dayjs(date);
     if (startTime && this.compareTimes(dayjs(startTime, "HH:mm"), dayjs().startOf("day")) >= 0 &&
@@ -72,17 +63,19 @@ const dateTimeService = {
     }
     return date;
   },
+
   buildStartTime(date, startTimeToSet) {
     startTimeToSet = dayjs(startTimeToSet, "HH:mm");
     let startTime = startTimeToSet.isValid() ? dayjs(date, "YYYY-MM-DD")
         .set("hour", startTimeToSet.get("hour"))
         .set("minute", startTimeToSet.get("minute"))
       : null;
-    if (this.isTimeLogInNextDay(startTime, null).startTime) {
+    if (this.getIsTimeLogInNextDayInfo(startTime, null).startTime) {
       startTime = startTime.add(1, "day");
     }
     return startTime;
   },
+
   buildEndTime(date, startTimeToSet, endTimeToSet) {
     startTimeToSet = dayjs(startTimeToSet, "HH:mm");
     endTimeToSet = dayjs(endTimeToSet, "HH:mm");
@@ -91,11 +84,12 @@ const dateTimeService = {
         .set("minute", endTimeToSet.get("minute"))
       : null;
 
-    if (this.isTimeLogInNextDay(startTimeToSet, endTime).endTime) {
+    if (this.getIsTimeLogInNextDayInfo(startTimeToSet, endTime).endTime) {
       endTime = endTime.add(1, "day");
     }
     return endTime
   },
+
   getTotalTimeForTimeLogs(timelogs) {
     let totalTime = 0;
     totalTime += timelogs.reduce((result, item) => {
@@ -106,6 +100,15 @@ const dateTimeService = {
     }, 0)
     return totalTime;
   },
+
+  getTotalTimeLabel(groupedData, groupByDescription) {
+    if (groupByDescription) {
+      return this.formatDurationMinutes(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedData.data));
+    } else {
+      return this.formatDurationMinutes(dateTimeService.getTotalTimeGroupedByDate(groupedData.data));
+    }
+  },
+
   getTotalTimeGroupedByDate(groupedByDate) {
     let totalTime = 0;
     groupedByDate.forEach(({items: logsForDate}) => {
@@ -113,6 +116,7 @@ const dateTimeService = {
     })
     return totalTime;
   },
+
   getTotalTimeGroupedByDateAndDescription(groupedByDateAndDescription) {
     let totalTime = 0;
     groupedByDateAndDescription.forEach(({items: logsForDate}) => {
@@ -120,10 +124,12 @@ const dateTimeService = {
     })
     return totalTime;
   },
-  formatDuration(totalMinutes) {
+
+  formatDurationMinutes(totalMinutes) {
     if(totalMinutes === null) return null;
     return `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
   },
+
   parseMinutes(timeString) {
     const hoursMatch = parseInt(timeString.match(/(\d+)h/)[1], 10);
     const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
@@ -137,22 +143,22 @@ const dateTimeService = {
     return minutes < 1440 ? minutes : null;
   },
 
-  calculateDateRange(mode, inputDate) {
+  calculateDateRange(mode, date) {
     let startDate, endDate;
     switch (mode) {
       case viewMode.DAY: {
-        startDate = inputDate.startOf("day");
-        endDate = inputDate.endOf("day").add(1, "second");
+        startDate = date.startOf("day");
+        endDate = date.endOf("day").add(1, "second");
         break;
       }
       case viewMode.WEEK: {
-         startDate = inputDate.startOf("week");
-         endDate = inputDate.endOf("week").add(1, "second");
+         startDate = date.startOf("week");
+         endDate = date.endOf("week").add(1, "second");
          break;
       }
       case viewMode.MONTH: {
-        startDate = inputDate.startOf("month");
-        endDate = inputDate.endOf("month").add(1, "second");
+        startDate = date.startOf("month");
+        endDate = date.endOf("month").add(1, "second");
         break;
       }
       default:

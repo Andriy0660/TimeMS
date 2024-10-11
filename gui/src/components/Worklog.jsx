@@ -38,7 +38,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
 
   const startTime = dayjs(worklog.startTime, "HH:mm");
   const endTime = startTime.add(worklog.timeSpentSeconds, "second")
-  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(startTime, endTime);
+  const isTimeLogInNextDay = dateTimeService.getIsTimeLogInNextDayInfo(startTime, endTime);
 
   const {execute: handleDeleteWorklog, isExecuting: isDeleteLoading} = useAsyncCall({
     fn: onDelete,
@@ -76,7 +76,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
             ticket={worklog.ticket}
             isTimeLogInNextDay={isTimeLogInNextDay}
           />
-          <Duration className="mx-2" duration={dateTimeService.formatDuration(worklog.timeSpentSeconds / 60)} />
+          <Duration className="mx-2" duration={dateTimeService.formatDurationMinutes(worklog.timeSpentSeconds / 60)} />
           {isJiraSyncingEnabled && <TimeLogJiraSyncStatusIcon status={worklog.jiraSyncInfo.status} />}
         </div>
         <div>

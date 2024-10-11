@@ -52,9 +52,8 @@ export default function useProcessedTimeLogs() {
     processedDataRef.current = processedData;
 
     const groupedData = groupAndSortData(processedData, groupByDescription);
-    const label = calculateTotalTimeLabel(groupedData, groupByDescription);
     setTimeLogs(groupedData)
-    setTotalTimeLabel(label);
+    setTotalTimeLabel(dateTimeService.getTotalTimeLabel(groupedData, groupByDescription));
   }, [data, groupByDescription, selectedTickets])
 
   function getFilterTickets(data) {
@@ -78,13 +77,6 @@ export default function useProcessedTimeLogs() {
     }
   }
 
-  function calculateTotalTimeLabel(groupedData, groupByDescription) {
-    if (groupByDescription) {
-      return dateTimeService.formatDuration(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedData.data));
-    } else {
-      return dateTimeService.formatDuration(dateTimeService.getTotalTimeGroupedByDate(groupedData.data));
-    }
-  }
   return {
     groupByDescription,
     setGroupByDescription,

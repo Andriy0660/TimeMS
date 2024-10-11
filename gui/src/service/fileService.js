@@ -79,7 +79,7 @@ function parse(currentDate, match) {
   const ticket = match[3] !== "???" ? match[3] : null;
   const description = match[4] || null;
   let date = currentDate;
-  if (dateTimeService.isNextDay(startTime)) {
+  if (dateTimeService.getIsTimeLogInNextDayInfo(startTime, endTime).startTime) {
     date = date.add(1, "day");
   }
   return {

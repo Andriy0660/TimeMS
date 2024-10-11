@@ -9,8 +9,7 @@ dayjs.extend(minMax);
 const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIntervalId}) => {
   const startOfDay = dateTimeService.getStartOfDay(date);
   const endOfDay = startOfDay.add(1, "day");
-  const startOfWorkingDay = dateTimeService.getStartOfWorkingDay(date);
-  const endOfWorkingDay = dateTimeService.getEndOfWorkingDay(date);
+  const {startOfWorkingDay, endOfWorkingDay} = dateTimeService.getWorkingDayInfo(date);
 
   let start = startOfWorkingDay;
   let end = endOfWorkingDay;

@@ -12,7 +12,7 @@ export default function TimeLogGroupedByDescription({
   isJiraEditMode,
   ...rest
 }) {
-  const totalTimeLabel = dateTimeService.formatDuration(dateTimeService.getTotalTimeForTimeLogs(logsForDescription))
+  const totalTimeLabel = dateTimeService.formatDurationMinutes(dateTimeService.getTotalTimeForTimeLogs(logsForDescription))
 
   const ids = logsForDescription.reduce((result, item) => {
     result.push(item.id)

@@ -83,7 +83,7 @@ export default function TimeLog({
     setDescription(timeLog.description || "");
   }
 
-  const isTimeLogInNextDay = dateTimeService.isTimeLogInNextDay(startTime, endTime);
+  const isTimeLogInNextDay = dateTimeService.getIsTimeLogInNextDayInfo(startTime, endTime);
 
   const updateTimeLog = async (body) => {
     if (!isTicketFieldValid) {

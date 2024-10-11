@@ -13,7 +13,7 @@ export default function WeekJiraTable({dayInfos, handleClickDate}) {
       result += dateTimeService.parseMinutes(ticketDuration.duration)
       return result;
     }, 0)
-    return dateTimeService.formatDuration(totalTime);
+    return dateTimeService.formatDurationMinutes(totalTime);
   }
 
   return (
