@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import {endHourOfWorkingDay, startHourOfDay, startHourOfWorkingDay} from "../config/timeConfig.js";
 import weekday from "dayjs/plugin/weekday"
 import {viewMode} from "../consts/viewMode.js";
-import {timeLogStatus} from "../consts/timeLogStatus.js";
+import timeLogService from "./timeLogService.js";
 
 dayjs.extend(weekday);
 dayjs().weekday(1); // Monday
@@ -24,16 +24,6 @@ const dateTimeService = {
     if (!date1 && !date2) return true;
     if (!date1 || !date2) return false;
     return date1.isSame(date2, "second");
-  },
-
-  getIsTimeLogInNextDayInfo(startTime, endTime) {
-    const isNextDay = (dateTime) => {
-      return dateTime && dateTime.isValid() ? this.compareTimes(dateTime, this.getStartOfDay()) < 0 && this.compareTimes(dateTime, dayjs().startOf("day")) >= 0 : false;
-    }
-    return {
-      startTime: isNextDay(startTime),
-      endTime: (endTime && isNextDay(startTime)) || isNextDay(endTime) || (startTime && endTime && this.compareTimes(startTime, endTime) > 0)
-    }
   },
 
   getStartOfDay(date) {
@@ -71,7 +61,7 @@ const dateTimeService = {
         .set("hour", startTimeToSet.get("hour"))
         .set("minute", startTimeToSet.get("minute"))
       : null;
-    if (this.getIsTimeLogInNextDayInfo(startTime, null).startTime) {
+    if (timeLogService.getIsTimeLogInNextDayInfo(startTime, null).startTime) {
       startTime = startTime.add(1, "day");
     }
     return startTime;
@@ -85,45 +75,10 @@ const dateTimeService = {
         .set("minute", endTimeToSet.get("minute"))
       : null;
 
-    if (this.getIsTimeLogInNextDayInfo(startTimeToSet, endTime).endTime) {
+    if (timeLogService.getIsTimeLogInNextDayInfo(startTimeToSet, endTime).endTime) {
       endTime = endTime.add(1, "day");
     }
     return endTime
-  },
-
-  getTotalTimeForTimeLogs(timelogs) {
-    let totalTime = 0;
-    totalTime += timelogs.reduce((result, item) => {
-      if (item.status === timeLogStatus.DONE || item.status === timeLogStatus.IN_PROGRESS) {
-        result += dateTimeService.parseMinutes(item.totalTime);
-      }
-      return result;
-    }, 0)
-    return totalTime;
-  },
-
-  getTotalTimeLabel(groupedData, groupByDescription) {
-    if (groupByDescription) {
-      return this.formatDurationMinutes(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedData.data));
-    } else {
-      return this.formatDurationMinutes(dateTimeService.getTotalTimeGroupedByDate(groupedData.data));
-    }
-  },
-
-  getTotalTimeGroupedByDate(groupedByDate) {
-    let totalTime = 0;
-    groupedByDate.forEach(({items: logsForDate}) => {
-      totalTime += this.getTotalTimeForTimeLogs(logsForDate)
-    })
-    return totalTime;
-  },
-
-  getTotalTimeGroupedByDateAndDescription(groupedByDateAndDescription) {
-    let totalTime = 0;
-    groupedByDateAndDescription.forEach(({items: logsForDate}) => {
-      totalTime += this.getTotalTimeGroupedByDate(logsForDate);
-    })
-    return totalTime;
   },
 
   formatDurationMinutes(totalMinutes) {

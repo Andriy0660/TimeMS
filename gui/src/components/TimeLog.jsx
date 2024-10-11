@@ -1,7 +1,5 @@
 import {IconButton, LinearProgress, Tooltip} from "@mui/material";
 import {useEffect, useMemo, useRef, useState} from "react";
-import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
-import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import ConfirmationModal from "./ConfirmationModal.jsx";
@@ -20,6 +18,7 @@ import TimeLogWorklogConnectors from "./TimeLogWorklogConnectors.jsx";
 import SaveButton from "./SaveButton.jsx";
 import ResetButton from "./ResetButton.jsx";
 import {timeLogStatus} from "../consts/timeLogStatus.js";
+import timeLogService from "../service/timeLogService.js";
 
 export default function TimeLog({
   timeLog,
@@ -84,7 +83,7 @@ export default function TimeLog({
     setDescription(timeLog.description || "");
   }
 
-  const isTimeLogInNextDay = dateTimeService.getIsTimeLogInNextDayInfo(startTime, endTime);
+  const isTimeLogInNextDay = timeLogService.getIsTimeLogInNextDayInfo(startTime, endTime);
 
   const updateTimeLog = async (body) => {
     if (!isTicketFieldValid) {

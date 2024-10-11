@@ -13,6 +13,7 @@ import {syncStatus} from "../consts/syncStatus.js";
 import TimeLogJiraSyncStatusIcon from "./TimeLogJiraSyncStatusIcon.jsx";
 import TimeLogNonEditableFields from "./TimeLogNonEditableFields.jsx";
 import TimeLogWorklogConnectors from "./TimeLogWorklogConnectors.jsx";
+import timeLogService from "../service/timeLogService.js";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
@@ -38,7 +39,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
 
   const startTime = dayjs(worklog.startTime, "HH:mm");
   const endTime = startTime.add(worklog.timeSpentSeconds, "second")
-  const isTimeLogInNextDay = dateTimeService.getIsTimeLogInNextDayInfo(startTime, endTime);
+  const isTimeLogInNextDay = timeLogService.getIsTimeLogInNextDayInfo(startTime, endTime);
 
   const {execute: handleDeleteWorklog, isExecuting: isDeleteLoading} = useAsyncCall({
     fn: onDelete,

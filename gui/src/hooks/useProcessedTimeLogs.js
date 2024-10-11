@@ -3,7 +3,7 @@ import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import dateTimeService from "../service/dateTimeService.js";
-import timeLogProcessingService from "../service/timeLogProcessingService.js";
+import timeLogService from "../service/timeLogService.js";
 import useAppContext from "../context/useAppContext.js";
 
 export default function useProcessedTimeLogs() {
@@ -43,21 +43,21 @@ export default function useProcessedTimeLogs() {
     let processedData;
 
     if (isJiraSyncingEnabled) {
-      processedData = timeLogProcessingService.processData(data, selectedTickets);
+      processedData = timeLogService.processData(data, selectedTickets);
       const filterTickets = getFilterTickets(data);
       updateSelectedTicketsIfNeeded(filterTickets);
     } else {
-      processedData = timeLogProcessingService.processData(data);
+      processedData = timeLogService.processData(data);
     }
     processedDataRef.current = processedData;
 
     const groupedData = groupAndSortData(processedData, groupByDescription);
     setTimeLogs(groupedData)
-    setTotalTimeLabel(dateTimeService.getTotalTimeLabel(groupedData, groupByDescription));
+    setTotalTimeLabel(timeLogService.getTotalTimeLabel(groupedData, groupByDescription));
   }, [data, groupByDescription, selectedTickets])
 
   function getFilterTickets(data) {
-    const filterTickets = timeLogProcessingService.extractTickets(data);
+    const filterTickets = timeLogService.extractTickets(data);
     setFilterTickets(filterTickets);
     return filterTickets;
   }
@@ -71,9 +71,9 @@ export default function useProcessedTimeLogs() {
 
   function groupAndSortData(data, groupByDescription) {
     if (groupByDescription) {
-      return timeLogProcessingService.group(data, ["date", "ticketAndDescription"]);
+      return timeLogService.group(data, ["date", "ticketAndDescription"]);
     } else {
-      return timeLogProcessingService.group(data, ["date"]);
+      return timeLogService.group(data, ["date"]);
     }
   }
 

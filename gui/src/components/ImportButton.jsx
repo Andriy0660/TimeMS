@@ -1,7 +1,7 @@
 import Button from "@mui/material/Button";
 import fileService from "../service/fileService.js";
 import {useRef, useState} from "react";
-import timeLogProcessingService from "../service/timeLogProcessingService.js";
+import timeLogService from "../service/timeLogService.js";
 import {CircularProgress} from "@mui/material";
 import useAsyncCall from "../hooks/useAsyncCall.js";
 import useAppContext from "../context/useAppContext.js";
@@ -29,7 +29,7 @@ export default function ImportButton({className, onImport}) {
       reader.onload = async (e) => {
         try {
           const fileContent = e.target.result;
-          const dateGroups = timeLogProcessingService.group(fileService.parseTimeLogs(fileContent), ["date"]);
+          const dateGroups = timeLogService.group(fileService.parseTimeLogs(fileContent), ["date"]);
           await handleImport({dateGroups: dateGroups.data})
         } catch (error) {
           addAlert({

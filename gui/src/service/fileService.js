@@ -1,11 +1,11 @@
-import timeLogProcessingService from "./timeLogProcessingService.js";
+import timeLogService from "./timeLogService.js";
 import dateTimeService from "./dateTimeService.js";
 import dayjs from "dayjs";
 
 
 const fileService = {
   convertToTxt(data) {
-    const groupedData = timeLogProcessingService.group(data, ["date"]).data;
+    const groupedData = timeLogService.group(data, ["date"]).data;
 
     return groupedData
       .map(({key, items: timeLogs}) => {
@@ -79,7 +79,7 @@ function parse(currentDate, match) {
   const ticket = match[3] !== "???" ? match[3] : null;
   const description = match[4] || null;
   let date = currentDate;
-  if (dateTimeService.getIsTimeLogInNextDayInfo(startTime, endTime).startTime) {
+  if (timeLogService.getIsTimeLogInNextDayInfo(startTime, endTime).startTime) {
     date = date.add(1, "day");
   }
   return {

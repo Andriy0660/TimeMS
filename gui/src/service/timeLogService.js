@@ -1,7 +1,8 @@
 import dateTimeService from "./dateTimeService.js";
 import {timeLogStatus} from "../consts/timeLogStatus.js";
+import dayjs from "dayjs";
 
-const timeLogProcessingService = {
+const timeLogService = {
   group(data, groupOrder) {
     let res = data;
     groupOrder.forEach(groupBy => {
@@ -134,6 +135,53 @@ const timeLogProcessingService = {
     }
     return [...new Set(prefixes)];
   },
+
+  getIsTimeLogInNextDayInfo(startTime, endTime) {
+    const isNextDay = (dateTime) => {
+      return dateTime && dateTime.isValid() ?
+        dateTimeService.compareTimes(dateTime, dateTimeService.getStartOfDay()) < 0 && dateTimeService.compareTimes(dateTime, dayjs().startOf("day")) >= 0
+        : false;
+    }
+    return {
+      startTime: isNextDay(startTime),
+      endTime: (endTime && isNextDay(startTime)) || isNextDay(endTime) || (startTime && endTime && dateTimeService.compareTimes(startTime, endTime) > 0)
+    }
+  },
+
+  getTotalTimeForTimeLogs(timelogs) {
+    let totalTime = 0;
+    totalTime += timelogs.reduce((result, item) => {
+      if (item.status === timeLogStatus.DONE || item.status === timeLogStatus.IN_PROGRESS) {
+        result += dateTimeService.parseMinutes(item.totalTime);
+      }
+      return result;
+    }, 0)
+    return totalTime;
+  },
+
+  getTotalTimeLabel(groupedData, groupByDescription) {
+    if (groupByDescription) {
+      return dateTimeService.formatDurationMinutes(this.getTotalTimeGroupedByDateAndDescription(groupedData.data));
+    } else {
+      return dateTimeService.formatDurationMinutes(this.getTotalTimeGroupedByDate(groupedData.data));
+    }
+  },
+
+  getTotalTimeGroupedByDate(groupedByDate) {
+    let totalTime = 0;
+    groupedByDate.forEach(({items: logsForDate}) => {
+      totalTime += this.getTotalTimeForTimeLogs(logsForDate)
+    })
+    return totalTime;
+  },
+
+  getTotalTimeGroupedByDateAndDescription(groupedByDateAndDescription) {
+    let totalTime = 0;
+    groupedByDateAndDescription.forEach(({items: logsForDate}) => {
+      totalTime += this.getTotalTimeGroupedByDate(logsForDate);
+    })
+    return totalTime;
+  },
 };
 
-export default timeLogProcessingService;
+export default timeLogService;

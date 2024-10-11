@@ -3,6 +3,7 @@ import TimeLogDescription from "./TimeLogDescription.jsx";
 import {Chip} from "@mui/material";
 import dateTimeService from "../service/dateTimeService.js";
 import TimeLogGroup from "./TimeLogGroup.jsx";
+import timeLogService from "../service/timeLogService.js";
 
 export default function TimeLogGroupedByDescription({
   description,
@@ -12,7 +13,7 @@ export default function TimeLogGroupedByDescription({
   isJiraEditMode,
   ...rest
 }) {
-  const totalTimeLabel = dateTimeService.formatDurationMinutes(dateTimeService.getTotalTimeForTimeLogs(logsForDescription))
+  const totalTimeLabel = dateTimeService.formatDurationMinutes(timeLogService.getTotalTimeForTimeLogs(logsForDescription))
 
   const ids = logsForDescription.reduce((result, item) => {
     result.push(item.id)
