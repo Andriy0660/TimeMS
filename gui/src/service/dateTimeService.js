@@ -131,6 +131,7 @@ const dateTimeService = {
   },
 
   calculateDurationMinutes(startTime, endTime){
+    if (!startTime || !endTime) return null;
     if (endTime.isBefore(startTime)) return null;
     const minutes = endTime.diff(startTime, "minute");
     return minutes < 1440 ? minutes : null;

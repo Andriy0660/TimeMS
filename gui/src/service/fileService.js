@@ -28,11 +28,6 @@ const fileService = {
   },
 
   getFormattedDuration(startTime, endTime) {
-    if (!startTime) return null;
-    if (!endTime) {
-      const currentTime = dayjs();
-      endTime = currentTime;
-    }
     const duration = dateTimeService.calculateDurationMinutes(startTime, endTime);
     return duration !== null ? this.formatDuration(duration) : "**:**";
   },
