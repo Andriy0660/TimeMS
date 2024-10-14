@@ -1,8 +1,7 @@
 import TimeLogList from "../components/TimeLogList.jsx";
 import TimeLogCreateBar from "../components/TimeLogCreateBar.jsx";
-import {CircularProgress, FormControlLabel, IconButton, Switch} from "@mui/material";
+import {FormControlLabel, IconButton, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
-import dateTimeService from "../service/dateTimeService.js";
 import MonthPicker from "../components/MonthPicker..jsx";
 import WeekPicker from "../components/WeekPicker.jsx";
 import BigLabel from "../components/BigLabel.jsx";
@@ -12,15 +11,12 @@ import ImportButton from "../components/ImportButton.jsx";
 import WorklogList from "../components/WorklogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import {useState} from "react";
-import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {viewMode} from "../consts/viewMode.js";
-import {useQuery} from "@tanstack/react-query";
-import worklogApi from "../api/worklogApi.js";
 import worklogService from "../service/worklogService.js";
-import {startHourOfDay} from "../config/timeConfig.js";
 import ExportButton from "../components/ExportButton.jsx";
 import TimeLogSelectTicketsForm from "../components/TimeLogSelectTicketsForm.jsx";
 import LoadingPage from "../components/LoadingPage.jsx";
+import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import useSyncMutations from "../hooks/useSyncMutations.js";
 import useWorklogMutations from "../hooks/useWorklogMutations.js";
 
@@ -34,6 +30,7 @@ export default function TimeLogPage() {
 
   const {
     groupByDescription, setGroupByDescription, timeLogs, processedTimeLogsArray, isListing,
+    worklogs, isWorklogsListing,
     totalTimeLabel, filterTickets, selectedTickets, setSelectedTickets,
   } = useProcessedTimeLogs();
 
@@ -121,28 +118,30 @@ export default function TimeLogPage() {
           </div>
         </div>
       </div>
-      <div className={`${isJiraEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
-        {mode === viewMode.DAY && <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
-                                                  hoveredProgressIntervalId={hoveredProgressIntervalId} />}
+      {isJiraSyncingEnabled && (
+        <div className={`${isJiraEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
+          {mode === viewMode.DAY &&
+            <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
+                            hoveredProgressIntervalId={hoveredProgressIntervalId} />}
 
-        {!isJiraEditMode ? (
-          <TimeLogList {...commonTimeLogListProps} />
-        ) : (
-          <div className="flex">
-            <div className="w-1/2 mr-6">
-              <TimeLogList {...commonTimeLogListProps} isJiraEditMode />
+          {!isJiraEditMode ? (
+            <TimeLogList {...commonTimeLogListProps} />
+          ) : (
+            <div className="flex">
+              <div className="w-1/2 mr-6">
+                <TimeLogList {...commonTimeLogListProps} isJiraEditMode />
+              </div>
+              <div className="w-1/2 ml-6">
+                <WorklogList
+                  worklogs={worklogService.processData(worklogs, processedTimeLogsArray, selectedTickets)}
+                  isWorklogsListing={isWorklogsListing}
+                  isJiraEditMode={isJiraEditMode}
+                />
+              </div>
             </div>
-            <div className="w-1/2 ml-6">
-              <WorklogList
-                worklogs={worklogService.processData(worklogs, processedTimeLogsArray, selectedTickets)}
-                isWorklogsListing={isWorklogsListing}
-                listWorklogsError={listWorklogsError}
-                isJiraEditMode={isJiraEditMode}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

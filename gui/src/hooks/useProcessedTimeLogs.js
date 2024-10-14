@@ -1,7 +1,8 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import {startHourOfDay} from "../config/timeConfig.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
+import worklogApi from "../api/worklogApi.js";
 import dateTimeService from "../service/dateTimeService.js";
 import timeLogService from "../service/timeLogService.js";
 import useAppContext from "../context/useAppContext.js";
@@ -10,64 +11,42 @@ export default function useProcessedTimeLogs() {
   const queryParams = new URLSearchParams(location.search);
   const {isJiraSyncingEnabled, date, addAlert, mode} = useAppContext();
   const [timeLogs, setTimeLogs] = useState([]);
-  const [totalTimeLabel, setTotalTimeLabel] = useState("")
-
-  const offset = startHourOfDay;
+  const [totalTimeLabel, setTotalTimeLabel] = useState("");
   const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
-  const [filterTickets, setFilterTickets] = useState([""])
-  const [selectedTickets, setSelectedTickets] = useState([]);
 
   const {
-    data,
+    data: timeLogsData,
     isPending: isListing,
     error: listAllError
   } = useQuery({
-    queryKey: [timeLogApi.key, mode, date, offset],
-    queryFn: () => {
-      return timeLogApi.list(dateTimeService.calculateDateRange(mode, date));
-    },
+    queryKey: [timeLogApi.key, mode, date, startHourOfDay],
+    queryFn: () => timeLogApi.list(dateTimeService.calculateDateRange(mode, date)),
     retryDelay: 300,
   });
 
   useEffect(() => {
     if (listAllError) {
       addAlert({
-        text: `${listAllError.displayMessage} Try agail later`,
+        text: `${listAllError.displayMessage} Try again later`,
         type: "error"
       });
     }
-  }, [listAllError]);
+  }, [listAllError, addAlert]);
 
-  const processedDataRef = useRef([]);
+  const jiraInfo = useJira(isJiraSyncingEnabled, mode, date);
+
+  const processedTimeLogsArray = timeLogService.processData(timeLogsData);
   useEffect(() => {
-    let processedData;
+    let processedData = timeLogService.processData(timeLogsData);
 
     if (isJiraSyncingEnabled) {
-      processedData = timeLogService.processData(data, selectedTickets);
-      const filterTickets = getFilterTickets(data);
-      updateSelectedTicketsIfNeeded(filterTickets);
-    } else {
-      processedData = timeLogService.processData(data);
+      processedData = timeLogService.processData(timeLogsData, jiraInfo.selectedTickets);
     }
-    processedDataRef.current = processedData;
 
     const groupedData = groupAndSortData(processedData, groupByDescription);
-    setTimeLogs(groupedData)
+    setTimeLogs(groupedData);
     setTotalTimeLabel(timeLogService.getTotalTimeLabel(groupedData, groupByDescription));
-  }, [data, groupByDescription, selectedTickets])
-
-  function getFilterTickets(data) {
-    const filterTickets = timeLogService.extractTickets(data);
-    setFilterTickets(filterTickets);
-    return filterTickets;
-  }
-
-  function updateSelectedTicketsIfNeeded(filterTickets) {
-    const updatedTickets = selectedTickets.filter(ticket => filterTickets.includes(ticket));
-    if (selectedTickets.toString() !== updatedTickets.toString()) {
-      setSelectedTickets(updatedTickets);
-    }
-  }
+  }, [timeLogsData, groupByDescription, isJiraSyncingEnabled, jiraInfo.selectedTickets]);
 
   function groupAndSortData(data, groupByDescription) {
     if (groupByDescription) {
@@ -81,9 +60,59 @@ export default function useProcessedTimeLogs() {
     groupByDescription,
     setGroupByDescription,
     timeLogs,
-    processedTimeLogsArray: processedDataRef.current,
+    processedTimeLogsArray,
     isListing,
     totalTimeLabel,
+    ...(isJiraSyncingEnabled ? jiraInfo : {}),
+  };
+}
+
+function useJira(isJiraSyncingEnabled, mode, date) {
+  const {addAlert} = useAppContext();
+  const [filterTickets, setFilterTickets] = useState([""]);
+  const [selectedTickets, setSelectedTickets] = useState([]);
+
+  const {
+    data: worklogs,
+    isPending: isWorklogsListing,
+    error: listWorklogsError,
+  } = useQuery({
+    queryKey: [worklogApi.key, mode, date, startHourOfDay],
+    queryFn: () => worklogApi.list({mode, date: dateTimeService.getFormattedDate(date)}),
+    enabled: isJiraSyncingEnabled,
+    initialData: [],
+    placeholderData: (prev) => prev,
+    retryDelay: 300,
+  });
+
+  useEffect(() => {
+    if (listWorklogsError) {
+      addAlert({
+        text: `${listWorklogsError.displayMessage} Try agail later`,
+        type: "error"
+      });
+    }
+  }, [listWorklogsError]);
+
+  useEffect(() => {
+    if (isJiraSyncingEnabled) {
+      const newFilterTickets = timeLogService.extractTickets(worklogs);
+      setFilterTickets(newFilterTickets);
+      updateSelectedTicketsIfNeeded(newFilterTickets);
+    }
+  }, [isJiraSyncingEnabled, worklogs]);
+
+  function updateSelectedTicketsIfNeeded(newFilterTickets) {
+    const updatedTickets = selectedTickets.filter(ticket => newFilterTickets.includes(ticket));
+    if (selectedTickets.toString() !== updatedTickets.toString()) {
+      setSelectedTickets(updatedTickets);
+    }
+  }
+
+  return {
+    worklogs,
+    isWorklogsListing,
+    listWorklogsError,
     filterTickets,
     selectedTickets,
     setSelectedTickets,
