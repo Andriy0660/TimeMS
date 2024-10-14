@@ -2,7 +2,7 @@ import VerticalDivider from "./VerticalDivider.jsx";
 import {Icon, Tooltip, Typography} from "@mui/material";
 import dateTimeService from "../service/dateTimeService.js";
 import {TiArrowForward} from "react-icons/ti";
-import useAppContext from "../context/useAppContext.js";
+import {isJiraSyncingEnabled} from "../config/config.js";
 
 export default function TimeLogNonEditableFields({
   startTime,
@@ -12,7 +12,6 @@ export default function TimeLogNonEditableFields({
   setIsEditing,
   setEditedField
 }) {
-  const {isJiraSyncingEnabled} = useAppContext();
 
   const handleTimeClick = (field) => () => {
     setIsEditing?.(true);

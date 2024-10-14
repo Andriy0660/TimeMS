@@ -19,9 +19,10 @@ import LoadingPage from "../components/LoadingPage.jsx";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import useSync from "../hooks/useSync.js";
 import useWorklogMutations from "../hooks/useWorklogMutations.js";
+import {isJiraSyncingEnabled} from "../config/config.js";
 
 export default function TimeLogPage() {
-  const {isJiraSyncingEnabled, date, mode} = useAppContext();
+  const {date, mode} = useAppContext();
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
   const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
   const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);
@@ -37,7 +38,6 @@ export default function TimeLogPage() {
   const timeLogMutations = useTimeLogMutations();
   const {onCreate: onWorklogCreate}  = useWorklogMutations();
   const syncMutations = useSync();
-
 
   if (isListing) {
     return <LoadingPage />

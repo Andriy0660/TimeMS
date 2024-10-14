@@ -19,6 +19,7 @@ import SaveButton from "./SaveButton.jsx";
 import ResetButton from "./ResetButton.jsx";
 import {timeLogStatus} from "../consts/timeLogStatus.js";
 import timeLogService from "../service/timeLogService.js";
+import {isJiraSyncingEnabled} from "../config/config.js";
 
 export default function TimeLog({
   timeLog,
@@ -51,7 +52,7 @@ export default function TimeLog({
 
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
-  const {isJiraSyncingEnabled, addAlert, worklogRefs, timeLogRefs, setTimeLogRefs} = useAppContext();
+  const {addAlert, worklogRefs, timeLogRefs, setTimeLogRefs} = useAppContext();
 
   const timeLogRef = useRef(null);
   const timeLogUpperPartRef = useRef(null);

@@ -69,7 +69,7 @@ public class TimeLogController {
   }
 
   @GetMapping("/config")
-  public TimeLogConfigResponse getOffset() {
+  public TimeLogConfigResponse getConfig() {
     return timeLogService.getConfig();
   }
 

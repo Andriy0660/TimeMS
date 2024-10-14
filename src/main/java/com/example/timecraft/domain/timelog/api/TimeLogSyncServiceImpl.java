@@ -20,14 +20,14 @@ public class TimeLogSyncServiceImpl implements TimeLogSyncService {
 
   @Override
   public List<TimeLogEntity> getAllByDate(final LocalDate date) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
     final LocalTime startTime = LocalTime.of(offset, 0);
     return repository.findAllInRange(date, date.plusDays(1), startTime);
   }
 
   @Override
   public List<TimeLogEntity> getAllByDateAndDescriptionAndTicket(final LocalDate date, final String description, final String ticket) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
     return repository.findAllByDateAndTicket(date, date.plusDays(1), LocalTime.of(offset, 0), ticket).stream()
         .filter(timeLogEntity -> SyncJiraUtils.areDescriptionsEqual(timeLogEntity.getDescription(), description))
         .toList();

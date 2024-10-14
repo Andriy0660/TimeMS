@@ -14,10 +14,11 @@ import TimeLogJiraSyncStatusIcon from "./TimeLogJiraSyncStatusIcon.jsx";
 import TimeLogNonEditableFields from "./TimeLogNonEditableFields.jsx";
 import TimeLogWorklogConnectors from "./TimeLogWorklogConnectors.jsx";
 import timeLogService from "../service/timeLogService.js";
+import {isJiraSyncingEnabled} from "../config/config.js";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
-  const {isJiraSyncingEnabled, worklogRefs, setWorklogRefs, timeLogRefs} = useAppContext();
+  const {worklogRefs, setWorklogRefs, timeLogRefs} = useAppContext();
 
   useEffect(() => {
     if (worklogRef.current && isJiraEditMode) {

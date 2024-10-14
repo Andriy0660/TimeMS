@@ -10,7 +10,7 @@ import dayjs from "dayjs";
 import StartOutlinedIcon from "@mui/icons-material/StartOutlined.js";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
-import useAppContext from "../context/useAppContext.js";
+import {isJiraSyncingEnabled} from "../config/config.js";
 
 export default function TimeLogMoreActionsMenu({
   moreActionsMenuEl,
@@ -29,7 +29,6 @@ export default function TimeLogMoreActionsMenu({
   handleSyncFromJira,
   handleSyncIntoJira
 }) {
-  const {isJiraSyncingEnabled} = useAppContext();
   const currentTime = dayjs();
 
   const statusConfig = {

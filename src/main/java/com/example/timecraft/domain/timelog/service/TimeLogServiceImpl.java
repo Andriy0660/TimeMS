@@ -54,7 +54,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogListResponse list(final LocalDate startDate, final LocalDate endDate) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
     final LocalTime startTime = LocalTime.of(offset, 0);
 
     final List<TimeLogEntity> timeLogEntityList = repository.findAllInRange(startDate, endDate, startTime);
@@ -124,7 +124,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public void divide(final long timeLogId) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
     final LocalTime startOfDay = LocalTime.of(offset, 0);
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
     final TimeLogEntity secondEntity = TimeLogEntity.builder()
@@ -201,15 +201,16 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogConfigResponse getConfig() {
     return new TimeLogConfigResponse(
-        props.getTimeConfig().getOffset(),
-        props.getTimeConfig().getStartHourOfWorkingDay(),
-        props.getTimeConfig().getEndHourOfWorkingDay()
+        props.getConfig().getIsJiraSyncingEnabled(),
+        props.getConfig().getOffset(),
+        props.getConfig().getStartHourOfWorkingDay(),
+        props.getConfig().getEndHourOfWorkingDay()
     );
   }
 
   @Override
   public TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
 
     final LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     final LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
@@ -235,7 +236,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogHoursForWeekWithTicketsResponse getHoursForWeekWithTickets(final LocalDate date) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
     final LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     final LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
@@ -247,7 +248,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   private List<TimeLogHoursForWeekWithTicketsResponse.DayInfo> getDayInfoList(final List<TimeLogEntity> entities, final LocalDate startOfWeek,
                                                                               final LocalDate endOfWeek) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
     final LocalTime startTime = LocalTime.of(offset, 0);
     final Set<String> tickets = getTicketsForWeek(entities);
 
@@ -317,7 +318,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
     final LocalTime startTime = LocalTime.of(offset, 0);
     final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
     final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());

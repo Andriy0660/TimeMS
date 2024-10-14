@@ -1,7 +1,7 @@
 import CustomTimeField from "./CustomTimeField.jsx";
 import {TextField} from "@mui/material";
-import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
+import {isJiraSyncingEnabled} from "../config/config.js";
 
 export default function TimeLogEditableFields({
   startTime,
@@ -17,7 +17,6 @@ export default function TimeLogEditableFields({
   isTicketFieldValid,
   timeLog,
 }) {
-  const {isJiraSyncingEnabled} = useAppContext();
 
   return (
     <div className="flex items-center">

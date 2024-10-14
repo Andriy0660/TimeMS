@@ -26,10 +26,11 @@ import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore
 import useViewChanger from "../hooks/useViewChanger.js";
 import SyncWorklogsButton from "./SyncWorklogsButton.jsx";
 import {viewMode} from "../consts/viewMode.js";
+import {isJiraSyncingEnabled} from "../config/config.js";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
-  const {isJiraSyncingEnabled, date, setDate, mode} = useAppContext();
+  const {date, setDate, mode} = useAppContext();
 
   useDateInUrl(date);
   const {changeView} = useViewChanger();

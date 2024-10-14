@@ -28,7 +28,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
   private final WorklogSyncService worklogSyncService;
 
   public TimeLogListResponse processTimeLogDtos(final TimeLogListResponse response) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
     final List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
     return new TimeLogListResponse(
         timeLogDtos.stream().peek(timeLogDto ->
@@ -74,7 +74,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
   }
 
   public WorklogListResponse processWorklogDtos(final WorklogListResponse response) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
     final List<WorklogListResponse.WorklogDto> worklogDtos = response.getItems();
     return new WorklogListResponse(
         worklogDtos.stream().peek(worklogDto -> worklogDto.setJiraSyncInfo(JiraSyncInfo.builder()
@@ -106,7 +106,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
   }
 
   private boolean hasTimeLogsSyncStatusForDay(final LocalDate date, final SyncStatus syncStatus) {
-    final int offset = props.getTimeConfig().getOffset();
+    final int offset = props.getConfig().getOffset();
     return timeLogSyncService.getAllByDate(date).stream().anyMatch(
         timeLogEntity -> getSyncStatus(
             TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),

@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {startHourOfDay} from "../config/timeConfig.js";
+import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import worklogApi from "../api/worklogApi.js";
@@ -9,7 +9,7 @@ import useAppContext from "../context/useAppContext.js";
 
 export default function useProcessedTimeLogs() {
   const queryParams = new URLSearchParams(location.search);
-  const {isJiraSyncingEnabled, date, addAlert, mode} = useAppContext();
+  const {date, addAlert, mode} = useAppContext();
   const [timeLogs, setTimeLogs] = useState([]);
   const [totalTimeLabel, setTotalTimeLabel] = useState("");
   const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);

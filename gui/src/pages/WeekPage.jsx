@@ -1,7 +1,7 @@
 import TableContainer from '@mui/material/TableContainer';
 import dayjs from "dayjs";
 import dateTimeService from "../service/dateTimeService.js";
-import {startHourOfDay} from "../config/timeConfig.js";
+import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import {FormControlLabel, Switch} from "@mui/material";
@@ -26,7 +26,7 @@ export default function WeekPage() {
 
   const {changeView} = useViewChanger();
   const [view, setView] = useState(weekViewMode.TABLE);
-  const {isJiraSyncingEnabled, date, setDate, addAlert, mode} = useAppContext();
+  const {date, setDate, addAlert, mode} = useAppContext();
 
   const {
     data: dayInfos,

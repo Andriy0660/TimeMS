@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import {endHourOfWorkingDay, startHourOfDay, startHourOfWorkingDay} from "../config/timeConfig.js";
+import {endHourOfWorkingDay, startHourOfDay, startHourOfWorkingDay} from "../config/config.js";
 import weekday from "dayjs/plugin/weekday"
 import {viewMode} from "../consts/viewMode.js";
 import timeLogService from "./timeLogService.js";

@@ -8,7 +8,7 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {startHourOfDay} from "../config/timeConfig.js";
+import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
 import MonthPageDuration from "../components/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import TimeLogStatusIcons from "../components/TimeLogStatusIcons.jsx";
@@ -29,7 +29,7 @@ export default function MonthPage() {
   const offset = startHourOfDay;
   const [calendarApi, setCalendarApi] = useState(null);
   const [view, setView] = useState(monthViewMode.CALENDAR);
-  const {isJiraSyncingEnabled, date, setDate, addAlert, mode} = useAppContext();
+  const {date, setDate, addAlert, mode} = useAppContext();
   const {changeView} = useViewChanger();
 
   const {data, isPending} = useQuery({
