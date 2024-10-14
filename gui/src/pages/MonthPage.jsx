@@ -69,16 +69,47 @@ export default function MonthPage() {
   };
 
   const getDayCellClassNames = ({dow: dayOfWeek, date: cellDate}) => {
-    const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
-    const {conflicted} = dayInfo || {};
-    if (((isJiraSyncingEnabled && dayInfo?.jiraSyncInfo.status === syncStatus.NOT_SYNCED) || conflicted) && dayjs(cellDate).$M === date.$M) {
-      return ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
-    } else if (dayOfWeek === 0 || dayOfWeek === 6) {
-      return ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"];
-    } else {
-      return ["bg-transparent hover:bg-blue-100 hover:cursor-pointer"];
+    const cellDayjs = dayjs(cellDate);
+    const dayInfo = data.items?.find(item => dayjs(item.date).isSame(cellDayjs, "day"));
+    const isCurrentMonth = cellDayjs.isSame(date, 'month');
+
+    const conflictedClassNames = ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
+
+    const getClassNamesByJiraStatus = (dayInfo) => {
+      if (!dayInfo) return null;
+
+      const notSyncedClassNames = ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
+      const partiallySyncedClassNames = ["bg-orange-200 hover:cursor-pointer hover:bg-orange-300"];
+
+      switch (dayInfo.jiraSyncInfo.status) {
+        case syncStatus.NOT_SYNCED:
+          return notSyncedClassNames;
+        case syncStatus.PARTIAL_SYNCED:
+          return partiallySyncedClassNames;
+        default:
+          return null;
+      }
+    };
+
+    const getDefaultClassNames = (dayOfWeek) => {
+      return dayOfWeek === 0 || dayOfWeek === 6
+        ? ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"]
+        : ["bg-transparent hover:bg-blue-100 hover:cursor-pointer"];
+    };
+
+    if (isCurrentMonth) {
+      if (dayInfo?.conflicted) {
+        return conflictedClassNames;
+      }
+
+      if (isJiraSyncingEnabled) {
+        const syncState = getClassNamesByJiraStatus(dayInfo);
+        if (syncState) return syncState;
+      }
     }
-  }
+
+    return getDefaultClassNames(dayOfWeek);
+  };
 
   const getCellContent = ({dayNumberText, date: cellDate}) => {
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
