@@ -17,7 +17,7 @@ import ExportButton from "../components/ExportButton.jsx";
 import TimeLogSelectTicketsForm from "../components/TimeLogSelectTicketsForm.jsx";
 import LoadingPage from "../components/LoadingPage.jsx";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
-import useSyncMutations from "../hooks/useSyncMutations.js";
+import useSync from "../hooks/useSync.js";
 import useWorklogMutations from "../hooks/useWorklogMutations.js";
 
 export default function TimeLogPage() {
@@ -36,7 +36,7 @@ export default function TimeLogPage() {
 
   const timeLogMutations = useTimeLogMutations();
   const {onCreate: onWorklogCreate}  = useWorklogMutations();
-  const syncMutations = useSyncMutations();
+  const syncMutations = useSync();
 
 
   if (isListing) {

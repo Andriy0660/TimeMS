@@ -19,7 +19,7 @@ import {viewMode} from "../consts/viewMode.js";
 import WeekTable from "../components/WeekTable.jsx";
 import WeekJiraTable from "../components/WeekJiraTable.jsx";
 import LoadingPage from "../components/LoadingPage.jsx";
-import useSyncMutations from "../hooks/useSyncMutations.js";
+import useSync from "../hooks/useSync.js";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
@@ -47,7 +47,7 @@ export default function WeekPage() {
   });
 
   const timeLogMutations = useTimeLogMutations();
-  const syncMutations = useSyncMutations();
+  const syncMutations = useSync();
 
   const {
     groupByDescription, setGroupByDescription, timeLogs

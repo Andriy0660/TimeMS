@@ -2,10 +2,7 @@ import {createContext, useEffect, useState} from "react";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dayjs from "dayjs";
-import {useQuery} from "@tanstack/react-query";
-import worklogApi from "../api/worklogApi.js";
 import {viewMode} from "../consts/viewMode.js";
-import syncApi from "../api/syncApi.js";
 
 const AppContext = createContext();
 
@@ -30,19 +27,6 @@ export const AppProvider = ({children}) => {
   const addAlert = ({type, text}) => {
     return toast[type](text);
   };
-
-
-  const {
-    data: progressInfo,
-  } = useQuery({
-    queryKey: [worklogApi.key, "progress"],
-    queryFn: () => syncApi.getProgress(),
-    initialData: () => 0,
-    refetchInterval: (data) => data.state.data.inProgress ? 300 : false,
-    refetchOnWindowFocus: false,
-    retryDelay: 300
-  });
-
 
   return (
     <>
@@ -70,9 +54,7 @@ export const AppProvider = ({children}) => {
         timeLogRefs,
         setTimeLogRefs,
         worklogRefs,
-        setWorklogRefs,
-        progressInfo,
-        isSyncingRunning: progressInfo.inProgress && progressInfo.progress > 0,
+        setWorklogRefs
       }}>
         {children}
       </AppContext.Provider>

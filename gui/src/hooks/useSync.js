@@ -1,12 +1,43 @@
-import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import worklogApi from "../api/worklogApi.js";
 import useAppContext from "../context/useAppContext.js";
 import syncApi from "../api/syncApi.js";
 
-export default function useSyncMutations() {
+export default function useSync() {
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
+
+  const {mutateAsync: syncWorklogs, isPending: isSyncingLaunched} = useMutation({
+    mutationFn: () => syncApi.syncAllWorklogs(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(timeLogApi.key);
+      queryClient.invalidateQueries(worklogApi.key);
+      addAlert({
+        text: "You have successfully synchronized worklogs",
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      queryClient.setQueryData([worklogApi.key, "progress"], {progress: 0});
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      });
+      console.error("synchronizing worklogs failed:", error);
+    }
+  });
+
+  const {
+    data: progressInfo,
+  } = useQuery({
+    queryKey: [worklogApi.key, "progress"],
+    queryFn: () => syncApi.getProgress(),
+    initialData: () => 0,
+    refetchInterval: (data) => isSyncingLaunched || data.state.data.inProgress ? 300 : false,
+    refetchOnWindowFocus: false,
+    retryDelay: 300
+  });
 
   const {mutateAsync: syncIntoJira} = useMutation({
     mutationFn: (body) => syncApi.syncIntoJira(body),
@@ -46,24 +77,6 @@ export default function useSyncMutations() {
     }
   });
 
-  const {mutateAsync: syncWorklogs, isPending: isSyncingLaunched} = useMutation({
-    mutationFn: () => syncApi.syncAllWorklogs(),
-    onSuccess: () => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: "You have successfully synchronized worklogs",
-        type: "success"
-      });
-    },
-    onError: (error) => {
-      queryClient.setQueryData([worklogApi.key, "progress"], {progress: 0});
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      });
-      console.error("synchronizing worklogs failed:", error);
-    }
-  });
 
   const {mutateAsync: syncWorklogsForIssue} = useMutation({
     mutationFn: (issueKey) => syncApi.syncWorklogsForIssue(issueKey),
@@ -83,6 +96,9 @@ export default function useSyncMutations() {
     }
   });
   return {
+    progressInfo,
+    isSyncingLaunched,
+    isSyncingRunning: progressInfo.inProgress && progressInfo.progress > 0,
     onSyncIntoJira: syncIntoJira,
     onSyncFromJira: syncFromJira,
     onSync: syncWorklogs,

@@ -1,8 +1,8 @@
 import {useEffect, useRef, useState} from 'react';
-import useAppContext from "../context/useAppContext.js";
 import SyncProgressInfo from "../components/SyncProgressInfo.jsx";
 import SyncAllProgressInfo from "../components/SyncAllProgressInfo.jsx";
 import LoadingPage from "../components/LoadingPage.jsx";
+import useSync from "../hooks/useSync.js";
 
 export default function SyncPage() {
   const {
@@ -11,7 +11,7 @@ export default function SyncPage() {
     progressInfo: {
       worklogInfos,
     }
-  } = useAppContext();
+  } = useSync();
 
   const [displayedWorklogInfos, setDisplayedWorklogInfos] = useState([]);
   const logsContainerRef = useRef(null);
