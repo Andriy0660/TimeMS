@@ -48,10 +48,8 @@ public class SyncJiraServiceImpl implements SyncJiraService {
     final String description = request.getDescription();
     final String ticket = request.getTicket();
 
-    final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
     final List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
-    timeLogSyncService.delete(timeLogEntityList);
     timeLogSyncService.saveAll(worklogEntityList.stream().map(worklogEntity -> {
       TimeLogEntity entity = timeLogMapper.worklogToTimeLog(worklogEntity);
       entity.setEndTime(worklogEntity.getStartTime().plusSeconds(worklogEntity.getTimeSpentSeconds()));
