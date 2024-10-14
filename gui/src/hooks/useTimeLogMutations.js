@@ -1,8 +1,6 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import worklogApi from "../api/worklogApi.js";
 import useAppContext from "../context/useAppContext.js";
-import syncApi from "../api/syncApi.js";
 
 export default function useTimeLogMutations() {
   const queryClient = useQueryClient();
@@ -26,31 +24,12 @@ export default function useTimeLogMutations() {
     }
   });
 
-  const {mutateAsync: createWorklogFromTimeLog} = useMutation({
-    mutationFn: (body) => worklogApi.create(body),
-    onSuccess: async (body) => {
-      queryClient.invalidateQueries(worklogApi.key);
-      addAlert({
-        text: "Worklog is successfully created",
-        type: "success"
-      });
-    },
-    onError: async (error, body) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      })
-      console.error("Creating worklog failed:", error);
-    }
-  });
-
-  const {mutateAsync: syncIntoJira} = useMutation({
-    mutationFn: (body) => syncApi.syncIntoJira(body),
+  const {mutateAsync: createTimeLogFromWorklog} = useMutation({
+    mutationFn: (body) => timeLogApi.createFromWorklog(body),
     onSuccess: async () => {
-      queryClient.invalidateQueries(worklogApi.key);
       queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
-        text: "Successfully synchronized into jira",
+        text: "Time log is successfully created",
         type: "success"
       });
     },
@@ -59,26 +38,7 @@ export default function useTimeLogMutations() {
         text: error.displayMessage,
         type: "error"
       })
-      console.error("synchronizing into jira failed:", error);
-    }
-  });
-
-  const {mutateAsync: syncFromJira} = useMutation({
-    mutationFn: (body) => syncApi.syncFromJira(body),
-    onSuccess: async () => {
-      queryClient.invalidateQueries(worklogApi.key);
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: "Successfully synchronized from jira",
-        type: "success"
-      });
-    },
-    onError: async (error, body) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      })
-      console.error("synchronizing from jira failed:", error);
+      console.error("Creating time log from worklog failed:", error);
     }
   });
 
@@ -190,34 +150,15 @@ export default function useTimeLogMutations() {
     }
   });
 
-  const {mutateAsync: syncWorklogsForIssue} = useMutation({
-    mutationFn: (issueKey) => syncApi.syncWorklogsForIssue(issueKey),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries(timeLogApi.key);
-      addAlert({
-        text: `You have successfully synchronized worklogs for issue ${variables}`,
-        type: "success"
-      });
-    },
-    onError: (error) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      });
-      console.error("synchronizing worklogs for issue failed:", error);
-    }
-  });
+
   return {
     onCreate: create,
+    onCreateTimeLogFromWorklog: createTimeLogFromWorklog,
     onImport: importTimeLogs,
     onDivide: divide,
     onUpdate: update,
-    onWorklogCreate: createWorklogFromTimeLog,
-    onSyncIntoJira: syncIntoJira,
-    onSyncFromJira: syncFromJira,
     onDelete: deleteTimeLog,
     setGroupDescription: setGroupDescription,
     changeDate: changeDate,
-    onSync: syncWorklogsForIssue
   }
 }

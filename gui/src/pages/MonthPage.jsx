@@ -23,6 +23,7 @@ import ViewModeIcon from "../components/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import {syncStatus} from "../consts/syncStatus.js";
 import LoadingPage from "../components/LoadingPage.jsx";
+import useSyncMutations from "../hooks/useSyncMutations.js";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -45,6 +46,8 @@ export default function MonthPage() {
   });
 
   const timeLogMutations = useTimeLogMutations();
+  const syncMutations = useSyncMutations();
+
   const {
     groupByDescription, setGroupByDescription, timeLogs
   } = useProcessedTimeLogs();
@@ -194,6 +197,7 @@ export default function MonthPage() {
         timeLogs={timeLogs}
         mode={mode}
         {...timeLogMutations}
+        {...syncMutations}
       />}
     </div>
   );

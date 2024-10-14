@@ -21,6 +21,8 @@ import {startHourOfDay} from "../config/timeConfig.js";
 import ExportButton from "../components/ExportButton.jsx";
 import TimeLogSelectTicketsForm from "../components/TimeLogSelectTicketsForm.jsx";
 import LoadingPage from "../components/LoadingPage.jsx";
+import useSyncMutations from "../hooks/useSyncMutations.js";
+import useWorklogMutations from "../hooks/useWorklogMutations.js";
 
 export default function TimeLogPage() {
   const {isJiraSyncingEnabled, date, mode} = useAppContext();
@@ -36,20 +38,8 @@ export default function TimeLogPage() {
   } = useProcessedTimeLogs();
 
   const timeLogMutations = useTimeLogMutations();
-
-  const {
-    data: worklogs,
-    isPending: isWorklogsListing,
-    error: listWorklogsError,
-  } = useQuery({
-    queryKey: [worklogApi.key, mode, date, startHourOfDay],
-    queryFn: () => {
-      return worklogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
-    },
-    initialData: () => [],
-    placeholderData: (prev) => prev,
-    retryDelay: 300,
-  });
+  const {onCreate: onWorklogCreate}  = useWorklogMutations();
+  const syncMutations = useSyncMutations();
 
 
   if (isListing) {
@@ -66,6 +56,8 @@ export default function TimeLogPage() {
     timeLogs,
     mode,
     ...timeLogMutations,
+    onWorklogCreate,
+    ...syncMutations,
     hoveredTimeLogIds,
     setHoveredProgressIntervalId,
     hoveredConflictedIds,

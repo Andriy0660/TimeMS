@@ -1,12 +1,19 @@
 import {CircularProgress} from "@mui/material";
 import Button from "@mui/material/Button";
 import useAppContext from "../context/useAppContext.js";
+import useSyncMutations from "../hooks/useSyncMutations.js";
+import useAsyncCall from "../hooks/useAsyncCall.js";
 
 export default function SyncWorklogsButton({children, className}) {
-  const {syncWorklogs, isSyncingLaunched, isSyncingRunning, progressInfo: {progress}} = useAppContext();
+  const {isSyncingRunning, progressInfo: {progress}} = useAppContext();
+  const {onSync} = useSyncMutations();
+
+  const {execute: handleSyncWorklogs, isExecuting: isSyncingLaunched} = useAsyncCall({
+    fn: onSync,
+  })
 
   return (
-    <Button onClick={syncWorklogs} className={`bg-white ${className}`} sx={{color: "primary.main"}} disabled={isSyncingLaunched || isSyncingRunning}
+    <Button onClick={handleSyncWorklogs} className={`bg-white ${className}`} sx={{color: "primary.main"}} disabled={isSyncingLaunched || isSyncingRunning}
             variant="contained">
       <ButtonContent
         isSyncingLaunched={isSyncingLaunched}
