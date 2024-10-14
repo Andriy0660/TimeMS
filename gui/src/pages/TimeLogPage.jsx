@@ -118,30 +118,33 @@ export default function TimeLogPage() {
           </div>
         </div>
       </div>
-      {isJiraSyncingEnabled && (
-        <div className={`${isJiraEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
-          {mode === viewMode.DAY &&
-            <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
-                            hoveredProgressIntervalId={hoveredProgressIntervalId} />}
 
-          {!isJiraEditMode ? (
-            <TimeLogList {...commonTimeLogListProps} />
-          ) : (
-            <div className="flex">
-              <div className="w-1/2 mr-6">
-                <TimeLogList {...commonTimeLogListProps} isJiraEditMode />
-              </div>
-              <div className="w-1/2 ml-6">
-                <WorklogList
-                  worklogs={worklogService.processData(worklogs, processedTimeLogsArray, selectedTickets)}
-                  isWorklogsListing={isWorklogsListing}
-                  isJiraEditMode={isJiraEditMode}
-                />
-              </div>
+      <div className={`${isJiraEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
+        {mode === viewMode.DAY &&
+          <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
+                          hoveredProgressIntervalId={hoveredProgressIntervalId} />}
+
+        {!isJiraEditMode && (
+          <TimeLogList {...commonTimeLogListProps} />
+        )}
+
+        {isJiraSyncingEnabled && isJiraEditMode && (
+          <div className="flex">
+            <div className="w-1/2 mr-6">
+              <TimeLogList {...commonTimeLogListProps} isJiraEditMode />
             </div>
-          )}
-        </div>
-      )}
+            <div className="w-1/2 ml-6">
+              <WorklogList
+                worklogs={worklogService.processData(worklogs, processedTimeLogsArray, selectedTickets)}
+                isWorklogsListing={isWorklogsListing}
+                isJiraEditMode={isJiraEditMode}
+              />
+            </div>
+          </div>
+        )}
+
+      </div>
+
     </div>
   )
 }
