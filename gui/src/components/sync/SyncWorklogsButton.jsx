@@ -1,7 +1,7 @@
 import {CircularProgress} from "@mui/material";
 import Button from "@mui/material/Button";
-import useSync from "../hooks/useSync.js";
-import useAsyncCall from "../hooks/useAsyncCall.js";
+import useSync from "../../hooks/useSync.js";
+import useAsyncCall from "../../hooks/useAsyncCall.js";
 
 export default function SyncWorklogsButton({children, className}) {
   const {isSyncingRunning, progressInfo: {progress}} = useSync();

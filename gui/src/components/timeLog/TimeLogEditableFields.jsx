@@ -1,7 +1,7 @@
 import CustomTimeField from "./CustomTimeField.jsx";
 import {TextField} from "@mui/material";
-import dateTimeService from "../service/dateTimeService.js";
-import {isJiraSyncingEnabled} from "../config/config.js";
+import dateTimeService from "../../service/dateTimeService.js";
+import {isJiraSyncingEnabled} from "../../config/config.js";
 
 export default function TimeLogEditableFields({
   startTime,

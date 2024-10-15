@@ -1,7 +1,7 @@
 import SyncProgressInfo from './SyncProgressInfo.jsx';
-import dateTimeService from "../service/dateTimeService.js";
+import dateTimeService from "../../service/dateTimeService.js";
 import dayjs from "dayjs";
-import useSync from "../hooks/useSync.js";
+import useSync from "../../hooks/useSync.js";
 
 export default function SyncAllProgressInfo() {
   const {

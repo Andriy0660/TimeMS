@@ -3,7 +3,7 @@ import TableRow from "@mui/material/TableRow";
 import CustomTableCell from "./CustomTableCell.jsx";
 import TableBody from "@mui/material/TableBody";
 import Table from "@mui/material/Table";
-import dateTimeService from "../service/dateTimeService.js";
+import dateTimeService from "../../service/dateTimeService.js";
 
 export default function WeekJiraTable({dayInfos, handleClickDate}) {
 

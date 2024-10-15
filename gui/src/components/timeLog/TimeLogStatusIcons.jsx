@@ -2,7 +2,7 @@ import {Tooltip} from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber.js";
 import TimeLogJiraSyncStatusIcon from "./TimeLogJiraSyncStatusIcon.jsx";
 import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors.js";
-import {isJiraSyncingEnabled} from "../config/config.js";
+import {isJiraSyncingEnabled} from "../../config/config.js";
 
 export default function TimeLogStatusIcons({isConflicted, isContinueUntilTomorrow, jiraSyncStatus, showOnlyNotSuccessfullySynced}) {
   return (

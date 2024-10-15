@@ -1,9 +1,9 @@
 import TimeLog from "./TimeLog.jsx";
 import TimeLogDescription from "./TimeLogDescription.jsx";
 import {Chip} from "@mui/material";
-import dateTimeService from "../service/dateTimeService.js";
+import dateTimeService from "../../service/dateTimeService.js";
 import TimeLogGroup from "./TimeLogGroup.jsx";
-import timeLogService from "../service/timeLogService.js";
+import timeLogService from "../../service/timeLogService.js";
 
 export default function TimeLogGroupedByDescription({
   description,

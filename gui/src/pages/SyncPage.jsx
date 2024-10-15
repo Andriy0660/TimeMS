@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
-import SyncProgressInfo from "../components/SyncProgressInfo.jsx";
-import SyncAllProgressInfo from "../components/SyncAllProgressInfo.jsx";
-import LoadingPage from "../components/LoadingPage.jsx";
+import SyncProgressInfo from "../components/sync/SyncProgressInfo.jsx";
+import SyncAllProgressInfo from "../components/sync/SyncAllProgressInfo.jsx";
+import LoadingPage from "../components/general/LoadingPage.jsx";
 import useSync from "../hooks/useSync.js";
 
 export default function SyncPage() {

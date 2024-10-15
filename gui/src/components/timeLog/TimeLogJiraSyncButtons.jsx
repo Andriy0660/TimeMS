@@ -1,7 +1,7 @@
 import {ListItemIcon, ListItemText, MenuItem, Typography} from "@mui/material";
 import SyncIcon from "@mui/icons-material/Sync.js";
-import {syncStatus} from "../consts/syncStatus.js";
-import dateTimeService from "../service/dateTimeService.js";
+import {syncStatus} from "../../consts/syncStatus.js";
+import dateTimeService from "../../service/dateTimeService.js";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight.js";
 import CallMissedOutgoingIcon from "@mui/icons-material/CallMissedOutgoing.js";
 import CallMissedIcon from "@mui/icons-material/CallMissed.js";

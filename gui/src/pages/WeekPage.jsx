@@ -7,18 +7,18 @@ import timeLogApi from "../api/timeLogApi.js";
 import {FormControlLabel, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import useViewChanger from "../hooks/useViewChanger.js";
-import TimeLogList from "../components/TimeLogList.jsx";
+import TimeLogList from "../components/timeLog/TimeLogList.jsx";
 import {useState} from "react";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from '@mui/icons-material/Reorder';
 import {weekViewMode} from "../consts/weekViewMode.js";
-import ViewModeIcon from "../components/ViewModeIcon.jsx";
+import ViewModeIcon from "../components/general/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
-import WeekTable from "../components/WeekTable.jsx";
-import WeekJiraTable from "../components/WeekJiraTable.jsx";
-import LoadingPage from "../components/LoadingPage.jsx";
+import WeekTable from "../components/week/WeekTable.jsx";
+import WeekJiraTable from "../components/week/WeekJiraTable.jsx";
+import LoadingPage from "../components/general/LoadingPage.jsx";
 import useSync from "../hooks/useSync.js";
 
 export default function WeekPage() {

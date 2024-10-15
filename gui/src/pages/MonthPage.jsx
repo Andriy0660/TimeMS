@@ -9,20 +9,20 @@ import dateTimeService from "../service/dateTimeService.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
-import MonthPageDuration from "../components/MonthPageDuration.jsx";
+import MonthPageDuration from "../components/month/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
-import TimeLogStatusIcons from "../components/TimeLogStatusIcons.jsx";
+import TimeLogStatusIcons from "../components/timeLog/TimeLogStatusIcons.jsx";
 import {FormControlLabel, Switch} from "@mui/material";
-import TimeLogList from "../components/TimeLogList.jsx";
+import TimeLogList from "../components/timeLog/TimeLogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from "@mui/icons-material/Reorder.js";
 import {monthViewMode} from "../consts/monthViewMode.js";
-import ViewModeIcon from "../components/ViewModeIcon.jsx";
+import ViewModeIcon from "../components/general/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import {syncStatus} from "../consts/syncStatus.js";
-import LoadingPage from "../components/LoadingPage.jsx";
+import LoadingPage from "../components/general/LoadingPage.jsx";
 import useSync from "../hooks/useSync.js";
 
 export default function MonthPage() {

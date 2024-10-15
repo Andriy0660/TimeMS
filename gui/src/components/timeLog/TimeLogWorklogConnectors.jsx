@@ -1,4 +1,4 @@
-import {syncStatus} from "../consts/syncStatus.js";
+import {syncStatus} from "../../consts/syncStatus.js";
 import {useEffect, useState} from "react";
 import {timeLogGroupPaddingX} from "./TimeLogGroup.jsx";
 
