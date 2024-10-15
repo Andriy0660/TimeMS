@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
@@ -33,17 +33,14 @@ export default function useProcessedTimeLogs() {
     }
   }, [listAllError, addAlert]);
 
-  const jiraInfo = useJira(isJiraSyncingEnabled, mode, date);
+  const jiraInfo = useJira(isJiraSyncingEnabled, mode, date, timeLogsData);
+  const processedTimeLogsArray = useMemo(() => isJiraSyncingEnabled
+      ? timeLogService.processData(timeLogsData, jiraInfo.selectedTickets)
+      : timeLogService.processData(timeLogsData),
+    [timeLogsData, jiraInfo.selectedTickets]);
 
-  const processedTimeLogsArray = timeLogService.processData(timeLogsData);
   useEffect(() => {
-    let processedData = timeLogService.processData(timeLogsData);
-
-    if (isJiraSyncingEnabled) {
-      processedData = timeLogService.processData(timeLogsData, jiraInfo.selectedTickets);
-    }
-
-    const groupedData = groupAndSortData(processedData, groupByDescription);
+    const groupedData = groupAndSortData(processedTimeLogsArray, groupByDescription);
     setTimeLogs(groupedData);
     setTotalTimeLabel(timeLogService.getTotalTimeLabel(groupedData, groupByDescription));
   }, [timeLogsData, groupByDescription, isJiraSyncingEnabled, jiraInfo.selectedTickets]);
@@ -67,7 +64,7 @@ export default function useProcessedTimeLogs() {
   };
 }
 
-function useJira(isJiraSyncingEnabled, mode, date) {
+function useJira(isJiraSyncingEnabled, mode, date, timeLogsData) {
   const {addAlert} = useAppContext();
   const [filterTickets, setFilterTickets] = useState([""]);
   const [selectedTickets, setSelectedTickets] = useState([]);
@@ -96,11 +93,11 @@ function useJira(isJiraSyncingEnabled, mode, date) {
 
   useEffect(() => {
     if (isJiraSyncingEnabled) {
-      const newFilterTickets = timeLogService.extractTickets(worklogs);
+      const newFilterTickets = timeLogService.extractTickets(timeLogsData);
       setFilterTickets(newFilterTickets);
       updateSelectedTicketsIfNeeded(newFilterTickets);
     }
-  }, [isJiraSyncingEnabled, worklogs]);
+  }, [isJiraSyncingEnabled, timeLogsData]);
 
   function updateSelectedTicketsIfNeeded(newFilterTickets) {
     const updatedTickets = selectedTickets.filter(ticket => newFilterTickets.includes(ticket));
