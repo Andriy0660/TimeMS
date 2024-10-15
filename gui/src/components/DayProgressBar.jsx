@@ -235,7 +235,7 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIn
 
   const handleMouseMove = (e, interval) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
+    const x = Math.max(0, e.clientX - rect.left);
     const percentage = x / rect.width;
     const intervalDuration = interval.endTime.diff(interval.startTime, "minute");
     const minutesFromStart = intervalDuration * percentage;
