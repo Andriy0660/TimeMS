@@ -20,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.example.timecraft.config.TestPostgresContainerConfiguration;
+import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
@@ -73,6 +75,9 @@ class TimeLogApiTest {
 
   @Autowired
   private TimeLogRepository timeLogRepository;
+
+  @Autowired
+  private AppProperties props;
 
   @Test
   void shouldReturnTimeLogsForDayMode() throws Exception {
@@ -166,7 +171,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldCreateTimeLog() throws Exception {
-    int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), 3);
+    int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
 
     TimeLogCreateRequest request = new TimeLogCreateRequest("TMC-1", LocalDate.now(clock), LocalTime.of(9, 30, 0), "some descr");
 
@@ -175,7 +180,22 @@ class TimeLogApiTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    int newSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), 3);
+    int newSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
+    assertEquals(initialSize + 1, newSize);
+  }
+
+  @Test
+  void shouldCreateTimeLogFromWorklog() throws Exception {
+    int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
+
+    TimeLogCreateFromWorklogRequest request = new TimeLogCreateFromWorklogRequest("TST-2", LocalDate.now(clock), LocalTime.of(9, 30, 0), "some descr", 3600);
+
+    mvc.perform(post("/time-logs/fromWorklog")
+            .content(objectMapper.writeValueAsString(request))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    int newSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
     assertEquals(initialSize + 1, newSize);
   }
 
@@ -196,6 +216,17 @@ class TimeLogApiTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.ticket").value(timeLog1.getTicket()))
         .andExpect(jsonPath("$.description").value(timeLog1.getDescription()));
+  }
+
+  @Test
+  void shouldGetConfig() throws Exception {
+    mvc.perform(get("/time-logs/config")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.isJiraSyncingEnabled").value(props.getConfig().getIsJiraSyncingEnabled()))
+        .andExpect(jsonPath("$.offset").value(props.getConfig().getOffset()))
+        .andExpect(jsonPath("$.startHourOfWorkingDay").value(props.getConfig().getStartHourOfWorkingDay()))
+        .andExpect(jsonPath("$.endHourOfWorkingDay").value(props.getConfig().getEndHourOfWorkingDay()));
   }
 
   @Test
@@ -236,13 +267,13 @@ class TimeLogApiTest {
         )).build();
     LocalDate startDate = LocalDate.now(clock).with(TemporalAdjusters.firstDayOfMonth());
     LocalDate endDate = LocalDate.now(clock).with(TemporalAdjusters.lastDayOfMonth()).plusDays(1);
-    int initialSize = getSize(mvc, startDate, endDate, 3);
+    int initialSize = getSize(mvc, startDate, endDate);
 
     mvc.perform(post("/time-logs/importTimeLogs")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
-    int newSize = getSize(mvc, startDate, endDate, 3);
+    int newSize = getSize(mvc, startDate, endDate);
 
     assertEquals(initialSize + 2, newSize);
 
@@ -258,7 +289,52 @@ class TimeLogApiTest {
   }
 
   @Test
+  void shouldDivideTimeLog() throws Exception {
+    TimeLogEntity timeLog = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(11, 0, 0), LocalTime.of(5, 0));
+    timeLog = timeLogRepository.save(timeLog);
+    int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
+
+    mvc.perform(post("/time-logs/divide/{timeLogId}", timeLog.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+    int newSizeOfThisDay = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
+    int sizeOfNextDay = getSize(mvc, LocalDate.now(clock).plusDays(1), LocalDate.now(clock).plusDays(1));
+    assertEquals(initialSize + 1, newSizeOfThisDay + sizeOfNextDay);
+  }
+
+  @Test
   void shouldGetHoursForWeek() throws Exception {
+    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock).with(DayOfWeek.MONDAY), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now().with(DayOfWeek.SUNDAY), LocalTime.of(9, 0, 0));
+
+    timeLog1 = timeLogRepository.save(timeLog1);
+    timeLog2 = timeLogRepository.save(timeLog2);
+
+    mvc.perform(get("/time-logs/hoursForWeek")
+            .param("date", LocalDate.now(clock).toString())
+            .param("includeTickets", "false")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", allOf(hasItem(allOf(
+                    hasEntry("dayName", "Monday"),
+                    hasEntry("duration", "1h 0m")
+                )
+            ),
+            hasItem(allOf(
+                    hasEntry("dayName", "Wednesday"),
+                    hasEntry("duration", "0h 0m")
+                )
+            ),
+            hasItem(allOf(
+                    hasEntry("dayName", "Sunday"),
+                    hasEntry("duration", "1h 0m")
+                )
+            )
+        )));
+  }
+
+  @Test
+  void shouldGetHoursForWeekWithTickets() throws Exception {
     TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now().with(DayOfWeek.MONDAY), LocalTime.of(9, 0, 0));
     TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now().with(DayOfWeek.SUNDAY), LocalTime.of(9, 0, 0));
@@ -379,7 +455,7 @@ class TimeLogApiTest {
     LocalDate startDate = LocalDate.now(clock);
     LocalDate endDate = LocalDate.now(clock).plusDays(1);
 
-    int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), 3);
+    int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
 
     mvc.perform(delete("/time-logs/{id}", timeLog1.getId())
             .contentType(MediaType.APPLICATION_JSON))
@@ -392,7 +468,7 @@ class TimeLogApiTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items", not(matchTimeLog(timeLog1))));
 
-    int newSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), 3);
+    int newSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
     assertEquals(initialSize - 1, newSize);
   }
 
