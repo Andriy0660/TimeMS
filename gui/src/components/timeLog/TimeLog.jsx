@@ -37,7 +37,7 @@ export default function TimeLog({
   setHoveredProgressIntervalId,
   hoveredConflictedIds,
   setHoveredConflictedIds,
-  onSync,
+  onSyncForIssue,
   isJiraEditMode,
 }) {
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -141,7 +141,7 @@ export default function TimeLog({
     fn: onSyncFromJira,
   })
   const {execute: handleSyncForTicket, isExecuting: isSyncing} = useAsyncCall({
-    fn: onSync
+    fn: onSyncForIssue
   })
 
   useEffect(() => {
