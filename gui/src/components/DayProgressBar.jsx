@@ -3,10 +3,13 @@ import '../styles/ProgressBar.css';
 import dateTimeService from "../service/dateTimeService.js";
 import minMax from "dayjs/plugin/minMax";
 import classNames from "classnames";
+import {useState} from "react";
 
 dayjs.extend(minMax);
 
 const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIntervalId}) => {
+  const [dynamicHourInfo, setDynamicHourInfo] = useState(null);
+
   const startOfDay = dateTimeService.getStartOfDay(date);
   const endOfDay = startOfDay.add(1, "day");
   const {startOfWorkingDay, endOfWorkingDay} = dateTimeService.getWorkingDayInfo(date);
@@ -212,30 +215,98 @@ const DayProgressBar = ({timeLogs, date, setHoveredTimeLogIds, hoveredProgressIn
   intervals = splitIntervalsByWorkingHours(intervals)
   intervals = buildUIPosition(intervals)
 
+  const generateHourLabels = () => {
+    const labels = [];
+    let currentHour = start.hour();
+    const endHour = end.hour() < currentHour ? end.hour() + 24 : end.hour();
+
+    while (currentHour <= endHour) {
+      const label = currentHour % 24;
+      const labelTime = start.hour(currentHour);
+      const position = labelTime.diff(start, "minute") / minutesInDay * 100;
+      labels.push({hour: label, position});
+      currentHour += 3;
+    }
+
+    return labels;
+  };
+
+  const hourLabels = generateHourLabels();
+
+  const handleMouseMove = (e, interval) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = x / rect.width;
+    const intervalDuration = interval.endTime.diff(interval.startTime, "minute");
+    const minutesFromStart = intervalDuration * percentage;
+    const pointInTime = interval.startTime.add(minutesFromStart, "minute");
+
+    setDynamicHourInfo({
+      time: pointInTime.format("HH:mm"),
+      position: {x: e.clientX, y: e.clientY}
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setDynamicHourInfo(null);
+  };
+
   return (
-    <div className="progress-bar">
-      {intervals.map((interval, index) => {
-        const isHovered = interval.id?.includes(hoveredProgressIntervalId);
-        const intervalClass = classNames({
-          'progress-interval' : !isHovered,
-          'hovered-progress-interval': isHovered,
-          'thin': interval.thin && !isHovered,
-          'hovered-thin': interval.thin && isHovered,
-        });
-        return <div
-          key={index}
-          className={intervalClass}
-          style={{
-            width: `${interval.width}%`,
-            left: `${interval.left}%`,
-            backgroundColor: interval.color,
-          }}
-          onMouseEnter={() => setHoveredTimeLogIds(Array.from(interval.id || []))}
-          onMouseLeave={() => setHoveredTimeLogIds([])}
-        />
-      })}
+    <div className="m-4">
+      <div className="progress-bar">
+        {intervals.map((interval, index) => {
+          const isHovered = interval.id?.includes(hoveredProgressIntervalId);
+          const intervalClass = classNames({
+            'progress-interval': !isHovered,
+            'hovered-progress-interval': isHovered,
+            'thin': interval.thin && !isHovered,
+            'hovered-thin': interval.thin && isHovered,
+          });
+          return <div
+            key={index}
+            className={intervalClass}
+            style={{
+              width: `${interval.width}%`,
+              left: `${interval.left}%`,
+              backgroundColor: interval.color,
+            }}
+            onMouseEnter={() => setHoveredTimeLogIds(Array.from(interval.id || []))}
+            onMouseLeave={() => {
+              setHoveredTimeLogIds([]);
+              handleMouseLeave();
+            }}
+            onMouseMove={(e) => handleMouseMove(e, interval)}
+          />
+        })}
+      </div>
+      <div className="hour-labels">
+        {hourLabels.map((label, index) => (
+          <div
+            key={index}
+            className="hour-label"
+            style={{left: `${label.position}%`}}
+          >
+            {label.hour}
+          </div>
+        ))}
+      </div>
+      {dynamicHourInfo && <DynamicHourInfo {...dynamicHourInfo} />}
     </div>
   );
 };
+
+function DynamicHourInfo({time, position}) {
+  return (
+    <div
+      className="dynamic-hour-info"
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y - 30}px`
+      }}
+    >
+      {time}
+    </div>
+  )
+}
 
 export default DayProgressBar;
