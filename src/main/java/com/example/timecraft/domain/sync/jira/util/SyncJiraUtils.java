@@ -1,5 +1,6 @@
 package com.example.timecraft.domain.sync.jira.util;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -8,6 +9,8 @@ import com.example.timecraft.domain.timelog.util.DurationUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 
 public class SyncJiraUtils {
+  public static LocalTime defaultWorklogStartTime = LocalTime.of(10, 0);
+
   public static boolean areDescriptionsEqual(String descr1, String descr2) {
     descr1 = descr1 != null ? removeNonLetterAndDigitCharacters(descr1) : null;
     descr2 = descr2 != null ? removeNonLetterAndDigitCharacters(descr2) : null;
