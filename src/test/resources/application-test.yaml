@@ -1,1 +1,3 @@
-
+app:
+  jira:
+    url: http://localhost:9999
