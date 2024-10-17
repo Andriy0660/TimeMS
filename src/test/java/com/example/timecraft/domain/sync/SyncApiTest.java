@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -53,7 +54,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Transactional
 @Testcontainers
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -188,7 +188,7 @@ public class SyncApiTest {
     SyncIntoJiraRequest request = new SyncIntoJiraRequest(ticket, LocalDate.now(clock), descr);
 
     stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/" + worklogEntities.get(1).getId()))
-        .willReturn(notFound()));
+        .willReturn(notFound().withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)));
 
     mvc.perform(post("/syncJira/to")
             .content(objectMapper.writeValueAsString(request))
@@ -337,7 +337,7 @@ public class SyncApiTest {
 
   @Test
   void shouldGetSyncedStatus() throws Exception {
-    String ticket = "TST-1";
+    String ticket = "TST-" + (int) (Math.random() * 1000);
     String descr = "descr";
     WorklogEntity worklog1 = WorklogApiTestUtils.createWorklogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     TimeLogEntity timeLog1 = TimeLogApiTestUtils.createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));

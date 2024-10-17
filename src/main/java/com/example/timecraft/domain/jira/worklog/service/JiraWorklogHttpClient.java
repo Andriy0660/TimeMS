@@ -74,7 +74,7 @@ public class JiraWorklogHttpClient {
   public void deleteWorklog(final String issueKey, final Long id) {
     final String url = buildUrl("/issue/" + issueKey + "/worklog/" + id);
     try {
-      final ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, getHttpEntity(), Void.class);
+      final ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, getHttpEntity(), String.class);
 
       if (!response.getStatusCode().is2xxSuccessful()) {
         throw new RuntimeException("Failed to delete worklog with " + id + " for " + issueKey + " : " + response.getStatusCode());
