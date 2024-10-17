@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -18,7 +17,6 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.example.timecraft.config.TestPostgresContainerConfiguration;
@@ -187,8 +185,15 @@ public class SyncApiTest {
 
     SyncIntoJiraRequest request = new SyncIntoJiraRequest(ticket, LocalDate.now(clock), descr);
 
-    stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/" + worklogEntities.get(1).getId()))
-        .willReturn(notFound().withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)));
+    stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/.*"))
+        .willReturn(notFound().withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE).withBody("""
+            {
+                "errorMessages": [
+                    "Cannot find worklog"
+                ],
+                "errors": {}
+            }
+            """)));
 
     mvc.perform(post("/syncJira/to")
             .content(objectMapper.writeValueAsString(request))
