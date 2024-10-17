@@ -305,9 +305,11 @@ class TimeLogApiTest {
   @Test
   void shouldGetHoursForWeek() throws Exception {
     TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock).with(DayOfWeek.MONDAY), LocalTime.of(9, 0, 0));
+    TimeLogEntity timeLog12 = createTimeLogEntity(LocalDate.now(clock).with(DayOfWeek.MONDAY), LocalTime.of(9, 30, 0));
     TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now().with(DayOfWeek.SUNDAY), LocalTime.of(9, 0, 0));
 
     timeLog1 = timeLogRepository.save(timeLog1);
+    timeLog12 = timeLogRepository.save(timeLog12);
     timeLog2 = timeLogRepository.save(timeLog2);
 
     mvc.perform(get("/time-logs/hoursForWeek")
@@ -315,22 +317,11 @@ class TimeLogApiTest {
             .param("includeTickets", "false")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.items", allOf(hasItem(allOf(
-                    hasEntry("dayName", "Monday"),
-                    hasEntry("duration", "1h 0m")
-                )
-            ),
-            hasItem(allOf(
-                    hasEntry("dayName", "Wednesday"),
-                    hasEntry("duration", "0h 0m")
-                )
-            ),
-            hasItem(allOf(
-                    hasEntry("dayName", "Sunday"),
-                    hasEntry("duration", "1h 0m")
-                )
-            )
-        )));
+
+        .andExpect(jsonPath("$.items[?(@.dayName == 'Monday' && @.duration == '2h 0m' && @.conflicted == true)]").exists())
+        .andExpect(jsonPath("$.items[?(@.dayName == 'Wednesday' && @.duration == '0h 0m')]").exists())
+        .andExpect(jsonPath("$.items[?(@.dayName == 'Sunday' && @.duration == '1h 0m' && @.conflicted == false)]").exists());
+
   }
 
   @Test
