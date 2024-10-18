@@ -186,16 +186,7 @@ public class SyncApiTest {
 
     SyncIntoJiraRequest request = new SyncIntoJiraRequest(ticket, LocalDate.now(clock), descr);
     stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/.*"))
-        .willReturn(aResponse()
-            .withStatus(404)
-            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-            .withBody("""
-                {
-                    "errorMessages": ["Cannot find worklog"],
-                    "errors": {}
-                }
-                """)
-            .withFixedDelay(100)));
+        .willReturn(WireMock.status(404)));
 
     mvc.perform(post("/syncJira/to")
             .content(objectMapper.writeValueAsString(request))
