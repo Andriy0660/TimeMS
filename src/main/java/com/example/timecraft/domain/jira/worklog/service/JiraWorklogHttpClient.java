@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -72,6 +73,12 @@ public class JiraWorklogHttpClient {
   }
 
   public void deleteWorklog(final String issueKey, final Long id) {
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout(3000);
+    factory.setReadTimeout(3000);
+
+    RestTemplate restTemplate = new RestTemplate(factory);
+
     final String url = buildUrl("/issue/" + issueKey + "/worklog/" + id);
     try {
       final ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, getHttpEntity(), Void.class);
