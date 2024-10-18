@@ -38,6 +38,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultWorklogStartTime;
 import static com.example.timecraft.domain.sync.util.SyncApiTestUtils.accountIdForTesting;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
 import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
@@ -184,16 +185,17 @@ public class SyncApiTest {
     worklogRepository.save(worklogEntities.get(1));
 
     SyncIntoJiraRequest request = new SyncIntoJiraRequest(ticket, LocalDate.now(clock), descr);
-
     stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/.*"))
-        .willReturn(notFound().withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE).withBody("""
-            {
-                "errorMessages": [
-                    "Cannot find worklog"
-                ],
-                "errors": {}
-            }
-            """)));
+        .willReturn(aResponse()
+            .withStatus(404)
+            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .withBody("""
+                {
+                    "errorMessages": ["Cannot find worklog"],
+                    "errors": {}
+                }
+                """)
+            .withFixedDelay(100)));
 
     mvc.perform(post("/syncJira/to")
             .content(objectMapper.writeValueAsString(request))
