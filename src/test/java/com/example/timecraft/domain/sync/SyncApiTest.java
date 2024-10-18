@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +35,9 @@ import com.example.timecraft.domain.worklog.persistence.WorklogRepository;
 import com.example.timecraft.domain.worklog.util.WorklogApiTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultWorklogStartTime;
@@ -58,8 +62,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Import(TestPostgresContainerConfiguration.class)
 @SpringBootTest
-@WireMockTest(httpPort = 9999)
+//@WireMockTest(httpPort = 9999)
 public class SyncApiTest {
+  @RegisterExtension
+  static WireMockExtension wireMockServer = WireMockExtension.newInstance()
+      .options(WireMockConfiguration.wireMockConfig()
+          .port(9999)
+          .notifier(new ConsoleNotifier(true)))
+      .build();
+
   @Autowired
   private MockMvc mvc;
 
@@ -185,17 +196,15 @@ public class SyncApiTest {
     worklogRepository.save(worklogEntities.get(1));
 
     SyncIntoJiraRequest request = new SyncIntoJiraRequest(ticket, LocalDate.now(clock), descr);
-    stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/.*"))
+    wireMockServer.stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/.*"))
         .willReturn(aResponse()
             .withStatus(404)
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
             .withBody("""
                 {
-                    "errorMessages": ["Cannot find worklog"],
-                    "errors": {}
+                    "errorMessages": ["Cannot find worklog"]
                 }
-                """)
-            .withFixedDelay(100)));
+                """)));
 
     mvc.perform(post("/syncJira/to")
             .content(objectMapper.writeValueAsString(request))
