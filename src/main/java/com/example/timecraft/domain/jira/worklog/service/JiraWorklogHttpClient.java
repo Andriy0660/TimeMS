@@ -132,7 +132,7 @@ public class JiraWorklogHttpClient {
     final String auth = props.getJira().getEmail() + ":" + props.getJira().getToken();
     final String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
     headers.set("Authorization", "Basic " + encodedAuth);
-    headers.setContentType(MediaType.APPLICATION_JSON);
+//    headers.setContentType(MediaType.APPLICATION_JSON);
     return headers;
   }
 }
