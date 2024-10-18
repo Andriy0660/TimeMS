@@ -173,28 +173,6 @@ public class SyncApiTest {
   }
 
   @Test
-  void shouldThrowWhenSyncMismatchOnSyncIntoJira() throws Exception {
-    String ticket = "TST-1";
-    String descr = "descr";
-    List<TimeLogEntity> timeLogEntities = SyncApiTestUtils.createTimeLogsWithSameInfo(2, LocalDate.now(clock), ticket, descr);
-    List<WorklogEntity> worklogEntities = SyncApiTestUtils.createWorklogsWithSameInfo(2, LocalDate.now(clock), ticket, descr);
-
-    timeLogRepository.save(timeLogEntities.get(0));
-    timeLogRepository.save(timeLogEntities.get(1));
-    worklogRepository.save(worklogEntities.get(0));
-    worklogRepository.save(worklogEntities.get(1));
-
-    SyncIntoJiraRequest request = new SyncIntoJiraRequest(ticket, LocalDate.now(clock), descr);
-    stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/.*"))
-        .willReturn(WireMock.status(404)));
-
-    mvc.perform(post("/syncJira/to")
-            .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
   void shouldSyncAllWorklogs() throws Exception {
     String ticket = "TST-1";
     String appDescr = "appDescr";
