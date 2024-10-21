@@ -37,9 +37,9 @@ public class SyncApiTestUtils {
   }
 
   public static List<WorklogEntity> createWorklogsWithSameInfo(int count, LocalDate date, String ticket, String description) {
-    List<WorklogEntity> timeLogs = new ArrayList<>();
+    List<WorklogEntity> worklogs = new ArrayList<>();
     for (int i = 0; i < count; i++) {
-      timeLogs.add(WorklogEntity.builder()
+      worklogs.add(WorklogEntity.builder()
           .id(UUID.randomUUID().getMostSignificantBits())
           .comment(description)
           .ticket(ticket)
@@ -49,7 +49,7 @@ public class SyncApiTestUtils {
           .timeSpentSeconds(3600)
           .build());
     }
-    return timeLogs;
+    return worklogs;
   }
 
   public static String convertListToJSONString(List<WorklogEntity> worklogs) {
