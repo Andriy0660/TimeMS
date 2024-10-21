@@ -21,6 +21,11 @@ public interface TimeLogMapper {
   TimeLogListResponse.TimeLogDto toListItem(final TimeLogEntity entity);
 
   TimeLogEntity fromCreateRequest(final TimeLogCreateRequest request);
+
+  TimeLogEntity fromCreateResponse(final TimeLogCreateResponse response);
+
+  TimeLogEntity fromUpdateResponse(final TimeLogUpdateResponse response);
+
   TimeLogEntity fromMergeRequest(final TimeLogImportRequest.TimeLogDto timeLogDto);
 
   TimeLogCreateResponse toCreateResponse(final TimeLogEntity entity);
@@ -34,6 +39,8 @@ public interface TimeLogMapper {
   TimeLogEntity fromCreateFromWorklogRequest(final TimeLogCreateFromWorklogRequest request);
 
   TimeLogCreateFormWorklogResponse toCreateFromWorklogResponse(final TimeLogEntity entity);
+
+  TimeLogUpdateRequest toUpdateRequest(final TimeLogEntity entity);
 
   @Mapping(source = "comment", target = "description")
   @Mapping(target = "id", ignore = true)
