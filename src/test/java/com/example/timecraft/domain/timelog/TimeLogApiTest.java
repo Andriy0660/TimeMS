@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -19,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.example.timecraft.config.MockMvcConfig;
 import com.example.timecraft.config.TestPostgresContainerConfiguration;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
@@ -28,13 +28,14 @@ import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
-import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
+import com.example.timecraft.domain.timelog.service.TestTimeLogService;
 import com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultWorklogStartTime;
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.createImportTimeLogDto;
-import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.createTimeLogEntity;
+import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.createTimeLogCreateRequest;
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.getDurationSum;
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.getSize;
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.matchTimeLog;
@@ -59,9 +60,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Testcontainers
-@AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import(TestPostgresContainerConfiguration.class)
+@Import({TestPostgresContainerConfiguration.class, MockMvcConfig.class})
 @SpringBootTest
 class TimeLogApiTest {
 
@@ -75,26 +75,21 @@ class TimeLogApiTest {
   private Clock clock;
 
   @Autowired
-  private TimeLogRepository timeLogRepository;
+  private AppProperties props;
 
   @Autowired
-  private AppProperties props;
+  private TestTimeLogService timeLogService;
 
   @Test
   void shouldReturnTimeLogsForDayMode() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock).plusDays(1),
-        LocalTime.of(2, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now(clock).plusDays(2),
-        LocalTime.of(10, 0, 0));
-
     LocalDate startDate = LocalDate.now(clock);
     LocalDate endDate = LocalDate.now(clock).plusDays(1);
 
-    timeLog1 = timeLogRepository.save(timeLog1);
-    timeLog2 = timeLogRepository.save(timeLog2);
-    timeLog3 = timeLogRepository.save(timeLog3);
-
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
+    TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock).plusDays(1),
+        LocalTime.of(2, 0, 0)));
+    TimeLogEntity timeLog3 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock).plusDays(2),
+        LocalTime.of(10, 0, 0)));
 
     mvc.perform(get("/time-logs")
             .param("startDate", startDate.toString())
@@ -109,18 +104,14 @@ class TimeLogApiTest {
 
   @Test
   void shouldReturnTimeLogsForWeekMode() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock).with(next(DayOfWeek.MONDAY)),
-        LocalTime.of(2, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now(clock).plusDays(8),
-        LocalTime.of(10, 0, 0));
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
+    TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock).with(next(DayOfWeek.MONDAY)),
+        LocalTime.of(2, 0, 0)));
+    TimeLogEntity timeLog3 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock).plusDays(8),
+        LocalTime.of(10, 0, 0)));
 
     LocalDate startDate = LocalDate.now(clock).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     LocalDate endDate = LocalDate.now(clock).with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).plusDays(1);
-
-    timeLog1 = timeLogRepository.save(timeLog1);
-    timeLog2 = timeLogRepository.save(timeLog2);
-    timeLog3 = timeLogRepository.save(timeLog3);
 
     mvc.perform(get("/time-logs")
             .param("startDate", startDate.toString())
@@ -135,15 +126,11 @@ class TimeLogApiTest {
 
   @Test
   void shouldReturnTimeLogsForMonthMode() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock).with(firstDayOfNextMonth()),
-        LocalTime.of(2, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now(clock).with(firstDayOfNextMonth()).plusDays(1),
-        LocalTime.of(10, 0, 0));
-
-    timeLog1 = timeLogRepository.save(timeLog1);
-    timeLog2 = timeLogRepository.save(timeLog2);
-    timeLog3 = timeLogRepository.save(timeLog3);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
+    TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock).with(firstDayOfNextMonth()),
+        LocalTime.of(2, 0, 0)));
+    TimeLogEntity timeLog3 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock).with(firstDayOfNextMonth()).plusDays(1),
+        LocalTime.of(10, 0, 0)));
 
     LocalDate startDate = LocalDate.now(clock).with(TemporalAdjusters.firstDayOfMonth());
     LocalDate endDate = LocalDate.now(clock).with(TemporalAdjusters.lastDayOfMonth()).plusDays(1);
@@ -174,7 +161,7 @@ class TimeLogApiTest {
   void shouldCreateTimeLog() throws Exception {
     int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
 
-    TimeLogCreateRequest request = new TimeLogCreateRequest("TMC-1", LocalDate.now(clock), LocalTime.of(9, 30, 0), "some descr");
+    TimeLogCreateRequest request = new TimeLogCreateRequest("TMC-1", LocalDate.now(clock), defaultWorklogStartTime, "some descr");
 
     mvc.perform(post("/time-logs")
             .content(objectMapper.writeValueAsString(request))
@@ -189,7 +176,7 @@ class TimeLogApiTest {
   void shouldCreateTimeLogFromWorklog() throws Exception {
     int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
 
-    TimeLogCreateFromWorklogRequest request = new TimeLogCreateFromWorklogRequest("TST-2", LocalDate.now(clock), LocalTime.of(9, 30, 0), "some descr", 3600);
+    TimeLogCreateFromWorklogRequest request = new TimeLogCreateFromWorklogRequest("TST-2", LocalDate.now(clock), defaultWorklogStartTime, "some descr", 3600);
 
     mvc.perform(post("/time-logs/fromWorklog")
             .content(objectMapper.writeValueAsString(request))
@@ -210,8 +197,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldGetTimeLog() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    timeLog1 = timeLogRepository.save(timeLog1);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
     mvc.perform(get("/time-logs/{id}", timeLog1.getId())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -241,19 +227,16 @@ class TimeLogApiTest {
   @Test
   void shouldMergeTimeLogs() throws Exception {
     TimeLogImportRequest.TimeLogDto timeLogDto1 = createImportTimeLogDto(LocalDate.now(clock), LocalTime.of(9, 0, 0),
-        LocalTime.of(11, 0, 0));
+        LocalTime.of(10, 0, 0));
     TimeLogImportRequest.TimeLogDto timeLogDto2 = createImportTimeLogDto(LocalDate.now(clock), LocalTime.of(11, 0, 0),
-        LocalTime.of(13, 0, 0));
+        LocalTime.of(12, 0, 0));
     TimeLogImportRequest.TimeLogDto timeLogDto3 = createImportTimeLogDto(LocalDate.now(clock), LocalTime.of(13, 0, 0),
-        LocalTime.of(15, 0, 0));
+        LocalTime.of(14, 0, 0));
     TimeLogImportRequest.TimeLogDto timeLogDto4 = createImportTimeLogDto(LocalDate.now(clock), LocalTime.of(15, 0, 0),
-        LocalTime.of(17, 0, 0));
+        LocalTime.of(15, 0, 0));
 
-    TimeLogEntity timeLogEntity1 = TimeLogApiTestUtils.clone(timeLogDto1);
-    TimeLogEntity timeLogEntity2 = TimeLogApiTestUtils.clone(timeLogDto2);
-
-    timeLogEntity1 = timeLogRepository.save(timeLogEntity1);
-    timeLogEntity2 = timeLogRepository.save(timeLogEntity2);
+    timeLogService.saveTimeLog(createTimeLogCreateRequest(timeLogDto1.getDate(), timeLogDto1.getStartTime(), timeLogDto1.getTicket(), timeLogDto1.getDescription()));
+    timeLogService.saveTimeLog(createTimeLogCreateRequest(timeLogDto2.getDate(), timeLogDto2.getStartTime(), timeLogDto2.getTicket(), timeLogDto2.getDescription()));
 
     TimeLogImportRequest request = TimeLogImportRequest.builder()
         .dateGroups(Arrays.asList(
@@ -291,8 +274,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldDivideTimeLog() throws Exception {
-    TimeLogEntity timeLog = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(11, 0, 0), LocalTime.of(5, 0));
-    timeLog = timeLogRepository.save(timeLog);
+    TimeLogEntity timeLog = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), LocalTime.of(11, 0, 0)), LocalTime.of(5, 0));
     int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
 
     mvc.perform(post("/time-logs/divide/{timeLogId}", timeLog.getId())
@@ -332,13 +314,9 @@ class TimeLogApiTest {
       }
     }
 
-    TimeLogEntity timeLog1 = createTimeLogEntity(monday, LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog12 = createTimeLogEntity(monday, LocalTime.of(9, 30, 0));
-    TimeLogEntity timeLog2 = createTimeLogEntity(sunday, LocalTime.of(9, 0, 0));
-
-    timeLog1 = timeLogRepository.save(timeLog1);
-    timeLog12 = timeLogRepository.save(timeLog12);
-    timeLog2 = timeLogRepository.save(timeLog2);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(monday, defaultWorklogStartTime));
+    TimeLogEntity timeLog12 = timeLogService.saveTimeLog(createTimeLogCreateRequest(monday, defaultWorklogStartTime.plusMinutes(30)));
+    TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(sunday, defaultWorklogStartTime));
 
     String expectedMondayDuration = getDurationSum(initialMondayDuration, "2h 0m");
     String expectedSundayDuration = getDurationSum(initialSundayDuration, "1h 0m");
@@ -355,13 +333,9 @@ class TimeLogApiTest {
 
   @Test
   void shouldGetHoursForWeekWithTickets() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now().with(DayOfWeek.MONDAY), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now().with(DayOfWeek.SUNDAY), LocalTime.of(9, 0, 0));
-
-    timeLog1 = timeLogRepository.save(timeLog1);
-    timeLog2 = timeLogRepository.save(timeLog2);
-    timeLog3 = timeLogRepository.save(timeLog3);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
+    TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now().with(DayOfWeek.MONDAY), defaultWorklogStartTime));
+    TimeLogEntity timeLog3 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now().with(DayOfWeek.SUNDAY), defaultWorklogStartTime));
 
     mvc.perform(get("/time-logs/hoursForWeek")
             .param("date", LocalDate.now(clock).toString())
@@ -395,11 +369,8 @@ class TimeLogApiTest {
       }
     }
 
-    TimeLogEntity timeLog1 = createTimeLogEntity(firstDate, LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now().with(lastDayOfMonth()), LocalTime.of(9, 0, 0));
-
-    timeLog1 = timeLogRepository.save(timeLog1);
-    timeLog2 = timeLogRepository.save(timeLog2);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(firstDate, defaultWorklogStartTime));
+    TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now().with(lastDayOfMonth()), defaultWorklogStartTime));
 
     mvc.perform(get("/time-logs/hoursForMonth")
             .param("date", LocalDate.now(clock).toString())
@@ -414,12 +385,9 @@ class TimeLogApiTest {
 
   @Test
   void shouldUpdateTimeLog() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(11, 0, 0), null);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
+    TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime.plusHours(2)), null);
     TimeLogEntity cloneForCompare = TimeLogApiTestUtils.clone(timeLog1);
-
-    timeLog1 = timeLogRepository.save(timeLog1);
-    timeLog2 = timeLogRepository.save(timeLog2);
 
     LocalDate startDate = LocalDate.now(clock);
     LocalDate endDate = LocalDate.now(clock).plusDays(1);
@@ -448,8 +416,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldSetGroupDescriptionForOneTimeLog() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    timeLog1 = timeLogRepository.save(timeLog1);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
     TimeLogSetGroupDescrRequest request = new TimeLogSetGroupDescrRequest(List.of(timeLog1.getId()), "New description");
 
     mvc.perform(patch("/time-logs/setGroupDescription")
@@ -465,10 +432,8 @@ class TimeLogApiTest {
 
   @Test
   void shouldSetGroupDescriptionForManyTimeLogs() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    TimeLogEntity timeLog2 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(11, 0, 0));
-    timeLog1 = timeLogRepository.save(timeLog1);
-    timeLog2 = timeLogRepository.save(timeLog2);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
+    TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime.plusHours(2)));
     TimeLogSetGroupDescrRequest request = new TimeLogSetGroupDescrRequest(List.of(timeLog1.getId(), timeLog2.getId()), "New description");
 
     mvc.perform(patch("/time-logs/setGroupDescription")
@@ -490,8 +455,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldDeleteTimeLog() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    timeLog1 = timeLogRepository.save(timeLog1);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
     LocalDate startDate = LocalDate.now(clock);
     LocalDate endDate = LocalDate.now(clock).plusDays(1);
 
@@ -514,8 +478,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldChangeDateToNextDay() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    timeLog1 = timeLogRepository.save(timeLog1);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
     TimeLogChangeDateRequest request = new TimeLogChangeDateRequest(true);
 
     mvc.perform(patch("/time-logs/{timeLogId}/changeDate", timeLog1.getId())
@@ -531,8 +494,7 @@ class TimeLogApiTest {
 
   @Test
   void shouldChangeDateToPrevDay() throws Exception {
-    TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
-    timeLog1 = timeLogRepository.save(timeLog1);
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime));
     TimeLogChangeDateRequest request = new TimeLogChangeDateRequest(false);
 
     mvc.perform(patch("/time-logs/{timeLogId}/changeDate", timeLog1.getId())

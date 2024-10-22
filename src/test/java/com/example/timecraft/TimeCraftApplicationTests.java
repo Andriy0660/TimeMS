@@ -6,12 +6,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.example.timecraft.config.MockMvcConfig;
 import com.example.timecraft.config.TestPostgresContainerConfiguration;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Testcontainers
-@Import(TestPostgresContainerConfiguration.class)
+@Import({TestPostgresContainerConfiguration.class, MockMvcConfig.class})
 class TimeCraftApplicationTests {
 
   @Test

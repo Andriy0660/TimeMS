@@ -21,21 +21,6 @@ public class SyncApiTestUtils {
 
   public static String accountIdForTesting = "accountIdForTesting";
 
-  public static List<TimeLogEntity> createTimeLogsWithSameInfo(int count, LocalDate date, String ticket, String description) {
-    List<TimeLogEntity> timeLogs = new ArrayList<>();
-    for (int i = 0; i < count; i++) {
-      timeLogs.add(TimeLogEntity.builder()
-          .id(UUID.randomUUID().getMostSignificantBits())
-          .description(description)
-          .ticket(ticket)
-          .date(date)
-          .startTime(LocalTime.of(9, 0))
-          .endTime(LocalTime.of(10, 0))
-          .build());
-    }
-    return timeLogs;
-  }
-
   public static List<WorklogEntity> createWorklogsWithSameInfo(int count, LocalDate date, String ticket, String description) {
     List<WorklogEntity> worklogs = new ArrayList<>();
     for (int i = 0; i < count; i++) {
