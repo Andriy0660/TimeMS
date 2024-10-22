@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.timecraft.domain.logsync.service.LogSyncService;
+import com.example.timecraft.domain.sync.jira.api.SyncJiraProcessingService;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
@@ -36,11 +36,11 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/time-logs")
 public class TimeLogController {
   private final TimeLogService timeLogService;
-  private final LogSyncService logSyncService;
+  private final SyncJiraProcessingService syncJiraProcessingService;
 
   @GetMapping
-  public TimeLogListResponse list(@RequestParam final String mode, @RequestParam final LocalDate date) {
-    return logSyncService.processTimeLogDtos(timeLogService.list(mode, date));
+  public TimeLogListResponse list(@RequestParam final LocalDate startDate, @RequestParam final LocalDate endDate) {
+    return syncJiraProcessingService.processTimeLogDtos(timeLogService.list(startDate, endDate));
   }
 
   @PostMapping
@@ -75,12 +75,12 @@ public class TimeLogController {
 
   @GetMapping("/hoursForWeek")
   public TimeLogHoursForWeekResponse getHoursForWeek(@RequestParam final LocalDate date) {
-    return logSyncService.processWeekDayInfos(timeLogService.getHoursForWeek(date));
+    return syncJiraProcessingService.processWeekDayInfos(timeLogService.getHoursForWeek(date));
   }
 
   @GetMapping("/hoursForMonth")
   public TimeLogHoursForMonthResponse getHoursForMonth(@RequestParam final LocalDate date) {
-    return logSyncService.processMonthDayInfos(timeLogService.getHoursForMonth(date));
+    return syncJiraProcessingService.processMonthDayInfos(timeLogService.getHoursForMonth(date));
   }
 
   @PutMapping("/{timeLogId}")

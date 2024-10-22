@@ -1,44 +1,18 @@
 package com.example.timecraft.domain.timelog.util;
 
 import java.awt.*;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.stream.Collectors;
 
-import com.example.timecraft.core.exception.BadRequestException;
-
 public class TimeLogUtils {
-  public static LocalDate[] calculateDateRange(final String mode, final LocalDate date) {
-    switch (mode) {
-      case "Day" -> {
-        return new LocalDate[]{date, date.plusDays(1)};
-      }
-      case "Week" -> {
-        LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        return new LocalDate[]{startOfWeek, endOfWeek.plusDays(1)};
-      }
-      case "Month" -> {
-        LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
-        return new LocalDate[]{startOfMonth, endOfMonth.plusDays(1)};
-      }
-      case "All" -> {
-        return null;
-      }
-      default -> throw new BadRequestException("Invalid time mode");
-    }
-  }
 
   public static int getDurationInSecondsForTimelog(final LocalTime startTime, final LocalTime endTime) {
     if (startTime == null || endTime == null) return 0;
-    int duration = (int) Duration.between(startTime, endTime).toSeconds();
+    final int duration = (int) Duration.between(startTime, endTime).toSeconds();
     return duration < 0 ? 3600 * 24 + duration : duration;
   }
 
@@ -49,7 +23,7 @@ public class TimeLogUtils {
         : date;
   }
 
-  public static String generateColor(String ticket, String descr) {
+  public static String generateColor(final String ticket, final String descr) {
     if (descr == null) return null;
     String input = descr;
     if (ticket != null) {
@@ -65,7 +39,7 @@ public class TimeLogUtils {
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
-    byte[] hashBytes = digest.digest(input.getBytes());
+    final byte[] hashBytes = digest.digest(input.getBytes());
 
     int rgb = getRgb(hashBytes);
 

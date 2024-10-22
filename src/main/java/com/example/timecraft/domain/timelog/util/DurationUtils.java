@@ -1,11 +1,8 @@
-package com.example.timecraft.domain.timelog.service;
+package com.example.timecraft.domain.timelog.util;
 
 import java.time.Duration;
 
-import org.springframework.stereotype.Service;
-
-@Service
-public class DurationService {
+public class DurationUtils {
   public static String formatDurationHM(final Duration duration) {
     return String.format("%dh %dm", duration.toHours(), duration.toMinutesPart());
   }
@@ -17,5 +14,4 @@ public class DurationService {
   public static String formatDurationDH(final Duration duration) {
     return String.format("%dd %dh", duration.toDays(), duration.toHoursPart());
   }
-
 }

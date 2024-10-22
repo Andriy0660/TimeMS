@@ -6,6 +6,7 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import worklogApi from "../api/worklogApi.js";
 import timeLogApi from "../api/timeLogApi.js";
 import {viewMode} from "../consts/viewMode.js";
+import syncApi from "../api/syncApi.js";
 
 const AppContext = createContext();
 
@@ -32,7 +33,7 @@ export const AppProvider = ({children}) => {
   };
 
   const {mutateAsync: syncWorklogs, isPending: isSyncingLaunched} = useMutation({
-    mutationFn: () => worklogApi.syncWorklogs(),
+    mutationFn: () => syncApi.syncAllWorklogs(),
     onSuccess: () => {
       queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
@@ -54,7 +55,7 @@ export const AppProvider = ({children}) => {
     data: progressInfo,
   } = useQuery({
     queryKey: [worklogApi.key, "progress"],
-    queryFn: () => worklogApi.getProgress(),
+    queryFn: () => syncApi.getProgress(),
     initialData: () => 0,
     refetchInterval: (data) => isSyncingLaunched || data.state.data.inProgress ? 300 : false,
     refetchOnWindowFocus: false,

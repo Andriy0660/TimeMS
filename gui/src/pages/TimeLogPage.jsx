@@ -19,7 +19,6 @@ import {viewMode} from "../consts/viewMode.js";
 
 export default function TimeLogPage() {
   const {date, mode} = useAppContext();
-
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
   const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
   const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);
@@ -147,7 +146,6 @@ export default function TimeLogPage() {
             setHoveredProgressIntervalId={setHoveredProgressIntervalId}
             hoveredConflictedIds={hoveredConflictedIds}
             setHoveredConflictedIds={setHoveredConflictedIds}
-            processedTimeLogsArray={processedTimeLogsArray}
           />
         )}
         {isJiraEditMode && (
@@ -163,7 +161,6 @@ export default function TimeLogPage() {
                   setHoveredProgressIntervalId={setHoveredProgressIntervalId}
                   hoveredConflictedIds={hoveredConflictedIds}
                   setHoveredConflictedIds={setHoveredConflictedIds}
-                  processedTimeLogsArray={processedTimeLogsArray}
                 />
               </div>
               <div className="w-1/2 ml-6">

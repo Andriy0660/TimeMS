@@ -90,7 +90,7 @@ export default function WeekPage() {
           isActive={view === weekViewMode.LIST}
           onClick={() => setView(weekViewMode.LIST)}
         />
-        {view === weekViewMode && <FormControlLabel
+        {view === weekViewMode.LIST && <FormControlLabel
           control={
             <Switch
               checked={groupByDescription}
@@ -114,7 +114,7 @@ export default function WeekPage() {
                   key={dayInfo.date}
                   date={dayInfo.date}
                   isHover
-                  syncStatus={dayInfo?.syncStatus}
+                  syncStatus={dayInfo?.jiraSyncInfo.status}
                   isConflicted={dayInfo.conflicted}
                   onClick={() => handleClick(dayInfo.date)}
                 >

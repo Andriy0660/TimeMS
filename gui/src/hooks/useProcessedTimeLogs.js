@@ -24,7 +24,7 @@ export default function useProcessedTimeLogs() {
   } = useQuery({
     queryKey: [timeLogApi.key, mode, date, offset],
     queryFn: () => {
-      return timeLogApi.list({mode, date: dateTimeService.getFormattedDate(date)});
+      return timeLogApi.list(dateTimeService.calculateDateRange(mode, date));
     },
     retryDelay: 300,
   });

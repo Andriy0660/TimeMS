@@ -19,9 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.timecraft.core.config.AppProperties;
-import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
-import com.example.timecraft.domain.logsync.util.LogSyncUtil;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
@@ -42,7 +41,7 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import lombok.RequiredArgsConstructor;
 
-import static com.example.timecraft.domain.timelog.service.DurationService.formatDurationHM;
+import static com.example.timecraft.domain.timelog.util.DurationUtils.formatDurationHM;
 
 @Service
 @RequiredArgsConstructor
@@ -54,23 +53,17 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final AppProperties props;
 
   @Override
-  public TimeLogListResponse list(final String mode, final LocalDate date) {
+  public TimeLogListResponse list(final LocalDate startDate, final LocalDate endDate) {
     final int offset = props.getTimeConfig().getOffset();
-    if(offset < 0 || offset > 23) {
-      throw new BadRequestException("Offset must be between 0 and 23");
-    }
-    final List<TimeLogEntity> timeLogEntityList = getAllTimeLogEntitiesInMode(mode, date, offset);
+    final LocalTime startTime = LocalTime.of(offset, 0);
+
+    final List<TimeLogEntity> timeLogEntityList = repository.findAllInRange(startDate, endDate, startTime);
+
 
     final List<TimeLogListResponse.TimeLogDto> timeLogDtoList = timeLogEntityList.stream()
         .map(timeLogEntity -> {
           TimeLogListResponse.TimeLogDto timeLogDto = mapper.toListItem(timeLogEntity);
           timeLogDto.setTotalTime(mapTotalTime(timeLogDto.getStartTime(), timeLogDto.getEndTime()));
-          if (timeLogDto.getDescription() != null || timeLogDto.getTicket() != null) {
-            timeLogDto.setColor(TimeLogUtils.generateColor(
-                timeLogEntity.getTicket(),
-                LogSyncUtil.removeNonLetterAndDigitCharacters(timeLogEntity.getDescription())
-            ));
-          }
           return timeLogDto;
         })
         .sorted(Comparator
@@ -80,28 +73,11 @@ public class TimeLogServiceImpl implements TimeLogService {
     return new TimeLogListResponse(timeLogDtoList);
   }
 
-  @Override
-  public List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
-    final LocalTime startTime = LocalTime.of(offset, 0);
-    final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
-
-    if ("All".equals(mode)) {
-      return repository.findAll();
-    } else {
-      return repository.findAllInRange(dateRange[0], dateRange[1], startTime);
-    }
-  }
-
-  @Override
-  public void saveAll(final List<TimeLogEntity> entities) {
-    repository.saveAll(entities);
-  }
-
   private String mapTotalTime(final LocalTime startTime, final LocalTime endTime) {
     if (startTime == null || endTime == null) {
       return null;
     }
-    Duration duration = getDurationBetweenStartAndEndTime(startTime, endTime);
+    final Duration duration = getDurationBetweenStartAndEndTime(startTime, endTime);
     return formatDurationHM(duration);
   }
 
@@ -156,9 +132,9 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public void divide(final long timeLogId) {
     final int offset = props.getTimeConfig().getOffset();
-    LocalTime startOfDay = LocalTime.of(offset, 0);
+    final LocalTime startOfDay = LocalTime.of(offset, 0);
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
-    TimeLogEntity secondEntity = TimeLogEntity.builder()
+    final TimeLogEntity secondEntity = TimeLogEntity.builder()
         .startTime(startOfDay)
         .endTime(timeLogEntity.getEndTime())
         .description(timeLogEntity.getDescription())
@@ -173,7 +149,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     repository.save(secondEntity);
   }
 
-  private boolean isSameTimeLog(TimeLogEntity timeLogEntity, TimeLogImportRequest.TimeLogDto timeLogDto) {
+  private boolean isSameTimeLog(final TimeLogEntity timeLogEntity, final TimeLogImportRequest.TimeLogDto timeLogDto) {
     return Objects.equals(timeLogEntity.getTicket(), timeLogDto.getTicket())
         && Objects.equals(timeLogEntity.getStartTime(), timeLogDto.getStartTime())
         && Objects.equals(timeLogEntity.getEndTime(), timeLogDto.getEndTime())
@@ -210,7 +186,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
   }
 
-  private void stopOtherTimeLogs(Long excludedId) {
+  private void stopOtherTimeLogs(final Long excludedId) {
     repository.findAllByEndTimeIsNull().forEach((timeLogEntity) -> {
       if (timeLogEntity.getId().equals(excludedId) || timeLogEntity.getStartTime() == null) {
         return;
@@ -224,7 +200,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogGetResponse get(final long timeLogId) {
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
-    TimeLogGetResponse response = mapper.toGetResponse(timeLogEntity);
+    final TimeLogGetResponse response = mapper.toGetResponse(timeLogEntity);
     response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
     return response;
   }
@@ -242,8 +218,8 @@ public class TimeLogServiceImpl implements TimeLogService {
   public TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date) {
     final int offset = props.getTimeConfig().getOffset();
 
-    LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-    LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+    final LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    final LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
     final LocalTime startOfDay = LocalTime.of(offset, 0);
     final List<TimeLogEntity> entities = repository.findAllInRange(startOfWeek, endOfWeek.plusDays(1), startOfDay);
@@ -254,12 +230,13 @@ public class TimeLogServiceImpl implements TimeLogService {
   private List<TimeLogHoursForWeekResponse.DayInfo> getDayInfoList(final List<TimeLogEntity> entities, final LocalDate startOfWeek,
                                                                    final LocalDate endOfWeek) {
     final int offset = props.getTimeConfig().getOffset();
+    final LocalTime startTime = LocalTime.of(offset, 0);
     final Set<String> tickets = getTicketsForWeek(entities);
 
     final List<TimeLogHoursForWeekResponse.DayInfo> dayInfoList = new ArrayList<>();
     LocalDate currentDay = startOfWeek;
     while (!currentDay.isAfter(endOfWeek)) {
-      List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
+      final List<TimeLogEntity> entitiesForDay = repository.findAllInRange(currentDay, currentDay.plusDays(1), startTime);
 
       dayInfoList.add(TimeLogHoursForWeekResponse.DayInfo.builder()
           .dayName(currentDay.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
@@ -273,7 +250,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     return dayInfoList;
   }
 
-  public boolean hasConflictsForDay(List<TimeLogEntity> entitiesForDay) {
+  public boolean hasConflictsForDay(final List<TimeLogEntity> entitiesForDay) {
     for (TimeLogEntity entity : entitiesForDay) {
       if (isConflictedWithOthersTimeLogs(entity, entitiesForDay)) {
         return true;
@@ -293,7 +270,8 @@ public class TimeLogServiceImpl implements TimeLogService {
   }
 
   private List<TimeLogHoursForWeekResponse.TicketDuration> getTicketDurationsForDay(
-      final List<TimeLogEntity> entitiesForDay, final Set<String> tickets) {
+      final List<TimeLogEntity> entitiesForDay,
+      final Set<String> tickets) {
 
     final List<TimeLogHoursForWeekResponse.TicketDuration> ticketDurations = new ArrayList<>();
     Duration totalForDay = Duration.ZERO;
@@ -322,6 +300,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   @Override
   public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date) {
     final int offset = props.getTimeConfig().getOffset();
+    final LocalTime startTime = LocalTime.of(offset, 0);
     final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
     final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
 
@@ -329,7 +308,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     Duration totalDuration = Duration.ZERO;
     LocalDate currentDay = startOfMonth;
     while (!currentDay.isAfter(endOfMonth)) {
-      List<TimeLogEntity> entitiesForDay = getAllTimeLogEntitiesInMode("Day", currentDay, offset);
+      List<TimeLogEntity> entitiesForDay = repository.findAllInRange(currentDay, currentDay.plusDays(1), startTime);
 
       final Duration durationForDay = getDurationForDay(entitiesForDay);
       totalDuration = totalDuration.plus(durationForDay);
@@ -371,7 +350,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     mapper.fromUpdateRequest(request, timeLogEntity);
     timeLogEntity = repository.save(timeLogEntity);
 
-    TimeLogUpdateResponse response = mapper.toUpdateResponse(timeLogEntity);
+    final TimeLogUpdateResponse response = mapper.toUpdateResponse(timeLogEntity);
     response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
     return response;
   }
@@ -380,11 +359,6 @@ public class TimeLogServiceImpl implements TimeLogService {
   public void delete(final long timeLogId) {
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
     repository.delete(timeLogEntity);
-  }
-
-  @Override
-  public void delete(final List<TimeLogEntity> entities) {
-    repository.deleteAll(entities);
   }
 
   @Override

@@ -1,18 +1,18 @@
-package com.example.timecraft.domain.worklog.service;
+package com.example.timecraft.domain.sync.jira.model;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
+import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
 
-@Service
-public class SyncProgressService {
+@Component
+public class SyncJiraProgress {
   private final AtomicReference<Boolean> isInProgress = new AtomicReference<>(false);
   private final AtomicReference<Double> progress = new AtomicReference<>(0.0);
-  private final AtomicReference<List<WorklogProgressResponse.WorklogInfo>> worklogInfos = new AtomicReference<>(null);
+  private final AtomicReference<List<SyncJiraProgressResponse.WorklogInfo>> worklogInfos = new AtomicReference<>(null);
   private final AtomicReference<LocalDateTime> startTime = new AtomicReference<>(null);
   private final AtomicReference<LocalDateTime> endTime = new AtomicReference<>(null);
   private final AtomicReference<Integer> currentIssueNumber = new AtomicReference<>(0);
@@ -48,11 +48,11 @@ public class SyncProgressService {
     progress.set(value);
   }
 
-  public List<WorklogProgressResponse.WorklogInfo> getWorklogInfos() {
+  public List<SyncJiraProgressResponse.WorklogInfo> getWorklogInfos() {
     return worklogInfos.get();
   }
 
-  public void setWorklogInfos(final List<WorklogProgressResponse.WorklogInfo> worklogInfos) {
+  public void setWorklogInfos(final List<SyncJiraProgressResponse.WorklogInfo> worklogInfos) {
     this.worklogInfos.set(worklogInfos);
   }
 
@@ -88,12 +88,12 @@ public class SyncProgressService {
     this.endTime.set(endTime);
   }
 
-  public void setTotalTimeSpent(final int totalTimeSpent) {
-    this.totalTimeSpent.set(totalTimeSpent);
-  }
-
   public int getTotalTimeSpent() {
     return totalTimeSpent.get();
+  }
+
+  public void setTotalTimeSpent(final int totalTimeSpent) {
+    this.totalTimeSpent.set(totalTimeSpent);
   }
 
   public int getTotalEstimate() {

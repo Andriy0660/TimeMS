@@ -23,7 +23,7 @@ export default function TimeLogGroupedByDate({
       <div>
         {renderedInner ? renderedInner : logsForDate.map((timeLog) =>
 
-          <TimeLogGroup key={timeLog.id} isJiraEditMode={isJiraEditMode} isSynced={timeLog.syncStatus === syncStatus.SYNCED} color={timeLog.color}>
+          <TimeLogGroup key={timeLog.id} isJiraEditMode={isJiraEditMode} isSynced={timeLog.jiraSyncInfo.status === syncStatus.SYNCED} color={timeLog.jiraSyncInfo.color}>
             <TimeLog
               timeLog={timeLog}
               isJiraEditMode={isJiraEditMode}

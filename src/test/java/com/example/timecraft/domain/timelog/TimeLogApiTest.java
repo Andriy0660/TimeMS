@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Arrays;
 import java.util.List;
 
@@ -81,14 +82,17 @@ class TimeLogApiTest {
     TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now(clock).plusDays(2),
         LocalTime.of(10, 0, 0));
 
+    LocalDate startDate = LocalDate.now(clock);
+    LocalDate endDate = LocalDate.now(clock).plusDays(1);
+
     timeLog1 = timeLogRepository.save(timeLog1);
     timeLog2 = timeLogRepository.save(timeLog2);
     timeLog3 = timeLogRepository.save(timeLog3);
 
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Day")
-            .param("date", LocalDate.now(clock).toString())
+            .param("startDate", startDate.toString())
+            .param("endDate", endDate.toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
@@ -105,13 +109,16 @@ class TimeLogApiTest {
     TimeLogEntity timeLog3 = createTimeLogEntity(LocalDate.now(clock).plusDays(8),
         LocalTime.of(10, 0, 0));
 
+    LocalDate startDate = LocalDate.now(clock).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    LocalDate endDate = LocalDate.now(clock).with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).plusDays(1);
+
     timeLog1 = timeLogRepository.save(timeLog1);
     timeLog2 = timeLogRepository.save(timeLog2);
     timeLog3 = timeLogRepository.save(timeLog3);
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Week")
-            .param("date", LocalDate.now(clock).toString())
+            .param("startDate", startDate.toString())
+            .param("endDate", endDate.toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
@@ -132,10 +139,12 @@ class TimeLogApiTest {
     timeLog2 = timeLogRepository.save(timeLog2);
     timeLog3 = timeLogRepository.save(timeLog3);
 
+    LocalDate startDate = LocalDate.now(clock).with(TemporalAdjusters.firstDayOfMonth());
+    LocalDate endDate = LocalDate.now(clock).with(TemporalAdjusters.lastDayOfMonth()).plusDays(1);
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Month")
-            .param("date", LocalDate.now(clock).toString())
+            .param("startDate", startDate.toString())
+            .param("endDate", endDate.toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
@@ -144,29 +153,20 @@ class TimeLogApiTest {
         .andExpect(jsonPath("$.items", not(matchTimeLog(timeLog3))));
   }
 
-  @Test
-  void shouldGetBadRequestWhenInvalidMode() throws Exception {
-    mvc.perform(get("/time-logs")
-            .param("mode", "invalid")
-            .param("date", LocalDate.now(clock).toString())
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.detail").value("Invalid time mode"));
-  }
 
   @Test
   void shouldGetBadRequestWhenInvalidType() throws Exception {
     mvc.perform(get("/time-logs")
-            .param("mode", "Day")
-            .param("date", "invalid-type")
+            .param("startDate", "invalid-type")
+            .param("endDate", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.detail").value("Invalid argument type of parameter: date"));
+        .andExpect(jsonPath("$.detail").value("Invalid argument type of parameter: startDate"));
   }
 
   @Test
   void shouldCreateTimeLog() throws Exception {
-    int initialSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
+    int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), 3);
 
     TimeLogCreateRequest request = new TimeLogCreateRequest("TMC-1", LocalDate.now(clock), LocalTime.of(9, 30, 0), "some descr");
 
@@ -175,7 +175,7 @@ class TimeLogApiTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
-    int newSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
+    int newSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), 3);
     assertEquals(initialSize + 1, newSize);
   }
 
@@ -234,20 +234,21 @@ class TimeLogApiTest {
                 .items(Arrays.asList(timeLogDto3, timeLogDto4))
                 .build()
         )).build();
-
-    int initialSize = getSize(mvc, "All", LocalDate.now(clock), 3);
+    LocalDate startDate = LocalDate.now(clock).with(TemporalAdjusters.firstDayOfMonth());
+    LocalDate endDate = LocalDate.now(clock).with(TemporalAdjusters.lastDayOfMonth()).plusDays(1);
+    int initialSize = getSize(mvc, startDate, endDate, 3);
 
     mvc.perform(post("/time-logs/importTimeLogs")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
-    int newSize = getSize(mvc, "All", LocalDate.now(clock), 3);
+    int newSize = getSize(mvc, startDate, endDate, 3);
 
     assertEquals(initialSize + 2, newSize);
 
     mvc.perform(get("/time-logs")
-            .param("mode", "All")
-            .param("date", LocalDate.now(clock).toString())
+            .param("startDate", startDate.toString())
+            .param("endDate", endDate.toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
@@ -302,6 +303,10 @@ class TimeLogApiTest {
 
     timeLog1 = timeLogRepository.save(timeLog1);
     timeLog2 = timeLogRepository.save(timeLog2);
+
+    LocalDate startDate = LocalDate.now(clock);
+    LocalDate endDate = LocalDate.now(clock).plusDays(1);
+
     TimeLogUpdateRequest request = new TimeLogUpdateRequest(timeLog1.getDate(), "NEW-1", timeLog1.getStartTime(), null);
 
     mvc.perform(put("/time-logs/{id}", timeLog1.getId())
@@ -311,8 +316,8 @@ class TimeLogApiTest {
         .andExpect(jsonPath("$.ticket").value(request.getTicket()));
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Day")
-            .param("date", LocalDate.now(clock).toString())
+            .param("startDate", startDate.toString())
+            .param("endDate", endDate.toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items", not(matchTimeLog(cloneForCompare))))
@@ -370,21 +375,23 @@ class TimeLogApiTest {
   void shouldDeleteTimeLog() throws Exception {
     TimeLogEntity timeLog1 = createTimeLogEntity(LocalDate.now(clock), LocalTime.of(9, 0, 0));
     timeLog1 = timeLogRepository.save(timeLog1);
+    LocalDate startDate = LocalDate.now(clock);
+    LocalDate endDate = LocalDate.now(clock).plusDays(1);
 
-    int initialSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
+    int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), 3);
 
     mvc.perform(delete("/time-logs/{id}", timeLog1.getId())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     mvc.perform(get("/time-logs")
-            .param("mode", "Day")
-            .param("date", LocalDate.now(clock).toString())
+            .param("startDate", startDate.toString())
+            .param("endDate", endDate.toString())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items", not(matchTimeLog(timeLog1))));
 
-    int newSize = getSize(mvc, "Day", LocalDate.now(clock), 3);
+    int newSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), 3);
     assertEquals(initialSize - 1, newSize);
   }
 

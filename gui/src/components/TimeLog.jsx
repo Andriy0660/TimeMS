@@ -51,7 +51,6 @@ export default function TimeLog({
   setHoveredConflictedIds,
   onSync,
   isJiraEditMode,
-  processedTimeLogsArray
 }) {
   const currentTime = dayjs();
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -408,13 +407,13 @@ export default function TimeLog({
 
           {statusConfig[status].label ? <Duration duration={statusConfig[status].label} /> : null}
 
-          {timeLog.startTime && timeLog.endTime && <TimeLogSyncIcon status={timeLog.syncStatus}/>}
+          {timeLog.startTime && timeLog.endTime && <TimeLogSyncIcon status={timeLog.jiraSyncInfo.status}/>}
 
           {timeLog.isConflicted && (
             <Tooltip
               title="Conflicted"
-              onMouseEnter={() => setHoveredConflictedIds(timeLog.conflictedIds)}
-              onMouseLeave={() => setHoveredConflictedIds([])}
+              onMouseEnter={() => setHoveredConflictedIds?.(timeLog.conflictedIds)}
+              onMouseLeave={() => setHoveredConflictedIds?.([])}
             >
               <WarningAmberIcon sx={{color: deepOrange[200]}} className="text-red" />
             </Tooltip>
@@ -521,7 +520,7 @@ export default function TimeLog({
                 </MenuItem>
               )}
 
-              {(timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.syncStatus === syncStatus.NOT_SYNCED) && (
+              {(timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.jiraSyncInfo.status === syncStatus.NOT_SYNCED) && (
                 <MenuItem onClick={() => handleCreateWorklog({
                   ticket: timeLog.ticket,
                   date: dateTimeService.getFormattedDate(timeLog.date),
@@ -538,7 +537,7 @@ export default function TimeLog({
                 </MenuItem>
               )}
 
-              {(timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.syncStatus === syncStatus.PARTIAL_SYNCED) && (
+              {(timeLog.ticket && timeLog.startTime && timeLog.endTime && timeLog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED) && (
                 [
                   <MenuItem
                     key="to"
@@ -546,8 +545,6 @@ export default function TimeLog({
                       ticket: timeLog.ticket,
                       date: dateTimeService.getFormattedDate(timeLog.date),
                       description: timeLog.description,
-                      totalSpent: dateTimeService.getTotalSpent(
-                        {timeLogs: processedTimeLogsArray, ticket, date: timeLog.date, description})
                     })}
                   >
                     <ListItemIcon>
@@ -610,7 +607,7 @@ export default function TimeLog({
 
           </div>
           }
-          {isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED && <Brightness1Icon sx={{color: timeLog.color}} />}
+          {isJiraEditMode && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />}
         </div>
       </div>
       <ConfirmationModal
@@ -626,18 +623,18 @@ export default function TimeLog({
         Are you sure you want to delete this time log?
       </ConfirmationModal>
 
-      {isHovered && isJiraEditMode && timeLog.syncStatus !== syncStatus.NOT_SYNCED &&
+      {isHovered && isJiraEditMode && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED &&
           timeLogRefs.map((timeLogRef, index1) => {
-            const targetColor = timeLog.color;
+            const targetColor = timeLog.jiraSyncInfo.color;
             return worklogRefs.map((worklogRef, index2) => {
-              if(timeLogRef.timeLog.color === targetColor && worklogRef.worklog.color === targetColor) {
+              if(timeLogRef.timeLog.jiraSyncInfo.color === targetColor && worklogRef.worklog.jiraSyncInfo.color === targetColor) {
                 return (
                   <Connector
                     key={`${index1}${index2}`}
                     startElement={timeLogRef.ref.current}
                     endElement={worklogRef.ref.current}
                     color={targetColor}
-                    dashed={timeLog.syncStatus === syncStatus.PARTIAL_SYNCED}
+                    dashed={timeLog.jiraSyncInfo.status === syncStatus.PARTIAL_SYNCED}
                   />
                 );
               }

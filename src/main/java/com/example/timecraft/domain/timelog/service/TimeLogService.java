@@ -1,7 +1,6 @@
 package com.example.timecraft.domain.timelog.service;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
@@ -17,14 +16,9 @@ import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
-import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 
 public interface TimeLogService {
-  TimeLogListResponse list(final String mode, final LocalDate date);
-
-  List<TimeLogEntity> getAllTimeLogEntitiesInMode(final String mode, final LocalDate date, final int offset);
-
-  void saveAll(final List<TimeLogEntity> entities);
+  TimeLogListResponse list(final LocalDate startDate, final LocalDate endDate);
 
   TimeLogCreateResponse create(final TimeLogCreateRequest request);
 
@@ -43,8 +37,6 @@ public interface TimeLogService {
   TimeLogUpdateResponse update(final long timeLogId, final TimeLogUpdateRequest request);
 
   void delete(final long timeLogId);
-
-  void delete(final List<TimeLogEntity> entities);
 
   void setGroupDescription(final TimeLogSetGroupDescrRequest request);
 

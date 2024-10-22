@@ -1,5 +1,7 @@
 package com.example.timecraft.domain.jira.worklog.dto;
 
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class JiraUpdateWorklogDto {
+public class JiraWorklogCreateDto {
   private String started;
+  private Map<String, ?> comment;
   private Integer timeSpentSeconds;
 }

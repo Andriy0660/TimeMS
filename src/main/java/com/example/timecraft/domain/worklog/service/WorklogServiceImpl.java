@@ -1,62 +1,41 @@
 package com.example.timecraft.domain.worklog.service;
 
-import java.time.Clock;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
-import com.example.timecraft.domain.jira.worklog.dto.JiraCreateWorklogDto;
+import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogCreateDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
-import com.example.timecraft.domain.logsync.util.LogSyncUtil;
-import com.example.timecraft.domain.timelog.service.DurationService;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
-import com.example.timecraft.domain.worklog.dto.WorklogProgressResponse;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.persistence.WorklogRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class WorklogServiceImpl implements WorklogService {
-  private final WorklogRepository worklogRepository;
+  private final WorklogRepository repository;
   private final JiraWorklogService jiraWorklogService;
-  private final SyncProgressService syncProgressService;
   private final WorklogMapper mapper;
-  private final AppProperties props;
-  private final Clock clock;
 
   @Override
-  public WorklogListResponse list(final String mode, final LocalDate date) {
-    final int offset = props.getTimeConfig().getOffset();
-    List<WorklogEntity> worklogEntityList = getAllWorklogEntitiesInMode(mode, date, offset);
+  public WorklogListResponse list(final LocalDate date) {
+    final List<WorklogEntity> worklogEntityList = repository.findAllByDate(date);
     final List<WorklogListResponse.WorklogDto> timeLogDtoList = worklogEntityList.stream()
-        .map(worklogEntity -> {
-          WorklogListResponse.WorklogDto worklogDto = mapper.toListItem(worklogEntity);
-          worklogDto.setColor(TimeLogUtils.generateColor(
-              worklogEntity.getTicket(),
-              LogSyncUtil.removeNonLetterAndDigitCharacters(worklogEntity.getComment())
-          ));
-          return worklogDto;
-        })
+        .map(mapper::toListItem)
         .sorted(Comparator
             .comparing(WorklogListResponse.WorklogDto::getDate)
             .thenComparing(WorklogListResponse.WorklogDto::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())))
@@ -65,118 +44,27 @@ public class WorklogServiceImpl implements WorklogService {
   }
 
   @Override
-  public List<WorklogEntity> getAllWorklogEntitiesInMode(final String mode, final LocalDate date, final int offset) {
-    final LocalTime startTime = LocalTime.of(offset, 0);
-    final LocalDate[] dateRange = TimeLogUtils.calculateDateRange(mode, date);
-
-    if ("All".equals(mode)) {
-      return worklogRepository.findAll();
-    } else {
-      return worklogRepository.findAllInRange(dateRange[0], dateRange[1], startTime);
-    }
-  }
-
-  @Override
-  public WorklogCreateFromTimeLogResponse createWorklogFromTimeLog(final WorklogCreateFromTimeLogRequest request) {
-    LocalDateTime dateTime = LocalDateTime.of(request.getDate(), LocalTime.of(10, 0));
-    JiraWorklogDto created = jiraWorklogService.create(request.getTicket(), JiraCreateWorklogDto.builder()
+  public WorklogCreateFromTimeLogResponse createFromTimeLog(final WorklogCreateFromTimeLogRequest request) {
+    final LocalDateTime dateTime = LocalDateTime.of(request.getDate(), LocalTime.of(10, 0));
+    final JiraWorklogDto created = jiraWorklogService.create(request.getTicket(), JiraWorklogCreateDto.builder()
         .started(JiraWorklogUtils.getJiraStartedTime(dateTime))
         .comment(JiraWorklogUtils.getJiraComment(request.getDescription()))
         .timeSpentSeconds(TimeLogUtils.getDurationInSecondsForTimelog(request.getStartTime(), request.getEndTime()))
         .build());
 
-    WorklogEntity entity = mapper.toWorklogEntity(created);
-    worklogRepository.save(entity);
+    final WorklogEntity entity = mapper.toWorklogEntity(created);
+    repository.save(entity);
     return mapper.toCreateResponse(entity);
   }
 
   @Override
-  public void save(final WorklogEntity entity) {
-    worklogRepository.save(entity);
-  }
-
-  @Override
-  public void deleteUnsyncedWorklog(final String issueKey, final Long id) {
+  public void delete(final String ticket, final Long id) {
     try {
-      jiraWorklogService.delete(issueKey, id);
+      jiraWorklogService.delete(ticket, id);
+      repository.deleteById(id);
     } catch (HttpClientErrorException.NotFound e) {
-      throw new BadRequestException("Worklog is already deleted from jira");
-    } finally {
-      syncWorklogsForIssue(issueKey);
+      throw new BadRequestException("Worklog is already deleted from jira. Please synchronize worklogs for this ticket");
     }
   }
 
-  @Override
-  public WorklogProgressResponse getProgress() {
-    Duration duration = Duration.ZERO;
-    if(syncProgressService.getStartTime() != null) {
-      if (syncProgressService.getEndTime() != null) {
-        duration = Duration.between(syncProgressService.getStartTime(), syncProgressService.getEndTime());
-      } else {
-        duration = Duration.between(syncProgressService.getStartTime(), LocalDateTime.now(clock));
-      }
-    }
-
-    return WorklogProgressResponse.builder()
-        .isInProgress(syncProgressService.isInProgress())
-        .progress(syncProgressService.getProgress())
-        .worklogInfos(syncProgressService.getWorklogInfos())
-        .duration(DurationService.formatDurationHMS(duration))
-        .lastSyncedAt(syncProgressService.getEndTime())
-        .totalIssues(syncProgressService.getTotalIssues())
-        .currentIssueNumber(syncProgressService.getCurrentIssueNumber())
-        .totalTimeSpent(DurationService.formatDurationDH(Duration.ofSeconds(syncProgressService.getTotalTimeSpent())))
-        .totalEstimate(DurationService.formatDurationDH(Duration.ofSeconds(syncProgressService.getTotalEstimate())))
-        .build();
-  }
-
-  @Override
-  public void syncWorklogs() {
-    if (syncProgressService.isInProgress()) return;
-    syncProgressService.clearProgress();
-
-    syncProgressService.setStartTime(LocalDateTime.now(clock));
-    syncProgressService.setIsInProgress(true);
-
-    List<WorklogEntity> currentWorklogs = worklogRepository.findAll();
-    List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchAllWorkLogDtos()
-        .stream()
-        .map(mapper::toWorklogEntity)
-        .toList();
-
-    syncWorklogs(currentWorklogs, worklogEntitiesFromJira);
-    syncProgressService.setEndTime(LocalDateTime.now(clock));
-    syncProgressService.setIsInProgress(false);
-  }
-
-  @Override
-  public void syncWorklogsForIssue(final String issueKey) {
-    List<WorklogEntity> currentWorklogs = worklogRepository.findAllByTicket(issueKey);
-    List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.fetchWorklogDtosForIssue(issueKey)
-        .stream()
-        .map(mapper::toWorklogEntity)
-        .toList();
-
-    syncWorklogs(currentWorklogs, worklogEntitiesFromJira);
-  }
-
-  private void syncWorklogs(final List<WorklogEntity> currentWorklogs, final List<WorklogEntity> worklogEntitiesFromJira) {
-    for (WorklogEntity worklogEntityFromJira : worklogEntitiesFromJira) {
-      Optional<WorklogEntity> worklogOpt = worklogRepository.findById(worklogEntityFromJira.getId());
-      if (worklogOpt.isEmpty()
-          || worklogOpt.get().getUpdated() == null
-          || worklogOpt.get().getUpdated().isBefore(worklogEntityFromJira.getUpdated())) {
-        worklogRepository.save(worklogEntityFromJira);
-      }
-    }
-    Set<Long> jiraWorklogIds = worklogEntitiesFromJira.stream()
-        .map(WorklogEntity::getId)
-        .collect(Collectors.toSet());
-
-    for (WorklogEntity worklogEntity : currentWorklogs) {
-      if (!jiraWorklogIds.contains(worklogEntity.getId())) {
-        worklogRepository.delete(worklogEntity);
-      }
-    }
-  }
 }

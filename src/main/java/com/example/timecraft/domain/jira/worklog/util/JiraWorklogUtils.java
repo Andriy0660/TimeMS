@@ -17,8 +17,8 @@ import static com.atlassian.adf.model.node.Paragraph.p;
 public class JiraWorklogUtils {
   public static final DateTimeFormatter JIRA_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
-  public static String getTextFromAdf(JsonNode node) {
-    StringBuilder text = new StringBuilder();
+  public static String getTextFromAdf(final JsonNode node) {
+    final StringBuilder text = new StringBuilder();
 
     if (node.has("content")) {
       for (JsonNode content : node.get("content")) {
@@ -60,13 +60,13 @@ public class JiraWorklogUtils {
     return text.toString().trim();
   }
 
-  public static String getJiraStartedTime(LocalDateTime dateTime) {
+  public static String getJiraStartedTime(final LocalDateTime dateTime) {
     return dateTime.atZone(ZoneId.systemDefault()).format(JIRA_DATE_TIME_FORMATTER);
   }
 
   public static Map<String, ?> getJiraComment(final String description) {
-    List<String> lines = description.lines().toList();
-    List<Paragraph> paragraphs = new ArrayList<>();
+    final List<String> lines = description.lines().toList();
+    final List<Paragraph> paragraphs = new ArrayList<>();
 
     for (String line : lines) {
       if (!line.isEmpty()) {

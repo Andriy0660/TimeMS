@@ -35,10 +35,9 @@ export default function NavBar() {
   const {changeView} = useViewChanger();
 
   const modeDatePickerConfig = {
-    Day: <DayPicker buttonColor="white" />,
-    Week: <WeekPicker buttonColor="white" />,
-    Month: <MonthPicker buttonColor="white" />,
-    All: null,
+    DAY: <DayPicker buttonColor="white" />,
+    WEEK: <WeekPicker buttonColor="white" />,
+    MONTH: <MonthPicker buttonColor="white" />,
   };
 
   const toggleMenu = (newOpen) => () => {

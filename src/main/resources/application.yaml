@@ -22,6 +22,7 @@ app:
     offset: 3
     startHourOfWorkingDay: 7
     endHourOfWorkingDay: 17
+    workingDayDurationInHours: 8
   cors:
     allowed-origins:
       - http://localhost:*

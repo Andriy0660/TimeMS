@@ -1,5 +1,10 @@
 import dayjs from "dayjs";
 import {endHourOfWorkingDay, startHourOfDay, startHourOfWorkingDay} from "../config/timeConfig.js";
+import weekday from "dayjs/plugin/weekday"
+import {viewMode} from "../consts/viewMode.js";
+
+dayjs.extend(weekday);
+dayjs().weekday(1); // Monday
 
 const dateTimeService = {
   getFormattedTime(time) {
@@ -141,14 +146,32 @@ const dateTimeService = {
     }
     return calculateDuration(endTime);
   },
-  getTotalSpent({timeLogs, ticket, date, description}) {
-    let totalSpentSeconds = 0;
-    timeLogs.forEach((timeLog) => {
-      if(timeLog.ticket === ticket && timeLog.date.isSame(date, "day") && timeLog.description === description) {
-        totalSpentSeconds += timeLog.endTime.diff(timeLog.startTime, "seconds");
+
+   calculateDateRange(mode, inputDate) {
+    let startDate, endDate;
+    switch (mode) {
+      case viewMode.DAY: {
+        startDate = inputDate.startOf("day");
+        endDate = inputDate.endOf("day").add(1, "second");
+        break;
       }
-    })
-    return totalSpentSeconds;
+      case viewMode.WEEK: {
+         startDate = inputDate.startOf("week");
+         endDate = inputDate.endOf("week").add(1, "second");
+         break;
+      }
+      case viewMode.MONTH: {
+        startDate = inputDate.startOf("month");
+        endDate = inputDate.endOf("month").add(1, "second");
+        break;
+      }
+      default:
+        throw new Error("Invalid time mode");
+    }
+    return {
+      startDate: this.getFormattedDate(startDate),
+      endDate: this.getFormattedDate(endDate),
+    }
   }
 }
 export default dateTimeService;

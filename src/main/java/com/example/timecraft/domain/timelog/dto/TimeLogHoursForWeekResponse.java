@@ -3,7 +3,8 @@ package com.example.timecraft.domain.timelog.dto;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.example.timecraft.domain.logsync.model.Status;
+import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
+import com.example.timecraft.domain.sync.model.SyncStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +22,7 @@ public class TimeLogHoursForWeekResponse {
   public static class DayInfo {
     private String dayName;
     private LocalDate date;
-    private Status syncStatus;
+    private JiraSyncInfo jiraSyncInfo;
     private boolean isConflicted;
     private List<TicketDuration> ticketDurations;
   }
