@@ -1,7 +1,7 @@
 .progress-bar {
     position: relative;
     margin-top: 10px;
-    width: 95%;
+    width: 100%;
     height: 12px;
     left: 50%;
     transform: translateX(-50%);
@@ -34,4 +34,30 @@
 .hovered-thin {
     height: 40%;
     top: 30%
+}
+
+
+.hour-labels {
+    position: relative;
+    width: 100%;
+    height: 20px;
+    margin-top: 5px;
+}
+
+.hour-label {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: gray;
+}
+
+.dynamic-hour-info {
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
 }
