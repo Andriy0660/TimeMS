@@ -7,7 +7,7 @@ import updateLocale from 'dayjs/plugin/updateLocale'
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import Button from "@mui/material/Button";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos.js";
-import useAppContext from "../context/useAppContext.js";
+import useAppContext from "../../context/useAppContext.js";
 
 dayjs.extend(updateLocale)
 dayjs.updateLocale("en", {

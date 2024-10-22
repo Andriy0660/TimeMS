@@ -1,10 +1,10 @@
 import Button from "@mui/material/Button";
-import fileService from "../service/fileService.js";
+import fileService from "../../service/fileService.js";
 import {useRef, useState} from "react";
-import timeLogService from "../service/timeLogService.js";
+import timeLogService from "../../service/timeLogService.js";
 import {CircularProgress} from "@mui/material";
-import useAsyncCall from "../hooks/useAsyncCall.js";
-import useAppContext from "../context/useAppContext.js";
+import useAsyncCall from "../../hooks/useAsyncCall.js";
+import useAppContext from "../../context/useAppContext.js";
 
 export default function ImportButton({className, onImport}) {
   const fileInputRef = useRef(null);

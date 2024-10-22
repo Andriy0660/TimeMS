@@ -2,28 +2,28 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Button from "@mui/material/Button";
 import {MobileDatePicker} from "@mui/x-date-pickers";
-import useAppContext from "../context/useAppContext.js";
+import useAppContext from "../../context/useAppContext.js";
 
-export default function DayPicker({buttonColor}) {
+export default function MonthPicker({buttonColor, classNames}) {
   const {date, setDate} = useAppContext()
   return (
-    <div className="flex items-center justify-center ">
+    <div className={`flex items-center justify-center ${classNames}`}>
       <Button
         className={`text-${buttonColor}`}
-        onClick={() => setDate(date.subtract(1, "day"))}
+        onClick={() => setDate(date.subtract(1, "month"))}
       >
         <ArrowBackIosIcon />
       </Button>
       <MobileDatePicker
+        views={["month", "year"]}
         slotProps={{textField: {size: "small"}}}
-        className="w-32 bg-white rounded"
+        className="w-40 bg-white rounded"
         value={date}
-        format="DD/MM/YYYY"
         onChange={(newValue) => setDate(newValue)}
       />
       <Button
         className={`text-${buttonColor}`}
-        onClick={() => setDate(date.add(1, "day"))}
+        onClick={() => setDate(date.add(1, "month"))}
       >
         <ArrowForwardIosIcon />
       </Button>

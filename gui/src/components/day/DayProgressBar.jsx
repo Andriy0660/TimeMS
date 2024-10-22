@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
-import '../styles/ProgressBar.css';
-import dateTimeService from "../service/dateTimeService.js";
+import '../../styles/ProgressBar.css';
+import dateTimeService from "../../service/dateTimeService.js";
 import minMax from "dayjs/plugin/minMax";
 import classNames from "classnames";
 import {useState} from "react";

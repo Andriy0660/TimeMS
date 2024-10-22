@@ -1,7 +1,7 @@
-import TimeLogGroupedByDate from "../components/TimeLogGroupedByDate.jsx";
-import TimeLogGroupedByDescription from "../components/TimeLogGroupedByDescription.jsx";
-import NoLogs from "../components/NoLogs.jsx";
-import LoadingPage from "../components/LoadingPage.jsx";
+import TimeLogGroupedByDate from "../components/timeLog/TimeLogGroupedByDate.jsx";
+import TimeLogGroupedByDescription from "../components/timeLog/TimeLogGroupedByDescription.jsx";
+import NoLogs from "../components/general/NoLogs.jsx";
+import LoadingPage from "../components/general/LoadingPage.jsx";
 
 const timeLogRenderingService = {
   render({timeLogs, ...props}) {

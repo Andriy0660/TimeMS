@@ -1,20 +1,20 @@
-import dateTimeService from "../service/dateTimeService.js";
-import Duration from "./Duration.jsx";
+import dateTimeService from "../../service/dateTimeService.js";
+import Duration from "../general/Duration.jsx";
 import {IconButton, LinearProgress, Tooltip} from "@mui/material";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined.js";
-import ConfirmationModal from "./ConfirmationModal.jsx";
+import ConfirmationModal from "../general/ConfirmationModal.jsx";
 import {useEffect, useRef, useState} from "react";
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
-import useAsyncCall from "../hooks/useAsyncCall.js";
+import useAsyncCall from "../../hooks/useAsyncCall.js";
 import dayjs from "dayjs";
-import useAppContext from "../context/useAppContext.js";
+import useAppContext from "../../context/useAppContext.js";
 import Brightness1Icon from "@mui/icons-material/Brightness1.js";
-import {syncStatus} from "../consts/syncStatus.js";
-import TimeLogJiraSyncStatusIcon from "./TimeLogJiraSyncStatusIcon.jsx";
-import TimeLogNonEditableFields from "./TimeLogNonEditableFields.jsx";
-import TimeLogWorklogConnectors from "./TimeLogWorklogConnectors.jsx";
-import timeLogService from "../service/timeLogService.js";
-import {isJiraSyncingEnabled} from "../config/config.js";
+import {syncStatus} from "../../consts/syncStatus.js";
+import TimeLogJiraSyncStatusIcon from "../timeLog/TimeLogJiraSyncStatusIcon.jsx";
+import TimeLogNonEditableFields from "../timeLog/TimeLogNonEditableFields.jsx";
+import TimeLogWorklogConnectors from "../timeLog/TimeLogWorklogConnectors.jsx";
+import timeLogService from "../../service/timeLogService.js";
+import {isJiraSyncingEnabled} from "../../config/config.js";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);

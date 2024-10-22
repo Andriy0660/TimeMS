@@ -1,5 +1,5 @@
 import TableCell from "@mui/material/TableCell";
-import TimeLogStatusIcons from "./TimeLogStatusIcons.jsx";
+import TimeLogStatusIcons from "../timeLog/TimeLogStatusIcons.jsx";
 import dayjs from "dayjs";
 
 export default function CustomTableCell({children, date, onClick, isBold, isHover, classNames, jiraSyncStatus, isConflicted}) {

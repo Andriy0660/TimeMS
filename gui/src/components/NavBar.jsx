@@ -16,15 +16,15 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import {useState} from "react";
 import {Link} from "react-router-dom";
-import MonthPicker from "./MonthPicker..jsx";
-import WeekPicker from "./WeekPicker.jsx";
-import DayPicker from "./DayPicker.jsx";
+import MonthPicker from "./month/MonthPicker..jsx";
+import WeekPicker from "./week/WeekPicker.jsx";
+import DayPicker from "./day/DayPicker.jsx";
 import useAppContext from "../context/useAppContext.js";
 import useDateInUrl from "../hooks/useDateInUrl.js";
 import dayjs from "dayjs";
 import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore.js";
 import useViewChanger from "../hooks/useViewChanger.js";
-import SyncWorklogsButton from "./SyncWorklogsButton.jsx";
+import SyncWorklogsButton from "./sync/SyncWorklogsButton.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import {isJiraSyncingEnabled} from "../config/config.js";
 

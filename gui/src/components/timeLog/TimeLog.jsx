@@ -1,15 +1,15 @@
 import {IconButton, LinearProgress, Tooltip} from "@mui/material";
 import {useEffect, useMemo, useRef, useState} from "react";
-import useAppContext from "../context/useAppContext.js";
-import dateTimeService from "../service/dateTimeService.js";
-import ConfirmationModal from "./ConfirmationModal.jsx";
-import useAsyncCall from "../hooks/useAsyncCall.js";
+import useAppContext from "../../context/useAppContext.js";
+import dateTimeService from "../../service/dateTimeService.js";
+import ConfirmationModal from "../general/ConfirmationModal.jsx";
+import useAsyncCall from "../../hooks/useAsyncCall.js";
 import TimeLogDescription from "./TimeLogDescription.jsx";
-import Duration from "./Duration.jsx";
+import Duration from "../general/Duration.jsx";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import classNames from "classnames";
 import Brightness1Icon from "@mui/icons-material/Brightness1";
-import {syncStatus} from "../consts/syncStatus.js";
+import {syncStatus} from "../../consts/syncStatus.js";
 import TimeLogStatusIcons from "./TimeLogStatusIcons.jsx";
 import TimeLogEditableFields from "./TimeLogEditableFields.jsx";
 import TimeLogNonEditableFields from "./TimeLogNonEditableFields.jsx";
@@ -17,9 +17,9 @@ import TimeLogMoreActionsMenu from "./TimeLogMoreActionsMenu.jsx";
 import TimeLogWorklogConnectors from "./TimeLogWorklogConnectors.jsx";
 import SaveButton from "./SaveButton.jsx";
 import ResetButton from "./ResetButton.jsx";
-import {timeLogStatus} from "../consts/timeLogStatus.js";
-import timeLogService from "../service/timeLogService.js";
-import {isJiraSyncingEnabled} from "../config/config.js";
+import {timeLogStatus} from "../../consts/timeLogStatus.js";
+import timeLogService from "../../service/timeLogService.js";
+import {isJiraSyncingEnabled} from "../../config/config.js";
 
 export default function TimeLog({
   timeLog,
@@ -37,7 +37,7 @@ export default function TimeLog({
   setHoveredProgressIntervalId,
   hoveredConflictedIds,
   setHoveredConflictedIds,
-  onSync,
+  onSyncForIssue,
   isJiraEditMode,
 }) {
   const [ticket, setTicket] = useState(timeLog.ticket || "");
@@ -141,7 +141,7 @@ export default function TimeLog({
     fn: onSyncFromJira,
   })
   const {execute: handleSyncForTicket, isExecuting: isSyncing} = useAsyncCall({
-    fn: onSync
+    fn: onSyncForIssue
   })
 
   useEffect(() => {

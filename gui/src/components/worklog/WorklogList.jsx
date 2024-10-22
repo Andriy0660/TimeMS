@@ -1,8 +1,8 @@
 import Worklog from "./Worklog.jsx";
 import {CircularProgress} from "@mui/material";
-import NoLogs from "./NoLogs.jsx";
-import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
-import useWorklogMutations from "../hooks/useWorklogMutations.js";
+import NoLogs from "../general/NoLogs.jsx";
+import useTimeLogMutations from "../../hooks/useTimeLogMutations.js";
+import useWorklogMutations from "../../hooks/useWorklogMutations.js";
 
 export default function WorklogList({worklogs, isWorklogsListing, isJiraEditMode}) {
   const {onCreateTimeLogFromWorklog} = useTimeLogMutations();

@@ -1,4 +1,4 @@
-import timeLogRenderingService from "../service/timeLogRenderingService.jsx";
+import timeLogRenderingService from "../../service/timeLogRenderingService.jsx";
 
 export default function TimeLogList({
   ...props

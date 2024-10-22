@@ -1,8 +1,8 @@
-import dateTimeService from "../service/dateTimeService.js";
+import dateTimeService from "../../service/dateTimeService.js";
 import TimeLog from "./TimeLog.jsx";
 import dayjs from "dayjs";
 import TimeLogGroup from "./TimeLogGroup.jsx";
-import {viewMode} from "../consts/viewMode.js";
+import {viewMode} from "../../consts/viewMode.js";
 
 export default function TimeLogGroupedByDate({
   date,

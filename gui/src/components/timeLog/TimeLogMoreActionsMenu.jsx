@@ -4,13 +4,13 @@ import SplitscreenIcon from "@mui/icons-material/Splitscreen.js";
 import TimeLogJiraSyncButtons from "./TimeLogJiraSyncButtons.jsx";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined.js";
 import KeyboardTabOutlinedIcon from "@mui/icons-material/KeyboardTabOutlined.js";
-import dateTimeService from "../service/dateTimeService.js";
+import dateTimeService from "../../service/dateTimeService.js";
 import StopCircleOutlinedIcon from "@mui/icons-material/StopCircleOutlined.js";
 import dayjs from "dayjs";
 import StartOutlinedIcon from "@mui/icons-material/StartOutlined.js";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
-import {isJiraSyncingEnabled} from "../config/config.js";
+import {isJiraSyncingEnabled} from "../../config/config.js";
 
 export default function TimeLogMoreActionsMenu({
   moreActionsMenuEl,

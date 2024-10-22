@@ -1,4 +1,4 @@
-import {syncStatus} from "../consts/syncStatus.js";
+import {syncStatus} from "../../consts/syncStatus.js";
 import {Tooltip} from "@mui/material";
 import DoneIcon from "@mui/icons-material/Done.js";
 import SyncProblemIcon from "@mui/icons-material/SyncProblem.js";

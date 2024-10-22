@@ -1,8 +1,8 @@
 import VerticalDivider from "./VerticalDivider.jsx";
 import {Icon, Tooltip, Typography} from "@mui/material";
-import dateTimeService from "../service/dateTimeService.js";
+import dateTimeService from "../../service/dateTimeService.js";
 import {TiArrowForward} from "react-icons/ti";
-import {isJiraSyncingEnabled} from "../config/config.js";
+import {isJiraSyncingEnabled} from "../../config/config.js";
 
 export default function TimeLogNonEditableFields({
   startTime,
