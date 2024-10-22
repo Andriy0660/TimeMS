@@ -11,6 +11,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekWithTicketsResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
@@ -33,6 +34,8 @@ public interface TimeLogService {
   TimeLogConfigResponse getConfig();
 
   TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date);
+
+  TimeLogHoursForWeekWithTicketsResponse getHoursForWeekWithTickets(final LocalDate date);
 
   TimeLogUpdateResponse update(final long timeLogId, final TimeLogUpdateRequest request);
 

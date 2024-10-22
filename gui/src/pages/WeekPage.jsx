@@ -1,26 +1,25 @@
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import dayjs from "dayjs";
 import dateTimeService from "../service/dateTimeService.js";
-import {startHourOfDay} from "../config/timeConfig.js";
+import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
+import {FormControlLabel, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
-import CustomTableCell from "../components/CustomTableCell.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
-import TimeLogList from "../components/TimeLogList.jsx";
+import TimeLogList from "../components/timeLog/TimeLogList.jsx";
 import {useState} from "react";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from '@mui/icons-material/Reorder';
 import {weekViewMode} from "../consts/weekViewMode.js";
-import ModeIcon from "../components/ModeIcon.jsx";
+import ViewModeIcon from "../components/general/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
+import WeekTable from "../components/week/WeekTable.jsx";
+import WeekJiraTable from "../components/week/WeekJiraTable.jsx";
+import LoadingPage from "../components/general/LoadingPage.jsx";
+import useSync from "../hooks/useSync.js";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
@@ -30,12 +29,12 @@ export default function WeekPage() {
   const {date, setDate, addAlert, mode} = useAppContext();
 
   const {
-    data,
+    data: dayInfos,
     isPending
   } = useQuery({
     queryKey: [timeLogApi.key, "week", date, offset],
     queryFn: () => {
-      return timeLogApi.getHoursForWeek({date: dateTimeService.getFormattedDate(date), offset});
+      return timeLogApi.getHoursForWeek({date: dateTimeService.getFormattedDate(date), includeTickets: isJiraSyncingEnabled});
     },
     onError: async (error) => {
       addAlert({
@@ -48,43 +47,31 @@ export default function WeekPage() {
   });
 
   const timeLogMutations = useTimeLogMutations();
+  const syncMutations = useSync();
 
   const {
     groupByDescription, setGroupByDescription, timeLogs
   } = useProcessedTimeLogs();
 
-  const handleClick = (date) => {
+  const handleClickDate = (date) => {
     setDate(dayjs(date))
     changeView(viewMode.DAY)
   }
 
-  const getTotalTimeForTicket = (ticket) => {
-    const totalTime = data.reduce((result, {ticketDurations}) => {
-      const ticketDuration = ticketDurations.find(td => td.ticket === ticket);
-      result += dateTimeService.parseMinutes(ticketDuration.duration)
-      return result;
-    }, 0)
-    return dateTimeService.formatDuration(totalTime);
-  }
-
   if (isPending) {
-    return (
-      <div className="absolute inset-1/2">
-        <CircularProgress />
-      </div>
-    );
+    return <LoadingPage />
   }
 
   return (
     <div className="w-3/5 mx-auto">
       <div className="flex justify-start my-2">
-        <ModeIcon
+        <ViewModeIcon
           title={weekViewMode.TABLE}
           icon={<GoTable />}
           isActive={view === weekViewMode.TABLE}
           onClick={() => setView(weekViewMode.TABLE)}
         />
-        <ModeIcon
+        <ViewModeIcon
           title={weekViewMode.LIST}
           icon={<ReorderIcon />}
           isActive={view === weekViewMode.LIST}
@@ -104,53 +91,13 @@ export default function WeekPage() {
         }
       </div>
       {view === weekViewMode.TABLE && <TableContainer className="flex mx-auto mb-3">
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <CustomTableCell><></>
-              </CustomTableCell>
-              {data.map(dayInfo => (
-                <CustomTableCell
-                  key={dayInfo.date}
-                  date={dayInfo.date}
-                  isHover
-                  syncStatus={dayInfo?.jiraSyncInfo.status}
-                  isConflicted={dayInfo.conflicted}
-                  onClick={() => handleClick(dayInfo.date)}
-                >
-                  <div>{dayInfo.dayName}</div>
-                </CustomTableCell>
-              ))}
-              <CustomTableCell isBold>Total</CustomTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data[0]?.ticketDurations.map(({ticket}) => (
-              <TableRow key={ticket}>
-                <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
-                {data.map(dayInfo => {
-                  const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
-                  return (
-                    <CustomTableCell
-                      key={`${dayInfo.date}-${ticket}`}
-                      isBold={ticket === "Total"}
-                      isHover={ticket === "Total"}
-                      onClick={() => {
-                        if (ticket === "Total") {
-                          handleClick(dayInfo.date);
-                        }
-                      }}
-                    >
-                      {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
-                    </CustomTableCell>
-                  );
-                })}
-                <CustomTableCell isBold>{getTotalTimeForTicket(ticket)}</CustomTableCell>
-              </TableRow>
-            ))
-            }
-          </TableBody>
-        </Table>
+        {isJiraSyncingEnabled && (
+          <WeekJiraTable dayInfos={dayInfos} handleClickDate={handleClickDate} />
+        )}
+
+        {!isJiraSyncingEnabled && (
+          <WeekTable dayInfos={dayInfos} handleClickDate={handleClickDate}/>
+        )}
       </TableContainer>
       }
       {view === weekViewMode.LIST && (
@@ -158,6 +105,7 @@ export default function WeekPage() {
           timeLogs={timeLogs}
           mode={mode}
           {...timeLogMutations}
+          {...syncMutations}
         />
       )}
     </div>

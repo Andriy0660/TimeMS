@@ -1,11 +1,11 @@
-import timeLogProcessingService from "./timeLogProcessingService.js";
+import timeLogService from "./timeLogService.js";
 import dateTimeService from "./dateTimeService.js";
 import dayjs from "dayjs";
 
 
 const fileService = {
   convertToTxt(data) {
-    const groupedData = timeLogProcessingService.group(data, ["date"]).data;
+    const groupedData = timeLogService.group(data, ["date"]).data;
 
     return groupedData
       .map(({key, items: timeLogs}) => {
@@ -28,7 +28,7 @@ const fileService = {
   },
 
   getFormattedDuration(startTime, endTime) {
-    const duration = dateTimeService.getDurationInMinutes(startTime, endTime);
+    const duration = dateTimeService.calculateDurationMinutes(startTime, endTime);
     return duration !== null ? this.formatDuration(duration) : "**:**";
   },
 
@@ -63,23 +63,23 @@ const fileService = {
 
 }
 
-const igorRegex = /[+-] {2}(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*) \(.*\) - \[(.+)\]\s?(.*)/;
+const regex = /[+-] {2}(\d{2}:\d{2}|\*\*:\*\*) - (\d{2}:\d{2}|\*\*:\*\*) \(.*\) - \[(.+)\]\s?(.*)/;
 const parsers = [
   {
-    isValid: isValidIgorFormat,
-    parse: parseIgorFormat,
-    getDate: getIgorDate,
-    regex: igorRegex
+    isValid: isValid,
+    parse: parse,
+    getDate: getDate,
+    regex: regex
   }
 ];
 
-function parseIgorFormat(currentDate, match) {
+function parse(currentDate, match) {
   const startTime = dayjs(match[1] !== "**:**" ? match[1] : null, "HH:mm");
   const endTime = dayjs(match[2] !== "**:**" ? match[2] : null, "HH:mm");
   const ticket = match[3] !== "???" ? match[3] : null;
   const description = match[4] || null;
   let date = currentDate;
-  if (dateTimeService.isNextDay(startTime)) {
+  if (timeLogService.getIsTimeLogInNextDayInfo(startTime, endTime).startTime) {
     date = date.add(1, "day");
   }
   return {
@@ -90,16 +90,16 @@ function parseIgorFormat(currentDate, match) {
   }
 }
 
-function isValidIgorFormat(line) {
-  return igorRegex.test(line);
+function isValid(line) {
+  return regex.test(line);
 }
 
-function getIgorDate(line) {
+function getDate(line) {
   const datePattern = /\w{3} \d{2}\.\d{2}\.\d{4}/;
 
-  const dateMatch = line.match(datePattern);
-  if (dateMatch) {
-    const date = dayjs(dateMatch[0], "ddd DD.MM.YYYY");
+  const match = line.match(datePattern);
+  if (match) {
+    const date = dayjs(match[0], "ddd DD.MM.YYYY");
     return date.isValid() ? date : null;
   }
 

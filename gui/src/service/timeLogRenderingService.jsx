@@ -1,12 +1,13 @@
-import TimeLogGroupedByDate from "../components/TimeLogGroupedByDate.jsx";
-import TimeLogGroupedByDescription from "../components/TimeLogGroupedByDescription.jsx";
-import {CircularProgress} from "@mui/material";
-import NoLogs from "../components/NoLogs.jsx";
+import TimeLogGroupedByDate from "../components/timeLog/TimeLogGroupedByDate.jsx";
+import TimeLogGroupedByDescription from "../components/timeLog/TimeLogGroupedByDescription.jsx";
+import NoLogs from "../components/general/NoLogs.jsx";
+import LoadingPage from "../components/general/LoadingPage.jsx";
 
 const timeLogRenderingService = {
   render({timeLogs, ...props}) {
 
     switch (JSON.stringify(timeLogs.groupOrder)) {
+
       case JSON.stringify(["date"]) :
         return timeLogs.data.length ? timeLogs.data
           .map(({key: date, items: logsForDate}) => (
@@ -14,6 +15,7 @@ const timeLogRenderingService = {
               <TimeLogGroupedByDate {...props} date={date} logsForDate={logsForDate} />
             </div>
           )) : <NoLogs />
+
       case JSON.stringify(["date", "ticketAndDescription"]) :
         return timeLogs.data.length ? timeLogs.data
           .map(({key: date, items: logsForDate}) => (
@@ -21,12 +23,10 @@ const timeLogRenderingService = {
               <TimeLogGroupedByDate {...props} date={date} logsForDate={logsForDate} renderedInner={this.renderedDescriptionGroup(props, logsForDate)} />
             </div>
           )) : <NoLogs />
+
       case undefined :
-        return (
-          <div className="absolute inset-1/2">
-            <CircularProgress />
-          </div>
-        );
+        return <LoadingPage />
+
       default :
         console.error("No matching render function found for timeLogs:", timeLogs);
         return null;

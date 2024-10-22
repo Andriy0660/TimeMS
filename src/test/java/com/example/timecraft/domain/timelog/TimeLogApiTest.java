@@ -269,6 +269,7 @@ class TimeLogApiTest {
 
     mvc.perform(get("/time-logs/hoursForWeek")
             .param("date", LocalDate.now(clock).toString())
+            .param("includeTickets", "true")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items[?(@.dayName == 'Monday')].ticketDurations[*]", hasItem(

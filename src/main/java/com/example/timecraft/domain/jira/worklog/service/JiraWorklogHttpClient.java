@@ -10,9 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.timecraft.core.config.AppProperties;
+import com.example.timecraft.core.exception.NotFoundException;
+import com.example.timecraft.core.exception.UnauthorizedException;
 import com.example.timecraft.domain.jira.worklog.dto.JiraSearchResponse;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogCreateDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogUpdateDto;
@@ -26,54 +29,73 @@ public class JiraWorklogHttpClient {
 
   public String getWorklogsForIssue(final String issueKey) {
     final String url = buildUrl("/issue/" + issueKey + "/worklog");
-    final ResponseEntity<String> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, getHttpEntity(), String.class);
+    try {
+      final ResponseEntity<String> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, getHttpEntity(), String.class);
 
-    if (response.getStatusCode().is2xxSuccessful()) {
-      return response.getBody();
-    } else {
-      throw new RuntimeException("Failed to fetch worklogs for " + issueKey + " : " + response.getStatusCode());
+      if (response.getStatusCode().is2xxSuccessful()) {
+        return response.getBody();
+      } else {
+        throw new RuntimeException("Failed to fetch worklogs for " + issueKey + " : " + response.getStatusCode());
+      }
+    } catch (HttpClientErrorException.NotFound e) {
+      throw new NotFoundException("Issue " + issueKey + " not found");
     }
   }
 
   public String createWorklog(final String issueKey, final JiraWorklogCreateDto createDto) {
     final String url = buildUrl("/issue/" + issueKey + "/worklog");
-    final ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, getHttpEntity(createDto), String.class);
-
-    if (response.getStatusCode() == HttpStatus.CREATED) {
-      return response.getBody();
-    } else {
-      throw new RuntimeException("Failed to delete worklog for " + issueKey + " : " + response.getStatusCode());
+    try {
+      final ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, getHttpEntity(createDto), String.class);
+      if (response.getStatusCode() == HttpStatus.CREATED) {
+        return response.getBody();
+      } else {
+        throw new RuntimeException("Failed to delete worklog for " + issueKey + " : " + response.getStatusCode());
+      }
+    } catch (HttpClientErrorException.NotFound e) {
+      throw new NotFoundException("Issue " + issueKey + " not found");
     }
   }
 
   public String updateWorklog(final String issueKey, final Long id, final JiraWorklogUpdateDto updateDto) {
     final String url = buildUrl("/issue/" + issueKey + "/worklog/" + id);
-    final ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, getHttpEntity(updateDto), String.class);
+    try {
+      final ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, getHttpEntity(updateDto), String.class);
 
-    if (response.getStatusCode() == HttpStatus.OK) {
-      return response.getBody();
-    } else {
-      throw new RuntimeException("Failed to update worklog with " + id + " for " + issueKey + " : " + response.getStatusCode());
+      if (response.getStatusCode() == HttpStatus.OK) {
+        return response.getBody();
+      } else {
+        throw new RuntimeException("Failed to update worklog with " + id + " for " + issueKey + " : " + response.getStatusCode());
+      }
+    } catch (HttpClientErrorException.NotFound e) {
+      throw new NotFoundException("Issue key or worklog id is not found");
     }
   }
 
   public void deleteWorklog(final String issueKey, final Long id) {
     final String url = buildUrl("/issue/" + issueKey + "/worklog/" + id);
-    final ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, getHttpEntity(), Void.class);
+    try {
+      final ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, getHttpEntity(), Void.class);
 
-    if (!response.getStatusCode().is2xxSuccessful()) {
-      throw new RuntimeException("Failed to delete worklog with " + id + " for " + issueKey + " : " + response.getStatusCode());
+      if (!response.getStatusCode().is2xxSuccessful()) {
+        throw new RuntimeException("Failed to delete worklog with " + id + " for " + issueKey + " : " + response.getStatusCode());
+      }
+    } catch (HttpClientErrorException.NotFound e) {
+      throw new NotFoundException("Issue key or worklog id is not found");
     }
   }
 
   public String getJiraAccountId() {
-    final String url = buildUrl("/myself");
-    final ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, getHttpEntity(), String.class);
+    try {
+      final String url = buildUrl("/myself");
+      final ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, getHttpEntity(), String.class);
 
-    if (response.getStatusCode() == HttpStatus.OK) {
-      return response.getBody();
-    } else {
-      throw new RuntimeException("Failed to fetch Jira account id : " + response.getStatusCode());
+      if (response.getStatusCode() == HttpStatus.OK) {
+        return response.getBody();
+      } else {
+        throw new RuntimeException("Failed to fetch Jira account id : " + response.getStatusCode());
+      }
+    } catch (HttpClientErrorException.Unauthorized e) {
+      throw new UnauthorizedException("You must be authorized into your Jira account");
     }
   }
 

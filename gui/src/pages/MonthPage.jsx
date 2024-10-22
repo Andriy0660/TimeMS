@@ -8,20 +8,22 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {startHourOfDay} from "../config/timeConfig.js";
-import MonthPageDuration from "../components/MonthPageDuration.jsx";
+import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
+import MonthPageDuration from "../components/month/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
-import TimeLogStatusIcons from "../components/TimeLogStatusIcons.jsx";
-import {CircularProgress, FormControlLabel, Switch} from "@mui/material";
-import TimeLogList from "../components/TimeLogList.jsx";
+import TimeLogStatusIcons from "../components/timeLog/TimeLogStatusIcons.jsx";
+import {FormControlLabel, Switch} from "@mui/material";
+import TimeLogList from "../components/timeLog/TimeLogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import {GoTable} from "react-icons/go";
 import ReorderIcon from "@mui/icons-material/Reorder.js";
 import {monthViewMode} from "../consts/monthViewMode.js";
-import ModeIcon from "../components/ModeIcon.jsx";
+import ViewModeIcon from "../components/general/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import {syncStatus} from "../consts/syncStatus.js";
+import LoadingPage from "../components/general/LoadingPage.jsx";
+import useSync from "../hooks/useSync.js";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -44,6 +46,8 @@ export default function MonthPage() {
   });
 
   const timeLogMutations = useTimeLogMutations();
+  const syncMutations = useSync();
+
   const {
     groupByDescription, setGroupByDescription, timeLogs
   } = useProcessedTimeLogs();
@@ -68,16 +72,47 @@ export default function MonthPage() {
   };
 
   const getDayCellClassNames = ({dow: dayOfWeek, date: cellDate}) => {
-    const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
-    const {conflicted} = dayInfo || {};
-    if ((dayInfo?.jiraSyncInfo.status === syncStatus.NOT_SYNCED || conflicted) && dayjs(cellDate).$M === date.$M) {
-      return ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
-    } else if (dayOfWeek === 0 || dayOfWeek === 6) {
-      return ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"];
-    } else {
-      return ["bg-transparent hover:bg-blue-100 hover:cursor-pointer"];
+    const cellDayjs = dayjs(cellDate);
+    const dayInfo = data.items?.find(item => dayjs(item.date).isSame(cellDayjs, "day"));
+    const isCurrentMonth = cellDayjs.isSame(date, 'month');
+
+    const conflictedClassNames = ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
+
+    const getClassNamesByJiraStatus = (dayInfo) => {
+      if (!dayInfo) return null;
+
+      const notSyncedClassNames = ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
+      const partiallySyncedClassNames = ["bg-orange-200 hover:cursor-pointer hover:bg-orange-300"];
+
+      switch (dayInfo.jiraSyncInfo.status) {
+        case syncStatus.NOT_SYNCED:
+          return notSyncedClassNames;
+        case syncStatus.PARTIAL_SYNCED:
+          return partiallySyncedClassNames;
+        default:
+          return null;
+      }
+    };
+
+    const getDefaultClassNames = (dayOfWeek) => {
+      return dayOfWeek === 0 || dayOfWeek === 6
+        ? ["bg-red-50 hover:bg-red-100 hover:cursor-pointer"]
+        : ["bg-transparent hover:bg-blue-100 hover:cursor-pointer"];
+    };
+
+    if (isCurrentMonth) {
+      if (dayInfo?.conflicted) {
+        return conflictedClassNames;
+      }
+
+      if (isJiraSyncingEnabled) {
+        const syncState = getClassNamesByJiraStatus(dayInfo);
+        if (syncState) return syncState;
+      }
     }
-  }
+
+    return getDefaultClassNames(dayOfWeek);
+  };
 
   const getCellContent = ({dayNumberText, date: cellDate}) => {
     const dayInfo = data.items?.find(dayInfo => dayjs(dayInfo.date).isSame(dayjs(cellDate), "day"));
@@ -85,7 +120,7 @@ export default function MonthPage() {
       <div className="flex justify-between p-1">
           <div>
             {dayInfo && dayjs(cellDate).$M === date.$M && (
-              <TimeLogStatusIcons syncStatus={dayInfo.jiraSyncInfo.status} isConflicted={dayInfo.conflicted} />
+              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} jiraSyncStatus={dayInfo.jiraSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
             )}
           </div>
         <div>
@@ -101,23 +136,19 @@ export default function MonthPage() {
   }
 
   if(isPending) {
-    return (
-      <div className="absolute inset-1/2">
-        <CircularProgress />
-      </div>
-    );
+    return <LoadingPage />
   }
 
   return (
     <div className="my-6 w-2/3 mx-auto">
       <div className="flex items-center mb-2">
-        <ModeIcon
+        <ViewModeIcon
           title={monthViewMode.CALENDAR}
           icon={<GoTable />}
           isActive={view === monthViewMode.CALENDAR}
           onClick={() => setView(monthViewMode.CALENDAR)}
         />
-        <ModeIcon
+        <ViewModeIcon
           title={monthViewMode.LIST}
           icon={<ReorderIcon />}
           isActive={view === monthViewMode.LIST}
@@ -166,6 +197,7 @@ export default function MonthPage() {
         timeLogs={timeLogs}
         mode={mode}
         {...timeLogMutations}
+        {...syncMutations}
       />}
     </div>
   );

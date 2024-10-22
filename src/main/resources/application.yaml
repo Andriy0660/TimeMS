@@ -18,7 +18,8 @@ spring:
     change-log: db/changelog/main-changelog.yaml
 
 app:
-  time-config:
+  config:
+    isJiraSyncingEnabled: true
     offset: 3
     startHourOfWorkingDay: 7
     endHourOfWorkingDay: 17

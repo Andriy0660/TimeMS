@@ -12,12 +12,13 @@ import lombok.Data;
 @Component
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
-  private TimeConfig timeConfig;
+  private Config config;
   private Cors cors;
   private Jira jira;
 
   @Data
-  public static class TimeConfig {
+  public static class Config {
+    private Boolean isJiraSyncingEnabled;
     private Integer offset;
     private Integer startHourOfWorkingDay;
     private Integer endHourOfWorkingDay;

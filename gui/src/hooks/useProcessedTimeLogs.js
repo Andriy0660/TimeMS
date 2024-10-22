@@ -1,93 +1,115 @@
-import {useEffect, useRef, useState} from "react";
-import {startHourOfDay} from "../config/timeConfig.js";
+import {useEffect, useMemo, useState} from "react";
+import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
+import worklogApi from "../api/worklogApi.js";
 import dateTimeService from "../service/dateTimeService.js";
-import timeLogProcessingService from "../service/timeLogProcessingService.js";
+import timeLogService from "../service/timeLogService.js";
 import useAppContext from "../context/useAppContext.js";
 
 export default function useProcessedTimeLogs() {
   const queryParams = new URLSearchParams(location.search);
   const {date, addAlert, mode} = useAppContext();
   const [timeLogs, setTimeLogs] = useState([]);
-  const [totalTimeLabel, setTotalTimeLabel] = useState("")
-
-  const offset = startHourOfDay;
+  const [totalTimeLabel, setTotalTimeLabel] = useState("");
   const [groupByDescription, setGroupByDescription] = useState(!!queryParams.get("groupByDescription") || false);
-  const [filterTickets, setFilterTickets] = useState([""])
-  const [selectedTickets, setSelectedTickets] = useState([]);
 
   const {
-    data,
+    data: timeLogsData,
     isPending: isListing,
     error: listAllError
   } = useQuery({
-    queryKey: [timeLogApi.key, mode, date, offset],
-    queryFn: () => {
-      return timeLogApi.list(dateTimeService.calculateDateRange(mode, date));
-    },
+    queryKey: [timeLogApi.key, mode, date, startHourOfDay],
+    queryFn: () => timeLogApi.list(dateTimeService.calculateDateRange(mode, date)),
     retryDelay: 300,
   });
 
   useEffect(() => {
     if (listAllError) {
       addAlert({
-        text: `${listAllError.displayMessage} Try agail later`,
+        text: `${listAllError.displayMessage} Try again later`,
         type: "error"
       });
     }
-  }, [listAllError]);
+  }, [listAllError, addAlert]);
 
-  const processedDataRef = useRef([]);
+  const jiraInfo = useJira(isJiraSyncingEnabled, mode, date, timeLogsData);
+  const processedTimeLogsArray = useMemo(() => isJiraSyncingEnabled
+      ? timeLogService.processData(timeLogsData, jiraInfo.selectedTickets)
+      : timeLogService.processData(timeLogsData),
+    [timeLogsData, jiraInfo.selectedTickets]);
+
   useEffect(() => {
-    const processedData = timeLogProcessingService.processData(data, selectedTickets);
-    processedDataRef.current = processedData;
+    const groupedData = groupAndSortData(processedTimeLogsArray, groupByDescription);
+    setTimeLogs(groupedData);
+    setTotalTimeLabel(timeLogService.getTotalTimeLabel(groupedData, groupByDescription));
+  }, [timeLogsData, groupByDescription, isJiraSyncingEnabled, jiraInfo.selectedTickets]);
 
-    const filterTickets = getFilterTickets(data);
-    updateSelectedTicketsIfNeeded(filterTickets);
-
-    const groupedData = groupAndSortData(processedData, groupByDescription);
-    const label = calculateTotalTimeLabel(groupedData, groupByDescription);
-    setTimeLogs(groupedData)
-    setTotalTimeLabel(label);
-  }, [data, groupByDescription, selectedTickets])
-
-  function getFilterTickets(data) {
-    const filterTickets = timeLogProcessingService.extractTickets(data);
-    filterTickets.push("Without ticket");
-    setFilterTickets(filterTickets);
-    return filterTickets;
+  function groupAndSortData(data, groupByDescription) {
+    if (groupByDescription) {
+      return timeLogService.group(data, ["date", "ticketAndDescription"]);
+    } else {
+      return timeLogService.group(data, ["date"]);
+    }
   }
 
-  function updateSelectedTicketsIfNeeded(filterTickets) {
-    const updatedTickets = selectedTickets.filter(ticket => filterTickets.includes(ticket));
+  return {
+    groupByDescription,
+    setGroupByDescription,
+    timeLogs,
+    processedTimeLogsArray,
+    isListing,
+    totalTimeLabel,
+    ...(isJiraSyncingEnabled ? jiraInfo : {}),
+  };
+}
+
+function useJira(isJiraSyncingEnabled, mode, date, timeLogsData) {
+  const {addAlert} = useAppContext();
+  const [filterTickets, setFilterTickets] = useState([""]);
+  const [selectedTickets, setSelectedTickets] = useState([]);
+
+  const {
+    data: worklogs,
+    isPending: isWorklogsListing,
+    error: listWorklogsError,
+  } = useQuery({
+    queryKey: [worklogApi.key, mode, date, startHourOfDay],
+    queryFn: () => worklogApi.list({mode, date: dateTimeService.getFormattedDate(date)}),
+    enabled: isJiraSyncingEnabled,
+    initialData: [],
+    placeholderData: (prev) => prev,
+    retryDelay: 300,
+  });
+
+  useEffect(() => {
+    if (listWorklogsError) {
+      addAlert({
+        text: `${listWorklogsError.displayMessage} Try agail later`,
+        type: "error"
+      });
+    }
+  }, [listWorklogsError]);
+
+  useEffect(() => {
+    if (isJiraSyncingEnabled) {
+      const newFilterTickets = timeLogService.extractTickets(timeLogsData);
+      setFilterTickets(newFilterTickets);
+      updateSelectedTicketsIfNeeded(newFilterTickets);
+    }
+  }, [isJiraSyncingEnabled, timeLogsData]);
+
+  function updateSelectedTicketsIfNeeded(newFilterTickets) {
+    const updatedTickets = selectedTickets.filter(ticket => newFilterTickets.includes(ticket));
     if (selectedTickets.toString() !== updatedTickets.toString()) {
       setSelectedTickets(updatedTickets);
     }
   }
 
-  function groupAndSortData(data, groupByDescription) {
-    if (groupByDescription) {
-      return timeLogProcessingService.group(data, ["date", "ticketAndDescription"]);
-    } else {
-      return timeLogProcessingService.group(data, ["date"]);
-    }
-  }
-
-  function calculateTotalTimeLabel(groupedData, groupByDescription) {
-    if (groupByDescription) {
-      return dateTimeService.formatDuration(dateTimeService.getTotalTimeGroupedByDateAndDescription(groupedData.data));
-    } else {
-      return dateTimeService.formatDuration(dateTimeService.getTotalTimeGroupedByDate(groupedData.data));
-    }
-  }
   return {
-    groupByDescription,
-    setGroupByDescription,
-    timeLogs,
-    processedTimeLogsArray: processedDataRef.current,
-    isListing,
-    totalTimeLabel,
+    worklogs,
+    isWorklogsListing,
+    listWorklogsError,
     filterTickets,
     selectedTickets,
     setSelectedTickets,

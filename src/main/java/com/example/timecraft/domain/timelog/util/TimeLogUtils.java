@@ -3,18 +3,11 @@ package com.example.timecraft.domain.timelog.util;
 import java.awt.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.stream.Collectors;
 
 public class TimeLogUtils {
-
-  public static int getDurationInSecondsForTimelog(final LocalTime startTime, final LocalTime endTime) {
-    if (startTime == null || endTime == null) return 0;
-    final int duration = (int) Duration.between(startTime, endTime).toSeconds();
-    return duration < 0 ? 3600 * 24 + duration : duration;
-  }
 
   public static LocalDate getProcessedDate(final LocalDate date, final LocalTime startTime, final int offset) {
     if (startTime == null) return date;

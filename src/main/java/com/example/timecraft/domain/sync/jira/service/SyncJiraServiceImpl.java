@@ -48,10 +48,8 @@ public class SyncJiraServiceImpl implements SyncJiraService {
     final String description = request.getDescription();
     final String ticket = request.getTicket();
 
-    final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
     final List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
-    timeLogSyncService.delete(timeLogEntityList);
     timeLogSyncService.saveAll(worklogEntityList.stream().map(worklogEntity -> {
       TimeLogEntity entity = timeLogMapper.worklogToTimeLog(worklogEntity);
       entity.setEndTime(worklogEntity.getStartTime().plusSeconds(worklogEntity.getTimeSpentSeconds()));
@@ -86,10 +84,10 @@ public class SyncJiraServiceImpl implements SyncJiraService {
   }
 
   private int getTotalSpentSeconds(final List<TimeLogEntity> timeLogEntityList) {
-    return (int) timeLogEntityList.stream().map(timeLogEntity -> {
-      if (timeLogEntity.getStartTime() == null || timeLogEntity.getEndTime() == null) return Duration.ZERO;
-      return Duration.between(timeLogEntity.getStartTime(), timeLogEntity.getEndTime());
-    }).reduce(Duration.ZERO, Duration::plus).toSeconds();
+    return timeLogEntityList.stream().map(timeLogEntity -> {
+      if (timeLogEntity.getStartTime() == null || timeLogEntity.getEndTime() == null) return 0;
+      return (int) DurationUtils.getDurationBetweenStartAndEndTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()).toSeconds();
+    }).reduce(0, Integer::sum);
   }
 
   private void deleteWorklogsForTicket(final List<WorklogEntity> worklogEntityList, final String ticket) {
