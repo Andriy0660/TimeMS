@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.example.timecraft.config.IntegrationTest;
 import com.example.timecraft.config.MockMvcConfig;
 import com.example.timecraft.config.TestPostgresContainerConfiguration;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
@@ -54,10 +55,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Testcontainers
-@ActiveProfiles("test")
-@Import({TestPostgresContainerConfiguration.class, MockMvcConfig.class})
-@SpringBootTest
+@IntegrationTest
 @WireMockTest(httpPort = 9999)
 public class SyncApiTest {
   @Autowired
