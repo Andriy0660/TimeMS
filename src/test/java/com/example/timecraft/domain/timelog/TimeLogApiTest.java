@@ -10,17 +10,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.example.timecraft.config.IntegrationTest;
-import com.example.timecraft.config.MockMvcConfig;
-import com.example.timecraft.config.TestPostgresContainerConfiguration;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
@@ -47,11 +41,11 @@ import static java.time.temporal.TemporalAdjusters.firstDayOfMonth;
 import static java.time.temporal.TemporalAdjusters.firstDayOfNextMonth;
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 import static java.time.temporal.TemporalAdjusters.next;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -167,7 +161,7 @@ class TimeLogApiTest {
         .andExpect(status().isOk());
 
     int newSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
-    assertEquals(initialSize + 1, newSize);
+    assertThat(initialSize + 1).isEqualTo(newSize);
   }
 
   @Test
@@ -182,7 +176,7 @@ class TimeLogApiTest {
         .andExpect(status().isOk());
 
     int newSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
-    assertEquals(initialSize + 1, newSize);
+    assertThat(initialSize + 1).isEqualTo(newSize);
   }
 
   @Test
@@ -257,7 +251,7 @@ class TimeLogApiTest {
         .andExpect(status().isOk());
     int newSize = getSize(mvc, startDate, endDate);
 
-    assertEquals(initialSize + 2, newSize);
+    assertThat(initialSize + 2).isEqualTo(newSize);
 
     mvc.perform(get("/time-logs")
             .param("startDate", startDate.toString())
@@ -280,7 +274,7 @@ class TimeLogApiTest {
         .andExpect(status().isOk());
     int newSizeOfThisDay = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
     int sizeOfNextDay = getSize(mvc, LocalDate.now(clock).plusDays(1), LocalDate.now(clock).plusDays(1));
-    assertEquals(initialSize + 1, newSizeOfThisDay + sizeOfNextDay);
+    assertThat(initialSize + 1).isEqualTo(newSizeOfThisDay + sizeOfNextDay);
   }
 
   @Test
@@ -326,7 +320,7 @@ class TimeLogApiTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items[?(@.dayName == 'Monday' && @.duration == '" + expectedMondayDuration + "' && @.conflicted == true)]").exists())
         .andExpect(jsonPath("$.items[?(@.dayName == 'Sunday' && @.duration == '" + expectedSundayDuration + "' && @.conflicted == " +
-            (initialSundayConflicted || false) + ")]").exists());
+            (initialSundayConflicted) + ")]").exists());
   }
 
   @Test
@@ -471,7 +465,7 @@ class TimeLogApiTest {
         .andExpect(jsonPath("$.items", not(matchTimeLog(timeLog1))));
 
     int newSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
-    assertEquals(initialSize - 1, newSize);
+    assertThat(initialSize - 1).isEqualTo(newSize);
   }
 
   @Test

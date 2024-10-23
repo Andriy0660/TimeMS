@@ -44,7 +44,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -87,7 +86,7 @@ public class SyncApiTest {
         .andExpect(status().isOk());
 
     int newSize = TimeLogApiTestUtils.getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
-    assertEquals(initialSize + 3, newSize);
+    assertThat(initialSize + 3).isEqualTo(newSize);
   }
 
   @Test
@@ -142,7 +141,7 @@ public class SyncApiTest {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
     int sizeAfterSyncingIntoJira = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
-    assertEquals(initialSize, sizeAfterSyncingIntoJira + 1);
+    assertThat(initialSize).isEqualTo(sizeAfterSyncingIntoJira + 1);
   }
 
   @Disabled
@@ -229,7 +228,7 @@ public class SyncApiTest {
         .andExpect(status().isOk());
 
     int sizeAfterSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
-    assertEquals(count, sizeAfterSyncing);
+    assertThat(count).isEqualTo(sizeAfterSyncing);
 
     mvc.perform(get("/work-logs")
             .param("date", LocalDate.now(clock).toString())
@@ -242,7 +241,7 @@ public class SyncApiTest {
 
   @Test
   void shouldSyncWorklogsForTicket() throws Exception {
-    String ticket = "TST-1";
+    String ticket = Instancio.of(String.class).create();
     String descr = "descr";
     String newDescr = "newDescr";
     List<WorklogEntity> worklogEntitiesFromJira = SyncApiTestUtils.createWorklogsWithSameInfo(2, LocalDate.now(clock), ticket, descr);
@@ -267,13 +266,14 @@ public class SyncApiTest {
             .withBody(SyncApiTestUtils.convertListToJSONString(worklogEntitiesFromJira))
         )
     );
+    int sizeBeforeSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
 
     mvc.perform(post("/syncJira/{ticket}", ticket)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     int sizeAfterSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
-    assertEquals(2, sizeAfterSyncing);
+    assertThat(sizeBeforeSyncing + 1).isEqualTo(sizeAfterSyncing);
 
     mvc.perform(get("/work-logs")
             .param("date", LocalDate.now(clock).toString())

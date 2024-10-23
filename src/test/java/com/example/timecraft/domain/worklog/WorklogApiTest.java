@@ -7,17 +7,11 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.example.timecraft.config.IntegrationTest;
-import com.example.timecraft.config.MockMvcConfig;
-import com.example.timecraft.config.TestPostgresContainerConfiguration;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
@@ -37,8 +31,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
 import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -112,7 +106,7 @@ public class WorklogApiTest {
     WorklogCreateFromTimeLogResponse response = objectMapper.readValue(content, WorklogCreateFromTimeLogResponse.class);
 
     int sizeAfterAdding = getSize(mvc, LocalDate.now(clock));
-    assertEquals(initialSize + 1, sizeAfterAdding);
+    assertThat(initialSize + 1).isEqualTo(sizeAfterAdding);
   }
 
   @Test
@@ -129,7 +123,7 @@ public class WorklogApiTest {
         .andExpect(status().isOk());
 
     int sizeAfterDeleting = getSize(mvc, LocalDate.now(clock));
-    assertEquals(initialSize, sizeAfterDeleting + 1);
+    assertThat(initialSize).isEqualTo(sizeAfterDeleting + 1);
   }
 
   @Test
