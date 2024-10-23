@@ -1,17 +1,19 @@
 package com.example.timecraft.domain.worklog.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.example.timecraft.config.WireMockConfig;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.util.WorklogApiTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.RequiredArgsConstructor;
 
@@ -23,13 +25,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Service
 @RequiredArgsConstructor
+@Import(WireMockConfig.class)
 public class TestWorklogService {
+  private final WireMockServer wm;
   private final ObjectMapper objectMapper;
   private final WorklogMapper worklogMapper;
   private final MockMvc mvc;
 
   public WorklogEntity saveWorklog(final WorklogCreateFromTimeLogRequest request) throws Exception {
-    stubFor(WireMock.post(WireMock.urlMatching(".*/issue/" + request.getTicket() + "/worklog"))
+    wm.stubFor(WireMock.post(WireMock.urlMatching(".*/issue/" + request.getTicket() + "/worklog"))
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(created()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)

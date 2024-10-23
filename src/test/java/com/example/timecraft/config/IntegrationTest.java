@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Testcontainers
 @ActiveProfiles("test")
-@Import({TestPostgresContainerConfiguration.class, MockMvcConfig.class})
+@Import({TestPostgresContainerConfiguration.class, MockMvcConfig.class, WireMockConfig.class})
 @SpringBootTest
 public @interface IntegrationTest {
 }

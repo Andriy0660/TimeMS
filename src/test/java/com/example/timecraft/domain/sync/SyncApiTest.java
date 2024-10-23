@@ -30,8 +30,8 @@ import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.service.TestWorklogService;
 import com.example.timecraft.domain.worklog.util.WorklogApiTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultWorklogStartTime;
 import static com.example.timecraft.domain.sync.util.SyncApiTestUtils.accountIdForTesting;
@@ -40,7 +40,6 @@ import static com.example.timecraft.domain.worklog.util.WorklogApiTestUtils.crea
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -50,8 +49,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IntegrationTest
-@WireMockTest(httpPort = 9999)
 public class SyncApiTest {
+  @Autowired
+  private WireMockServer wm;
+
   @Autowired
   private MockMvc mvc;
 
@@ -124,7 +125,7 @@ public class SyncApiTest {
         worklogEntity1.getId()
     );
 
-    stubFor(WireMock.put(WireMock.urlMatching(".*/issue/" + ticket + "/worklog/" + worklogEntity1.getId()))
+    wm.stubFor(WireMock.put(WireMock.urlMatching(".*/issue/" + ticket + "/worklog/" + worklogEntity1.getId()))
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -132,7 +133,7 @@ public class SyncApiTest {
         )
     );
 
-    stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/" + worklogEntity2.getId()))
+    wm.stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/" + worklogEntity2.getId()))
         .willReturn(noContent()));
 
     int initialSize = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
@@ -144,7 +145,6 @@ public class SyncApiTest {
     assertThat(initialSize).isEqualTo(sizeAfterSyncingIntoJira + 1);
   }
 
-  @Disabled
   @Test
   void shouldThrowWhenSyncMismatchOnSyncIntoJira() throws Exception {
     String ticket = "TST-1";
@@ -160,7 +160,7 @@ public class SyncApiTest {
     worklogService.saveWorklog(request2);
 
     SyncIntoJiraRequest request = new SyncIntoJiraRequest(ticket, LocalDate.now(clock), descr);
-    stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/.*"))
+    wm.stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/.*"))
         .willReturn(WireMock.status(404)));
 
     mvc.perform(post("/syncJira/to")
@@ -190,7 +190,7 @@ public class SyncApiTest {
     worklogEntitiesFromJira.get(0).setId(worklogFromApp1.getId());
     worklogEntitiesFromJira.get(1).setId(worklogFromApp2.getId());
     worklogEntitiesFromJira.get(2).setId(worklogFromApp3.getId());
-    stubFor(WireMock.get(urlMatching(".*/myself"))
+    wm.stubFor(WireMock.get(urlMatching(".*/myself"))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
             .withBody(String.format("""
@@ -199,7 +199,7 @@ public class SyncApiTest {
                 }
                 """, accountIdForTesting))));
 
-    stubFor(WireMock.get(urlMatching(".*/search.*"))
+    wm.stubFor(WireMock.get(urlMatching(".*/search.*"))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
             .withBody(String.format("""
@@ -215,7 +215,7 @@ public class SyncApiTest {
                 }
                 """, ticket, worklogEntitiesFromJira.get(0).getTimeSpentSeconds() * count, 1))));
 
-    stubFor(WireMock.get(WireMock.urlMatching(".*/issue/" + ticket + "/worklog"))
+    wm.stubFor(WireMock.get(WireMock.urlMatching(".*/issue/" + ticket + "/worklog"))
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -250,7 +250,7 @@ public class SyncApiTest {
     WorklogEntity worklogFromApp1 = worklogService.saveWorklog(request1);
     worklogEntitiesFromJira.get(0).setId(worklogFromApp1.getId());
 
-    stubFor(WireMock.get(urlMatching(".*/myself"))
+    wm.stubFor(WireMock.get(urlMatching(".*/myself"))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
             .withBody(String.format("""
@@ -259,7 +259,7 @@ public class SyncApiTest {
                 }
                 """, accountIdForTesting))));
 
-    stubFor(WireMock.get(WireMock.urlMatching(".*/issue/" + ticket + "/worklog"))
+    wm.stubFor(WireMock.get(WireMock.urlMatching(".*/issue/" + ticket + "/worklog"))
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -369,7 +369,7 @@ public class SyncApiTest {
     int count = 80;
     List<WorklogEntity> worklogEntitiesFromJira = SyncApiTestUtils.createWorklogsWithSameInfo(count, LocalDate.now(clock), ticket, "descr");
 
-    stubFor(WireMock.get(urlMatching(".*/myself"))
+    wm.stubFor(WireMock.get(urlMatching(".*/myself"))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
             .withBody(String.format("""
@@ -378,7 +378,7 @@ public class SyncApiTest {
                 }
                 """, accountIdForTesting))));
 
-    stubFor(WireMock.get(urlMatching(".*/search.*"))
+    wm.stubFor(WireMock.get(urlMatching(".*/search.*"))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
             .withBody(String.format("""
@@ -397,7 +397,7 @@ public class SyncApiTest {
                 worklogEntitiesFromJira.get(0).getTimeSpentSeconds() * count,
                 1))));
 
-    stubFor(WireMock.get(WireMock.urlMatching(".*/issue/" + ticket + "/worklog"))
+    wm.stubFor(WireMock.get(WireMock.urlMatching(".*/issue/" + ticket + "/worklog"))
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)

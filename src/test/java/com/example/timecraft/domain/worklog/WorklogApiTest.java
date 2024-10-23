@@ -7,19 +7,21 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.example.timecraft.config.IntegrationTest;
+import com.example.timecraft.config.WireMockConfig;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.service.TestWorklogService;
 import com.example.timecraft.domain.worklog.util.WorklogApiTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultWorklogStartTime;
 import static com.example.timecraft.domain.worklog.util.WorklogApiTestUtils.createWorklogCreateRequest;
@@ -29,7 +31,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
 import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.not;
@@ -40,8 +41,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IntegrationTest
-@WireMockTest(httpPort = 9999)
+@Import(WireMockConfig.class)
 public class WorklogApiTest {
+
+  @Autowired
+  private WireMockServer wm;
+
   @Autowired
   private MockMvc mvc;
 
@@ -85,7 +90,7 @@ public class WorklogApiTest {
         "This is a sample description\nanother line"
     );
 
-    stubFor(WireMock.post(WireMock.urlMatching(".*/issue/" + request.getTicket() + "/worklog"))
+    wm.stubFor(WireMock.post(WireMock.urlMatching(".*/issue/" + request.getTicket() + "/worklog"))
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(created()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -113,7 +118,7 @@ public class WorklogApiTest {
   void shouldDeleteWorklog() throws Exception {
     final WorklogCreateFromTimeLogRequest request = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1));
     WorklogEntity worklog = worklogService.saveWorklog(request);
-    stubFor(WireMock.delete(urlMatching(".*/issue/" + worklog.getTicket() + "/worklog/" + worklog.getId()))
+    wm.stubFor(WireMock.delete(urlMatching(".*/issue/" + worklog.getTicket() + "/worklog/" + worklog.getId()))
         .willReturn(noContent()));
 
     int initialSize = getSize(mvc, LocalDate.now(clock));
@@ -129,7 +134,7 @@ public class WorklogApiTest {
   @Test
   void shouldThrowWhenIsAlreadyDeleted() throws Exception {
     WorklogEntity worklog = WorklogEntity.builder().id(UUID.randomUUID().getMostSignificantBits()).ticket("TST-2").build();
-    stubFor(WireMock.delete(urlMatching(".*/issue/" + worklog.getTicket() + "/worklog/" + worklog.getId()))
+    wm.stubFor(WireMock.delete(urlMatching(".*/issue/" + worklog.getTicket() + "/worklog/" + worklog.getId()))
         .willReturn(notFound()));
 
     mvc.perform(delete("/work-logs/{issueKey}/{worklogId}", worklog.getTicket(), worklog.getId())
