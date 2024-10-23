@@ -7,20 +7,15 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.instancio.Instancio;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.example.timecraft.config.IntegrationTest;
-import com.example.timecraft.config.MockMvcConfig;
-import com.example.timecraft.config.TestPostgresContainerConfiguration;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
@@ -97,7 +92,7 @@ public class SyncApiTest {
 
   @Test
   void shouldSyncIntoJira() throws Exception {
-    String ticket = "TST-1";
+    String ticket = Instancio.of(String.class).create();
     String descr = "syncintojiradescr";
     timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, ticket, descr));
     timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, ticket, descr));
@@ -130,7 +125,7 @@ public class SyncApiTest {
         worklogEntity1.getId()
     );
 
-    stubFor(WireMock.put(WireMock.urlMatching(".*/issue/" + request.getTicket() + "/worklog/" + worklogEntity1.getId()))
+    stubFor(WireMock.put(WireMock.urlMatching(".*/issue/" + ticket + "/worklog/" + worklogEntity1.getId()))
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -138,7 +133,7 @@ public class SyncApiTest {
         )
     );
 
-    stubFor(WireMock.delete(urlMatching(".*/issue/" + "TST-1" + "/worklog/" + worklogEntity2.getId()))
+    stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/" + worklogEntity2.getId()))
         .willReturn(noContent()));
 
     int initialSize = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));

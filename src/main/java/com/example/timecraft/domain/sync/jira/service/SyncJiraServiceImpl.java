@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.core.exception.NotFoundException;
@@ -34,6 +35,7 @@ import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultW
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SyncJiraServiceImpl implements SyncJiraService {
   private final TimeLogSyncService timeLogSyncService;
   private final WorklogSyncService worklogSyncService;
