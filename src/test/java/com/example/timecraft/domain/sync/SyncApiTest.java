@@ -70,7 +70,7 @@ public class SyncApiTest {
 
   @Test
   void shouldSyncFromJira() throws Exception {
-    String ticket = "TST-1";
+    String ticket = Instancio.of(String.class).create();
     String descr = "syncfromjiradescr";
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, descr);
     worklogService.saveWorklog(request1);
@@ -82,7 +82,7 @@ public class SyncApiTest {
     int initialSize = TimeLogApiTestUtils.getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
 
     mvc.perform(post("/syncJira/from")
-            .content(objectMapper.writeValueAsString(new SyncFromJiraRequest("TST-1", LocalDate.now(clock), descr)))
+            .content(objectMapper.writeValueAsString(new SyncFromJiraRequest(ticket, LocalDate.now(clock), descr)))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
