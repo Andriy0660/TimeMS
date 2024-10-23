@@ -267,14 +267,18 @@ class TimeLogApiTest {
   @Test
   void shouldDivideTimeLog() throws Exception {
     TimeLogEntity timeLog = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), LocalTime.of(11, 0, 0)), LocalTime.of(5, 0));
-    int initialSize = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
+    final LocalDate today = LocalDate.now(clock);
+    final LocalDate tomorrow = today.plusDays(1);
+    int initialSizeOfToday = getSize(mvc, today, tomorrow);
+    int initialSizeOfTomorrow = getSize(mvc, tomorrow, tomorrow);
 
     mvc.perform(post("/time-logs/divide/{timeLogId}", timeLog.getId())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
-    int newSizeOfThisDay = getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
-    int sizeOfNextDay = getSize(mvc, LocalDate.now(clock).plusDays(1), LocalDate.now(clock).plusDays(1));
-    assertThat(initialSize + 1).isEqualTo(newSizeOfThisDay + sizeOfNextDay);
+    int newSizeOfToday = getSize(mvc, today, tomorrow);
+    int newSizeOfTomorrow = getSize(mvc, tomorrow, tomorrow);
+    assertThat(initialSizeOfToday).isEqualTo(newSizeOfToday);
+    assertThat(initialSizeOfTomorrow + 1).isEqualTo(newSizeOfTomorrow);
   }
 
   @Test
