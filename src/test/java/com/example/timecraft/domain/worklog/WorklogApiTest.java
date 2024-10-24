@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.example.timecraft.config.IntegrationTest;
 import com.example.timecraft.config.WireMockConfig;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
@@ -23,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
-import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultWorklogStartTime;
 import static com.example.timecraft.domain.worklog.util.WorklogApiTestUtils.createWorklogCreateRequest;
 import static com.example.timecraft.domain.worklog.util.WorklogApiTestUtils.getSize;
 import static com.example.timecraft.domain.worklog.util.WorklogApiTestUtils.matchWorklog;
@@ -61,11 +61,12 @@ public class WorklogApiTest {
 
   @Test
   void shouldListWorklogsForDay() throws Exception {
-    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1));
+    final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
+    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
     WorklogEntity worklog1 = worklogService.saveWorklog(request1);
-    final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1));
+    final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
     WorklogEntity worklog2 = worklogService.saveWorklog(request2);
-    final WorklogCreateFromTimeLogRequest request3 = createWorklogCreateRequest(LocalDate.now(clock).plusDays(1), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1));
+    final WorklogCreateFromTimeLogRequest request3 = createWorklogCreateRequest(LocalDate.now(clock).plusDays(1), startTime, startTime.plusHours(1));
     WorklogEntity worklog3 = worklogService.saveWorklog(request3);
 
     LocalDate date = LocalDate.now(clock);
@@ -116,7 +117,8 @@ public class WorklogApiTest {
 
   @Test
   void shouldDeleteWorklog() throws Exception {
-    final WorklogCreateFromTimeLogRequest request = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1));
+    final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
+    final WorklogCreateFromTimeLogRequest request = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
     WorklogEntity worklog = worklogService.saveWorklog(request);
     wm.stubFor(WireMock.delete(urlMatching(".*/issue/" + worklog.getTicket() + "/worklog/" + worklog.getId()))
         .willReturn(noContent()));

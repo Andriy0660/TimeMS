@@ -22,6 +22,7 @@ import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
 import com.example.timecraft.domain.sync.jira.model.SyncJiraProgress;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
@@ -30,8 +31,6 @@ import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.api.WorklogSyncService;
 import lombok.RequiredArgsConstructor;
-
-import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultWorklogStartTime;
 
 @Service
 @RequiredArgsConstructor
@@ -63,7 +62,7 @@ public class SyncJiraServiceImpl implements SyncJiraService {
   @Override
   public void syncIntoJira(final SyncIntoJiraRequest request) {
     final LocalDate date = request.getDate();
-    final LocalDateTime dateTime = LocalDateTime.of(date, defaultWorklogStartTime);
+    final LocalDateTime dateTime = LocalDateTime.of(date, SyncJiraUtils.DEFAULT_WORKLOG_START_TIME);
     final String description = request.getDescription();
     final String ticket = request.getTicket();
 

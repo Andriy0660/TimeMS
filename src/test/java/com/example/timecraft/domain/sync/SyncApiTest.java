@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.instancio.Instancio;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -20,6 +19,7 @@ import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
 import com.example.timecraft.domain.sync.util.SyncApiTestUtils;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
-import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultWorklogStartTime;
 import static com.example.timecraft.domain.sync.util.SyncApiTestUtils.accountIdForTesting;
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.createTimeLogCreateRequest;
 import static com.example.timecraft.domain.worklog.util.WorklogApiTestUtils.createWorklogCreateRequest;
@@ -70,13 +69,14 @@ public class SyncApiTest {
 
   @Test
   void shouldSyncFromJira() throws Exception {
-    String ticket = Instancio.of(String.class).create();
-    String descr = "syncfromjiradescr";
-    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, descr);
+    final String ticket = Instancio.of(String.class).create();
+    final String descr = "syncfromjiradescr";
+    final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
+    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
     worklogService.saveWorklog(request1);
-    final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, descr);
+    final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
     worklogService.saveWorklog(request2);
-    final WorklogCreateFromTimeLogRequest request3 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, descr);
+    final WorklogCreateFromTimeLogRequest request3 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
     worklogService.saveWorklog(request3);
 
     int initialSize = TimeLogApiTestUtils.getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
@@ -92,18 +92,20 @@ public class SyncApiTest {
 
   @Test
   void shouldSyncIntoJira() throws Exception {
-    String ticket = Instancio.of(String.class).create();
-    String descr = "syncintojiradescr";
-    timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, ticket, descr));
-    timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, ticket, descr));
+    final String ticket = Instancio.of(String.class).create();
+    final String descr = "syncintojiradescr";
+    final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
-    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, descr);
+    timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
+    timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
+
+    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
     WorklogEntity worklogEntity1 = worklogService.saveWorklog(request1);
-    final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, descr);
+    final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
     WorklogEntity worklogEntity2 = worklogService.saveWorklog(request2);
 
     SyncIntoJiraRequest request = new SyncIntoJiraRequest(ticket, LocalDate.now(clock), descr);
-    LocalDateTime startDateTime = LocalDateTime.of(request.getDate(), defaultWorklogStartTime);
+    LocalDateTime startDateTime = LocalDateTime.of(request.getDate(), startTime);
     String time = JiraWorklogUtils.getJiraStartedTime(startDateTime);
 
     String responseBody = String.format("""
@@ -147,15 +149,16 @@ public class SyncApiTest {
 
   @Test
   void shouldThrowWhenSyncMismatchOnSyncIntoJira() throws Exception {
-    String ticket = "TST-1";
-    String descr = "descr";
+    final String ticket = "TST-1";
+    final String descr = "descr";
+    final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
-    timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, ticket, descr));
-    timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, ticket, descr));
+    timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
+    timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
 
-    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, descr);
+    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
     worklogService.saveWorklog(request1);
-    final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, descr);
+    final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
     worklogService.saveWorklog(request2);
     worklogService.saveWorklog(request2);
 
@@ -171,9 +174,10 @@ public class SyncApiTest {
 
   @Test
   void shouldSyncAllWorklogs() throws Exception {
-    String ticket = "TST-1";
-    String appDescr = "appDescr";
-    String jiraDescr = "jiraDescr";
+    final String ticket = "TST-1";
+    final String appDescr = "appDescr";
+    final String jiraDescr = "jiraDescr";
+    final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
     int count = 4;
     List<WorklogEntity> worklogEntitiesFromJira = SyncApiTestUtils.createWorklogsWithSameInfo(count, LocalDate.now(clock), ticket, jiraDescr);
@@ -182,9 +186,9 @@ public class SyncApiTest {
     WorklogEntity worklogFromApp1 = worklogService.saveWorklog(request1);
     final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), LocalTime.of(7, 0), LocalTime.of(10, 0), ticket, appDescr);
     WorklogEntity worklogFromApp2 = worklogService.saveWorklog(request2);
-    final WorklogCreateFromTimeLogRequest request3 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, appDescr);
+    final WorklogCreateFromTimeLogRequest request3 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, appDescr);
     WorklogEntity worklogFromApp3 = worklogService.saveWorklog(request3);
-    final WorklogCreateFromTimeLogRequest request4 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1));
+    final WorklogCreateFromTimeLogRequest request4 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
     WorklogEntity worklogFromApp4 = worklogService.saveWorklog(request4);
 
     worklogEntitiesFromJira.get(0).setId(worklogFromApp1.getId());
@@ -241,12 +245,13 @@ public class SyncApiTest {
 
   @Test
   void shouldSyncWorklogsForTicket() throws Exception {
-    String ticket = Instancio.of(String.class).create();
-    String descr = "descr";
-    String newDescr = "newDescr";
-    List<WorklogEntity> worklogEntitiesFromJira = SyncApiTestUtils.createWorklogsWithSameInfo(2, LocalDate.now(clock), ticket, descr);
+    final String ticket = Instancio.of(String.class).create();
+    final String descr = "descr";
+    final String newDescr = "newDescr";
+    final List<WorklogEntity> worklogEntitiesFromJira = SyncApiTestUtils.createWorklogsWithSameInfo(2, LocalDate.now(clock), ticket, descr);
+    final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
-    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, newDescr);
+    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, newDescr);
     WorklogEntity worklogFromApp1 = worklogService.saveWorklog(request1);
     worklogEntitiesFromJira.get(0).setId(worklogFromApp1.getId());
 
@@ -286,9 +291,10 @@ public class SyncApiTest {
 
   @Test
   void shouldGetNotSyncedStatus() throws Exception {
-    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), "TST-1", "comment");
+    final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
+    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), "TST-1", "comment");
     WorklogEntity worklog1 = worklogService.saveWorklog(request1);
-    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, "TST-2", "comment2"));
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, "TST-2", "comment2"));
 
 
     LocalDate startDate = LocalDate.now(clock);
@@ -311,11 +317,13 @@ public class SyncApiTest {
 
   @Test
   void shouldGetSyncedStatus() throws Exception {
-    String ticket = "TST-" + (int) (Math.random() * 1000);
-    String descr = "syncdescr";
-    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, descr);
+    final String ticket = "TST-" + (int) (Math.random() * 1000);
+    final String descr = "syncdescr";
+    final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
+
+    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
     WorklogEntity worklog1 = worklogService.saveWorklog(request1);
-    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, ticket, descr));
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
 
     LocalDate startDate = LocalDate.now(clock);
     LocalDate endDate = LocalDate.now(clock).plusDays(1);
@@ -337,12 +345,14 @@ public class SyncApiTest {
 
   @Test
   void shouldGetPartiallySyncedStatus() throws Exception {
-    String ticket = "TST-1";
-    String descr = "partsyncdescr";
-    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, defaultWorklogStartTime.plusHours(1), ticket, descr);
+    final String ticket = "TST-1";
+    final String descr = "partsyncdescr";
+    final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
+
+    final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
     WorklogEntity worklog1 = worklogService.saveWorklog(request1);
-    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, ticket, descr));
-    TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), defaultWorklogStartTime, ticket, descr));
+    TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
+    TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
 
     LocalDate startDate = LocalDate.now(clock);
     LocalDate endDate = LocalDate.now(clock).plusDays(1);

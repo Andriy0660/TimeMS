@@ -2,7 +2,6 @@ package com.example.timecraft.domain.sync.util;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -12,10 +11,8 @@ import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingExcept
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
-import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
-
-import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultWorklogStartTime;
 
 public class SyncApiTestUtils {
 
@@ -29,8 +26,8 @@ public class SyncApiTestUtils {
           .comment(description)
           .ticket(ticket)
           .date(date)
-          .startTime(defaultWorklogStartTime)
-          .updated(LocalDateTime.of(date, defaultWorklogStartTime))
+          .startTime(SyncJiraUtils.DEFAULT_WORKLOG_START_TIME)
+          .updated(LocalDateTime.of(date, SyncJiraUtils.DEFAULT_WORKLOG_START_TIME))
           .timeSpentSeconds(3600)
           .build());
     }
@@ -51,7 +48,7 @@ public class SyncApiTestUtils {
 
 
   public static String convertToJSONString(WorklogEntity worklogEntity) {
-    LocalDateTime startDateTime = LocalDateTime.of(worklogEntity.getDate(), defaultWorklogStartTime);
+    LocalDateTime startDateTime = LocalDateTime.of(worklogEntity.getDate(), SyncJiraUtils.DEFAULT_WORKLOG_START_TIME);
     String time = JiraWorklogUtils.getJiraStartedTime(startDateTime);
 
     try {

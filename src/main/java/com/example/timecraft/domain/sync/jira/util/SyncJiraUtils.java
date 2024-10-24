@@ -9,7 +9,7 @@ import com.example.timecraft.domain.timelog.util.DurationUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 
 public class SyncJiraUtils {
-  public static LocalTime defaultWorklogStartTime = LocalTime.of(10, 0);
+  public static LocalTime DEFAULT_WORKLOG_START_TIME = LocalTime.of(10, 0);
 
   public static boolean areDescriptionsEqual(String descr1, String descr2) {
     descr1 = descr1 != null ? removeNonLetterAndDigitCharacters(descr1) : null;
