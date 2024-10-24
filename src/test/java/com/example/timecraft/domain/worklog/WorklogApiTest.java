@@ -57,17 +57,17 @@ public class WorklogApiTest {
   private Clock clock;
 
   @Autowired
-  private TestWorklogClient worklogService;
+  private TestWorklogClient worklogClient;
 
   @Test
   void shouldListWorklogsForDay() throws Exception {
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
-    WorklogEntity worklog1 = worklogService.saveWorklog(request1);
+    WorklogEntity worklog1 = worklogClient.saveWorklog(request1);
     final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
-    WorklogEntity worklog2 = worklogService.saveWorklog(request2);
+    WorklogEntity worklog2 = worklogClient.saveWorklog(request2);
     final WorklogCreateFromTimeLogRequest request3 = createWorklogCreateRequest(LocalDate.now(clock).plusDays(1), startTime, startTime.plusHours(1));
-    WorklogEntity worklog3 = worklogService.saveWorklog(request3);
+    WorklogEntity worklog3 = worklogClient.saveWorklog(request3);
 
     LocalDate date = LocalDate.now(clock);
 
@@ -119,7 +119,7 @@ public class WorklogApiTest {
   void shouldDeleteWorklog() throws Exception {
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
     final WorklogCreateFromTimeLogRequest request = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
-    WorklogEntity worklog = worklogService.saveWorklog(request);
+    WorklogEntity worklog = worklogClient.saveWorklog(request);
     wm.stubFor(WireMock.delete(urlMatching(".*/issue/" + worklog.getTicket() + "/worklog/" + worklog.getId()))
         .willReturn(noContent()));
 

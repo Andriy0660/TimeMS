@@ -9,7 +9,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.example.timecraft.config.WireMockConfig;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
-import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
+import com.example.timecraft.domain.worklog.mapper.TestWorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.util.WorklogApiTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class TestWorklogClient {
   private final WireMockServer wm;
   private final ObjectMapper objectMapper;
-  private final WorklogMapper worklogMapper;
+  private final TestWorklogMapper worklogMapper;
   private final MockMvc mvc;
 
   public WorklogEntity saveWorklog(final WorklogCreateFromTimeLogRequest request) throws Exception {

@@ -17,6 +17,4 @@ public interface WorklogMapper {
 
   WorklogCreateFromTimeLogResponse toCreateResponse(final WorklogEntity entity);
 
-  WorklogEntity fromCreateResponse(final WorklogCreateFromTimeLogResponse response);
-
 }

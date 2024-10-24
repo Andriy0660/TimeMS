@@ -11,7 +11,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
-import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
+import com.example.timecraft.domain.timelog.mapper.TestTimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RequiredArgsConstructor
 public class TestTimeLogClient {
   private final ObjectMapper objectMapper;
-  private final TimeLogMapper timeLogMapper;
+  private final TestTimeLogMapper timeLogMapper;
   private final MockMvc mvc;
 
   public TimeLogEntity saveTimeLog(final TimeLogCreateRequest request) throws Exception {
