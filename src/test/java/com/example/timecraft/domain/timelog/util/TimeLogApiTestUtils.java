@@ -107,15 +107,28 @@ public class TimeLogApiTestUtils {
         .build();
   }
 
-  public static int getSize(final MockMvc mvc, final LocalDate startDate, final LocalDate endDate, final int offset) throws Exception {
+  public static int getSize(final MockMvc mvc, final LocalDate startDate, final LocalDate endDate) throws Exception {
     MvcResult resultBefore = mvc.perform(get("/time-logs")
             .param("startDate", startDate.toString())
             .param("endDate", endDate.toString())
-            .param("offset", String.valueOf(offset))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andReturn();
     return JsonPath.read(resultBefore.getResponse().getContentAsString(), "$.items.length()");
+  }
+
+  public static String getDurationSum(String initial, String added) {
+    int initialMinutes = parseDurationToMinutes(initial);
+    int addedMinutes = parseDurationToMinutes(added);
+    int totalMinutes = initialMinutes + addedMinutes;
+    return String.format("%dh %dm", totalMinutes / 60, totalMinutes % 60);
+  }
+
+  private static int parseDurationToMinutes(String duration) {
+    String[] parts = duration.split(" ");
+    int hours = Integer.parseInt(parts[0].replace("h", ""));
+    int minutes = Integer.parseInt(parts[1].replace("m", ""));
+    return hours * 60 + minutes;
   }
 
 }

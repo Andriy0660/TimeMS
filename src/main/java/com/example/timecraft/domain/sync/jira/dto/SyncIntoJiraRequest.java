@@ -13,5 +13,4 @@ public class SyncIntoJiraRequest {
   private String ticket;
   private LocalDate date;
   private String description;
-  private int totalSpent;
 }

@@ -7,9 +7,9 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 
 import com.example.timecraft.core.exception.BadRequestException;
+import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogCreateDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
 import com.example.timecraft.domain.jira.worklog.service.JiraWorklogService;
@@ -61,7 +61,7 @@ public class WorklogServiceImpl implements WorklogService {
     try {
       jiraWorklogService.delete(ticket, id);
       repository.deleteById(id);
-    } catch (HttpClientErrorException.NotFound e) {
+    } catch (NotFoundException e) {
       throw new BadRequestException("Worklog is already deleted from jira. Please synchronize worklogs for this ticket");
     }
   }
