@@ -18,7 +18,7 @@ import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
-import com.example.timecraft.domain.worklog.service.TestWorklogService;
+import com.example.timecraft.domain.worklog.service.TestWorklogClient;
 import com.example.timecraft.domain.worklog.util.WorklogApiTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -57,7 +57,7 @@ public class WorklogApiTest {
   private Clock clock;
 
   @Autowired
-  private TestWorklogService worklogService;
+  private TestWorklogClient worklogService;
 
   @Test
   void shouldListWorklogsForDay() throws Exception {

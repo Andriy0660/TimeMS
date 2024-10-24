@@ -2,7 +2,6 @@ package com.example.timecraft.domain.timelog.service;
 
 import java.time.LocalTime;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Service
 @RequiredArgsConstructor
-public class TestTimeLogService {
+public class TestTimeLogClient {
   private final ObjectMapper objectMapper;
   private final TimeLogMapper timeLogMapper;
   private final MockMvc mvc;

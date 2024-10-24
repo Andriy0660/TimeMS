@@ -24,7 +24,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
-import com.example.timecraft.domain.timelog.service.TestTimeLogService;
+import com.example.timecraft.domain.timelog.service.TestTimeLogClient;
 import com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,7 +70,7 @@ class TimeLogApiTest {
   private AppProperties props;
 
   @Autowired
-  private TestTimeLogService timeLogService;
+  private TestTimeLogClient timeLogService;
 
   @Test
   void shouldReturnTimeLogsForDayMode() throws Exception {

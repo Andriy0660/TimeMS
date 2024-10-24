@@ -19,14 +19,13 @@ import lombok.RequiredArgsConstructor;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Service
 @RequiredArgsConstructor
 @Import(WireMockConfig.class)
-public class TestWorklogService {
+public class TestWorklogClient {
   private final WireMockServer wm;
   private final ObjectMapper objectMapper;
   private final WorklogMapper worklogMapper;
