@@ -29,6 +29,7 @@ public class TimeLogListResponse {
     private String description;
     private String totalTime;;
     private JiraSyncInfo jiraSyncInfo;
+    private List<String> labels;
   }
 }
 

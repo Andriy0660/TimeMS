@@ -84,7 +84,7 @@ const TicketDisplay = ({ticket, onClick}) => {
   if (!ticket) return null;
 
   return (
-    <div className="mr-4 hover:bg-blue-100" onClick={onClick}>
+    <div className="w-fit text-nowrap mr-4 hover:bg-blue-100" onClick={onClick}>
       <Typography className="font-bold text-sm">{ticket}</Typography>
     </div>
   );

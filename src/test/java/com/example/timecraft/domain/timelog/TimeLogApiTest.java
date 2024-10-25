@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -405,7 +406,7 @@ class TimeLogApiTest {
     LocalDate startDate = LocalDate.now(clock);
     LocalDate endDate = LocalDate.now(clock).plusDays(1);
 
-    TimeLogUpdateRequest request = new TimeLogUpdateRequest(timeLog1.getDate(), "NEW-1", timeLog1.getStartTime(), null);
+    TimeLogUpdateRequest request = new TimeLogUpdateRequest(timeLog1.getDate(), "NEW-1", timeLog1.getStartTime(), null, Collections.emptyList());
 
     mvc.perform(put("/time-logs/{id}", timeLog1.getId())
             .content(objectMapper.writeValueAsString(request))

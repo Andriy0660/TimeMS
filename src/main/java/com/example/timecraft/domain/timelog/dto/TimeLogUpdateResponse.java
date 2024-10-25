@@ -2,6 +2,7 @@ package com.example.timecraft.domain.timelog.dto;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,4 +21,5 @@ public class TimeLogUpdateResponse {
   private LocalTime endTime;
   private String description;
   private String totalTime;
+  private List<String> labels;
 }

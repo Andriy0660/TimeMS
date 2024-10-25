@@ -20,6 +20,8 @@ import ResetButton from "./ResetButton.jsx";
 import {timeLogStatus} from "../../consts/timeLogStatus.js";
 import timeLogService from "../../service/timeLogService.js";
 import {isJiraSyncingEnabled} from "../../config/config.js";
+import TimeLogLabelList from "./TimeLogLabelList.jsx";
+import TimeLogLabelEditor from "./TimeLogLabelEditor.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -58,6 +60,9 @@ export default function TimeLog({
   const timeLogUpperPartRef = useRef(null);
   const [moreActionsMenuEl, setMoreActionsMenuEl] = useState(null);
 
+  const [labels, setLabels] = useState(timeLog.labels || [])
+  const [isLabelAdding, setIsLabelAdding] = useState(false);
+
   useEffect(() => {
     if (timeLogRef.current && isJiraEditMode) {
       setTimeLogRefs((prev) => {
@@ -82,6 +87,7 @@ export default function TimeLog({
     setStartTime(timeLog.startTime);
     setEndTime(timeLog.endTime);
     setDescription(timeLog.description || "");
+    setLabels(timeLog.labels || []);
   }
 
   const isTimeLogInNextDay = timeLogService.getIsTimeLogInNextDayInfo(startTime, endTime);
@@ -154,12 +160,14 @@ export default function TimeLog({
   function handleClickOutside(event) {
     if (timeLogUpperPartRef.current && !timeLogUpperPartRef.current.contains(event.target)) {
       setIsEditing(false);
+      setIsLabelAdding(false);
       if (isModified) {
         handleUpdateTimeLog({
           id: timeLog.id,
           ticket,
           startTime,
           endTime,
+          labels
         });
       }
     }
@@ -209,109 +217,119 @@ export default function TimeLog({
         setHoveredConflictedIds?.([])
       }}
     >
-      <div ref={timeLogUpperPartRef} className="flex justify-between">
-        <div
-          className={classNames("flex items-center mb-1", {
-            "bg-blue-50": timeLog.status === "InProgress",
-            "bg-blue-100": hovered,
-            "bg-rose-100": hoveredConflictedIds?.includes(timeLog.id)
-          })}>
+      <div ref={timeLogUpperPartRef}>
+        <div className="my-1 flex justify-between items-center" >
+          <div
+            className={classNames("pt-1.5 overflow-x-hidden flex items-center", {
+              "bg-blue-50": timeLog.status === "InProgress",
+              "bg-blue-100": hovered,
+              "bg-rose-100": hoveredConflictedIds?.includes(timeLog.id)
+            })}>
 
-          {isEditing && (
-            <TimeLogEditableFields
-              timeLog={timeLog}
-              startTime={startTime}
-              setStartTime={setStartTime}
-              startTimeError={startTimeError}
-              setStartTimeError={setStartTimeError}
-              endTime={endTime}
-              setEndTime={setEndTime}
-              endTimeError={endTimeError}
-              setEndTimeError={setEndTimeError}
-              ticket={ticket}
-              setTicket={setTicket}
-              isTicketFieldValid={isTicketFieldValid}
-            />
-          )}
-          {!isEditing && (
-            <TimeLogNonEditableFields
-              startTime={startTime}
-              endTime={endTime}
-              ticket={ticket}
-              isTimeLogInNextDay={isTimeLogInNextDay}
-              setIsEditing={setIsEditing}
-              setEditedField={setEditedField}
-            />
-          )}
-
-          <Duration className="mr-2" duration={timeLog.totalTime ? timeLog.totalTime : timeLogStatus.PENDING} />
-          <TimeLogStatusIcons
-            isConflicted={timeLog.isConflicted}
-            isContinueUntilTomorrow={isContinueUntilTomorrow}
-            jiraSyncStatus={timeLog.jiraSyncInfo.status}
-          />
-        </div>
-
-        <div className="flex items-center">
-          {(isEditing && !isJiraEditMode) && (
-            <div>
-              <ResetButton onReset={resetChanges}/>
-              <SaveButton
-                onSave={() => handleUpdateTimeLog({id: timeLog.id, ticket, startTime, endTime})}
-                className="mr-2 p-0"
-                disabled={startTimeError || endTimeError || !isTicketFieldValid}
-              />
-            </div>
-          )}
-
-          {(isHovered && !isEditing) && (
-            <div onClick={() => handleCloseMoreActionsMenu()}>
-              <Tooltip title="More">
-                <IconButton
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    setMoreActionsMenuEl(event.currentTarget);
-                  }}
-                  color="primary"
-                  className="p-0"
-                >
-                  <MoreVertIcon />
-                </IconButton>
-              </Tooltip>
-
-              <TimeLogMoreActionsMenu
-                moreActionsMenuEl={moreActionsMenuEl}
-                handleCloseMoreActionsMenu={handleCloseMoreActionsMenu}
+            {isEditing && (
+              <TimeLogEditableFields
                 timeLog={timeLog}
-                setIsEditing={setIsEditing}
-                isContinueUntilTomorrow={isContinueUntilTomorrow}
-                handleCreateTimeLog={handleCreateTimeLog}
-                handleUpdateTimeLog={handleUpdateTimeLog}
-                setShowDeleteModal={setShowDeleteModal}
-                handleDivideTimeLog={handleDivideTimeLog}
-                handleChangeDate={handleChangeDate}
-
-                handleCreateWorklog={handleCreateWorklog}
-                handleSyncForTicket={handleSyncForTicket}
-                handleSyncFromJira={handleSyncFromJira}
-                handleSyncIntoJira={handleSyncIntoJira}
+                startTime={startTime}
+                setStartTime={setStartTime}
+                startTimeError={startTimeError}
+                setStartTimeError={setStartTimeError}
+                endTime={endTime}
+                setEndTime={setEndTime}
+                endTimeError={endTimeError}
+                setEndTimeError={setEndTimeError}
+                ticket={ticket}
+                setTicket={setTicket}
+                isTicketFieldValid={isTicketFieldValid}
               />
-            </div>
-          )}
-          {isJiraSyncingEnabled && isJiraEditMode && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && (
-            <>
-              <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />
-              {isHovered && (
-                <TimeLogWorklogConnectors
-                  isHovered={isHovered}
-                  sourceRefs={timeLogRefs}
-                  targetRefs={worklogRefs}
-                  sourceItem={timeLog}
+            )}
+            {!isEditing && (
+              <TimeLogNonEditableFields
+                startTime={startTime}
+                endTime={endTime}
+                ticket={ticket}
+                isTimeLogInNextDay={isTimeLogInNextDay}
+                setIsEditing={setIsEditing}
+                setEditedField={setEditedField}
+              />
+            )}
+
+            <Duration className="mr-2" duration={timeLog.totalTime ? timeLog.totalTime : timeLogStatus.PENDING} />
+            <TimeLogStatusIcons
+              isConflicted={timeLog.isConflicted}
+              isContinueUntilTomorrow={isContinueUntilTomorrow}
+              jiraSyncStatus={timeLog.jiraSyncInfo.status}
+            />
+            {labels.length < 4 && (
+              <TimeLogLabelList className="ml-2" labels={labels} timeLog={timeLog} onUpdate={handleUpdateTimeLog} />
+            )}
+            <TimeLogLabelEditor className="ml-2" timeLog={timeLog} isLabelAdding={isLabelAdding} setIsLabelAdding={setIsLabelAdding} handleUpdateTimeLog={handleUpdateTimeLog} isHovered={isHovered}/>
+
+          </div>
+
+          <div>
+            {(isEditing && !isJiraEditMode) && (
+              <div className="flex items-center flex-nowrap">
+                <ResetButton onReset={resetChanges} />
+                <SaveButton
+                  onSave={() => handleUpdateTimeLog({id: timeLog.id, ticket, startTime, endTime, labels})}
+                  className="mr-2 p-0"
+                  disabled={startTimeError || endTimeError || !isTicketFieldValid}
                 />
-              )}
-            </>
-          )}
+              </div>
+            )}
+
+            {(isHovered && !isEditing) && (
+              <div onClick={() => handleCloseMoreActionsMenu()}>
+                <Tooltip title="More">
+                  <IconButton
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setMoreActionsMenuEl(event.currentTarget);
+                    }}
+                    color="primary"
+                    className="p-0"
+                  >
+                    <MoreVertIcon />
+                  </IconButton>
+                </Tooltip>
+
+                <TimeLogMoreActionsMenu
+                  moreActionsMenuEl={moreActionsMenuEl}
+                  handleCloseMoreActionsMenu={handleCloseMoreActionsMenu}
+                  timeLog={timeLog}
+                  setIsEditing={setIsEditing}
+                  isContinueUntilTomorrow={isContinueUntilTomorrow}
+                  handleCreateTimeLog={handleCreateTimeLog}
+                  handleUpdateTimeLog={handleUpdateTimeLog}
+                  setShowDeleteModal={setShowDeleteModal}
+                  handleDivideTimeLog={handleDivideTimeLog}
+                  handleChangeDate={handleChangeDate}
+
+                  handleCreateWorklog={handleCreateWorklog}
+                  handleSyncForTicket={handleSyncForTicket}
+                  handleSyncFromJira={handleSyncFromJira}
+                  handleSyncIntoJira={handleSyncIntoJira}
+                />
+              </div>
+            )}
+            {isJiraSyncingEnabled && isJiraEditMode && timeLog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && (
+              <>
+                <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />
+                {isHovered && (
+                  <TimeLogWorklogConnectors
+                    isHovered={isHovered}
+                    sourceRefs={timeLogRefs}
+                    targetRefs={worklogRefs}
+                    sourceItem={timeLog}
+                  />
+                )}
+              </>
+            )}
+          </div>
         </div>
+        {labels.length >= 4 && (
+          <TimeLogLabelList labels={labels} timeLog={timeLog} onUpdate={handleUpdateTimeLog} wrap/>
+        )}
       </div>
       <ConfirmationModal
         open={showDeleteModal}
