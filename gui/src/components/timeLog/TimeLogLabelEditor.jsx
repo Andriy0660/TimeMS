@@ -6,6 +6,7 @@ import useAppContext from "../../context/useAppContext.js";
 export default function TimeLogLabelEditor({className, isLabelAdding, setIsLabelAdding, isHovered, timeLog, handleUpdateTimeLog}) {
   const [labelToAdd, setLabelToAdd] = useState("");
   const {addAlert} = useAppContext();
+  const labels = timeLog.labels ? timeLog.labels : [];
 
   return (
     <div className={`${className} flex items-center`}>
@@ -30,7 +31,7 @@ export default function TimeLogLabelEditor({className, isLabelAdding, setIsLabel
           onChange={(event) => setLabelToAdd(event.target.value)}
           onKeyDown={async (e) => {
             if (e.key === "Enter") {
-              if (timeLog.labels.includes(labelToAdd)) {
+              if (labels.includes(labelToAdd)) {
                 addAlert({
                   text: "This label is already present",
                   type: "warning"
@@ -41,7 +42,7 @@ export default function TimeLogLabelEditor({className, isLabelAdding, setIsLabel
                   ticket: timeLog.ticket,
                   startTime: timeLog.startTime,
                   endTime: timeLog.endTime,
-                  labels: [...timeLog.labels, labelToAdd]
+                  labels: [...labels, labelToAdd]
                 });
               }
               setLabelToAdd("");

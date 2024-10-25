@@ -259,7 +259,7 @@ export default function TimeLog({
               isContinueUntilTomorrow={isContinueUntilTomorrow}
               jiraSyncStatus={timeLog.jiraSyncInfo.status}
             />
-            {labels.length < 4 && (
+            {labels.length < 4 && !isJiraEditMode && (
               <TimeLogLabelList className="ml-2" labels={labels} timeLog={timeLog} onUpdate={handleUpdateTimeLog} />
             )}
             <TimeLogLabelEditor className="ml-2" timeLog={timeLog} isLabelAdding={isLabelAdding} setIsLabelAdding={setIsLabelAdding} handleUpdateTimeLog={handleUpdateTimeLog} isHovered={isHovered}/>
@@ -327,7 +327,7 @@ export default function TimeLog({
             )}
           </div>
         </div>
-        {labels.length >= 4 && (
+        {labels.length >= 4 || isJiraEditMode && (
           <TimeLogLabelList labels={labels} timeLog={timeLog} onUpdate={handleUpdateTimeLog} wrap/>
         )}
       </div>
