@@ -266,16 +266,16 @@ export default function TimeLog({
 
           </div>
 
-          <div>
+          <div className="flex items-center flex-nowrap">
             {(isEditing && !isJiraEditMode) && (
-              <div className="flex items-center flex-nowrap">
+              <>
                 <ResetButton onReset={resetChanges} />
                 <SaveButton
                   onSave={() => handleUpdateTimeLog({id: timeLog.id, ticket, startTime, endTime, labels})}
                   className="mr-2 p-0"
                   disabled={startTimeError || endTimeError || !isTicketFieldValid}
                 />
-              </div>
+              </>
             )}
 
             {(isHovered && !isEditing) && (

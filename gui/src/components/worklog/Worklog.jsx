@@ -57,7 +57,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
          onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex justify-between">
-        <div className="flex items-center mb-1">
+        <div className="flex items-center pt-1.5 my-1">
           {isJiraSyncingEnabled && isJiraEditMode && worklog.jiraSyncInfo.status !== syncStatus.NOT_SYNCED && (
             <>
               <Brightness1Icon className="mr-2" sx={{color: worklog.jiraSyncInfo.color}} />
