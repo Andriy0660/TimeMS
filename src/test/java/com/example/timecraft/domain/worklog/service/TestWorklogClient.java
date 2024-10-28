@@ -1,12 +1,10 @@
 package com.example.timecraft.domain.worklog.service;
 
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.example.timecraft.config.WireMockConfig;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.worklog.mapper.TestWorklogMapper;
@@ -24,7 +22,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Service
 @RequiredArgsConstructor
-@Import(WireMockConfig.class)
 public class TestWorklogClient {
   private final WireMockServer wm;
   private final ObjectMapper objectMapper;
