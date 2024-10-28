@@ -202,7 +202,7 @@ export default function TimeLog({
   const isContinueUntilTomorrow = timeLog.endTime?.isAfter(isTimeLogInNextDay.startTime
     ? dateTimeService.getStartOfDay(timeLog.startTime)
     : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day")));
-  console.log(labels)
+
   return (
     <div
       ref={timeLogRef}
