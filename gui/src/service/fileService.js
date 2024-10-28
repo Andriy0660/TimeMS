@@ -28,8 +28,8 @@ const fileService = {
   },
 
   getFormattedDuration(startTime, endTime) {
-    const duration = dateTimeService.calculateDurationMinutes(startTime, endTime);
-    return duration !== null ? this.formatDuration(duration) : "**:**";
+    if (!startTime || !endTime) return "**:**";
+    return this.formatDuration(endTime.diff(startTime, "minute"));
   },
 
   formatDuration(minutes) {

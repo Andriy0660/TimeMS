@@ -148,39 +148,10 @@ const timeLogService = {
     }
   },
 
-  getTotalTimeForTimeLogs(timelogs) {
-    let totalTime = 0;
-    totalTime += timelogs.reduce((result, item) => {
-      if (item.status === timeLogStatus.DONE || item.status === timeLogStatus.IN_PROGRESS) {
-        result += dateTimeService.parseMinutes(item.totalTime);
-      }
-      return result;
-    }, 0)
-    return totalTime;
-  },
-
-  getTotalTimeLabel(groupedData, groupByDescription) {
-    if (groupByDescription) {
-      return dateTimeService.formatDurationMinutes(this.getTotalTimeGroupedByDateAndDescription(groupedData.data));
-    } else {
-      return dateTimeService.formatDurationMinutes(this.getTotalTimeGroupedByDate(groupedData.data));
-    }
-  },
-
-  getTotalTimeGroupedByDate(groupedByDate) {
-    let totalTime = 0;
-    groupedByDate.forEach(({items: logsForDate}) => {
-      totalTime += this.getTotalTimeForTimeLogs(logsForDate)
-    })
-    return totalTime;
-  },
-
-  getTotalTimeGroupedByDateAndDescription(groupedByDateAndDescription) {
-    let totalTime = 0;
-    groupedByDateAndDescription.forEach(({items: logsForDate}) => {
-      totalTime += this.getTotalTimeGroupedByDate(logsForDate);
-    })
-    return totalTime;
+  getTotalMinutesForTimeLogsArray(timelogsArr, cf = 1) {
+    let totalMinutes = 0;
+    timelogsArr.forEach(timeLog => totalMinutes += dateTimeService.getMinutesFromHMFormat(timeLog.totalTime));
+    return totalMinutes / cf;
   },
 };
 

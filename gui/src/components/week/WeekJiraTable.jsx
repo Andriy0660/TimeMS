@@ -10,10 +10,10 @@ export default function WeekJiraTable({dayInfos, handleClickDate}) {
   const getTotalTimeForTicket = (ticket) => {
     const totalTime = dayInfos.reduce((result, {ticketDurations}) => {
       const ticketDuration = ticketDurations.find(td => td.ticket === ticket);
-      result += dateTimeService.parseMinutes(ticketDuration.duration)
+      result += dateTimeService.getMinutesFromHMFormat(ticketDuration.duration)
       return result;
     }, 0)
-    return dateTimeService.formatDurationMinutes(totalTime);
+    return dateTimeService.formatMinutesToHM(totalTime);
   }
 
   return (

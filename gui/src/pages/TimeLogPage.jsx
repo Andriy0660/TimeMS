@@ -43,12 +43,6 @@ export default function TimeLogPage() {
     return <LoadingPage />
   }
 
-  const modeDatePickerConfig = {
-    Week: <WeekPicker buttonColor="blue"/>,
-    Month: <MonthPicker buttonColor="blue"/>,
-    All: null,
-  };
-
   const commonTimeLogListProps = {
     timeLogs,
     mode,

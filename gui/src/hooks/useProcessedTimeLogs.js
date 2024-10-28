@@ -42,7 +42,9 @@ export default function useProcessedTimeLogs() {
   useEffect(() => {
     const groupedData = groupAndSortData(processedTimeLogsArray, groupByDescription);
     setTimeLogs(groupedData);
-    setTotalTimeLabel(timeLogService.getTotalTimeLabel(groupedData, groupByDescription));
+    setTotalTimeLabel(dateTimeService.formatMinutesToHM(
+      timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray)
+    ))
   }, [timeLogsData, groupByDescription, isJiraSyncingEnabled, jiraInfo.selectedTickets]);
 
   function groupAndSortData(data, groupByDescription) {
