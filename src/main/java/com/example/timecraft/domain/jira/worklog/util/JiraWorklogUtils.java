@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -65,7 +66,12 @@ public class JiraWorklogUtils {
   }
 
   public static Map<String, ?> getJiraComment(final String description) {
-    final List<String> lines = description.lines().toList();
+    List<String> lines;
+    if (description != null) {
+      lines = description.lines().toList();
+    } else {
+      lines = Collections.emptyList();
+    }
     final List<Paragraph> paragraphs = new ArrayList<>();
 
     for (String line : lines) {
