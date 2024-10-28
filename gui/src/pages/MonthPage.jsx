@@ -25,7 +25,7 @@ import {syncStatus} from "../consts/syncStatus.js";
 import LoadingPage from "../components/general/LoadingPage.jsx";
 import useSync from "../hooks/useSync.js";
 import BigLabel from "../components/general/BigLabel.jsx";
-import MonthPageUpworkDuration from "../components/month/MonthPageUpworkDuration.jsx";
+import SyncUpworkDuration from "../components/sync/SyncUpworkDuration.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -140,7 +140,7 @@ export default function MonthPage() {
     return (
       <>
         <MonthPageDuration duration={duration} />
-        {isUpworkSyncingEnabled && <MonthPageUpworkDuration duration={upworkDuration} />}
+        {isUpworkSyncingEnabled && <SyncUpworkDuration duration={upworkDuration} textSize="base"/>}
       </>
     )
   }

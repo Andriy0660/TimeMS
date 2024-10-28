@@ -3,6 +3,9 @@ import TableRow from "@mui/material/TableRow";
 import CustomTableCell from "./CustomTableCell.jsx";
 import TableBody from "@mui/material/TableBody";
 import Table from "@mui/material/Table";
+import {isUpworkSyncingEnabled, upworkTimeCf} from "../../config/config.js";
+import SyncUpworkDuration from "../sync/SyncUpworkDuration.jsx";
+import dateTimeService from "../../service/dateTimeService.js";
 
 export default function WeekTable({dayInfos, handleClickDate}) {
   return (
@@ -22,7 +25,18 @@ export default function WeekTable({dayInfos, handleClickDate}) {
       </TableHead>
       <TableBody>
         <TableRow>
-          {dayInfos.map(dayInfo => <CustomTableCell isBold key={dayInfo.date}>{dayInfo.duration}</CustomTableCell>)}
+          {dayInfos.map(dayInfo => {
+            const upworkDuration = dateTimeService.formatMinutesToHM(Math.round(
+              dateTimeService.getMinutesFromHMFormat(dayInfo.duration) / upworkTimeCf));
+            return (
+              <CustomTableCell isBold key={dayInfo.date}>
+                {dayInfo.duration}
+                {isUpworkSyncingEnabled && (
+                  <SyncUpworkDuration duration={upworkDuration} textSize="small" />
+                )}
+              </CustomTableCell>
+            )
+          })}
         </TableRow>
       </TableBody>
     </Table>
