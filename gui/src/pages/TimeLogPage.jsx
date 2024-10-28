@@ -2,8 +2,6 @@ import TimeLogList from "../components/timeLog/TimeLogList.jsx";
 import TimeLogCreateBar from "../components/timeLog/TimeLogCreateBar.jsx";
 import {FormControlLabel, IconButton, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
-import MonthPicker from "../components/month/MonthPicker..jsx";
-import WeekPicker from "../components/week/WeekPicker.jsx";
 import BigLabel from "../components/general/BigLabel.jsx";
 import DayProgressBar from "../components/day/DayProgressBar.jsx";
 import ClearIcon from '@mui/icons-material/Clear';
@@ -19,7 +17,10 @@ import LoadingPage from "../components/general/LoadingPage.jsx";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import useSync from "../hooks/useSync.js";
 import useWorklogMutations from "../hooks/useWorklogMutations.js";
-import {isJiraSyncingEnabled} from "../config/config.js";
+import {isJiraSyncingEnabled, upworkTimeCf} from "../config/config.js";
+import timeLogService from "../service/timeLogService.js";
+import dateTimeService from "../service/dateTimeService.js";
+import SyncInfoLabel from "../components/sync/SyncInfoLabel.jsx";
 
 export default function TimeLogPage() {
   const {date, mode} = useAppContext();
@@ -86,19 +87,26 @@ export default function TimeLogPage() {
               </>
             )}
 
-            {isJiraSyncingEnabled && <FormControlLabel
-              control={
-                <Switch
-                  checked={isJiraEditMode}
-                  onChange={(event) => setIsJiraEditMode((event.target.checked))}
+            {isJiraSyncingEnabled && (
+              <SyncInfoLabel className="ml-8" color="blue">
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={isJiraEditMode}
+                      onChange={(event) => setIsJiraEditMode((event.target.checked))}
+                    />
+                  }
+                  label="Jira Edit Mode"
+                  labelPlacement="start"
                 />
-              }
-              label="Jira Edit Mode"
-              labelPlacement="start"
-              className="ml-12"
-            />
-            }
-            {modeDatePickerConfig[mode]}
+              </SyncInfoLabel>
+            )}
+
+            <SyncInfoLabel className="ml-8" color="green">
+              Upwork: {dateTimeService.formatMinutesToHM(
+              timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, upworkTimeCf)
+            )}
+            </SyncInfoLabel>
 
           </div>
           <div className="flex justify-between items-center">
