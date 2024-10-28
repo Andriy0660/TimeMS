@@ -151,7 +151,7 @@ const timeLogService = {
   getTotalMinutesForTimeLogsArray(timelogsArr, cf = 1) {
     let totalMinutes = 0;
     timelogsArr.forEach(timeLog => totalMinutes += dateTimeService.getMinutesFromHMFormat(timeLog.totalTime));
-    return totalMinutes / cf;
+    return Math.round(totalMinutes / cf);
   },
 };
 

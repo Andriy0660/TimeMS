@@ -8,7 +8,7 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
+import {isJiraSyncingEnabled, isUpworkSyncingEnabled, startHourOfDay, upworkTimeCf} from "../config/config.js";
 import MonthPageDuration from "../components/month/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import TimeLogStatusIcons from "../components/timeLog/TimeLogStatusIcons.jsx";
@@ -25,6 +25,7 @@ import {syncStatus} from "../consts/syncStatus.js";
 import LoadingPage from "../components/general/LoadingPage.jsx";
 import useSync from "../hooks/useSync.js";
 import BigLabel from "../components/general/BigLabel.jsx";
+import MonthPageUpworkDuration from "../components/month/MonthPageUpworkDuration.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -133,7 +134,15 @@ export default function MonthPage() {
 
   const getEventContent = (eventInfo) => {
     const {duration} = eventInfo.event.extendedProps;
-    return <MonthPageDuration duration={duration} />
+    const upworkDuration = dateTimeService.formatMinutesToHM(Math.round(
+      dateTimeService.getMinutesFromHMFormat(duration) / upworkTimeCf));
+
+    return (
+      <>
+        <MonthPageDuration duration={duration} />
+        {isUpworkSyncingEnabled && <MonthPageUpworkDuration duration={upworkDuration} />}
+      </>
+    )
   }
 
   if(isPending) {
