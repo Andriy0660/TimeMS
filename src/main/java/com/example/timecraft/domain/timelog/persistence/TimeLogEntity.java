@@ -1,9 +1,13 @@
 package com.example.timecraft.domain.timelog.persistence;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.hibernate.annotations.Type;
+
+import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -52,4 +56,7 @@ public class TimeLogEntity {
   @ToString.Include
   private LocalTime endTime;
 
+  @Type(ListArrayType.class)
+  @Column(name = "labels", columnDefinition = "character varying[]")
+  private List<String> labels = new ArrayList<>();
 }

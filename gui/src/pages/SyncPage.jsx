@@ -19,7 +19,11 @@ export default function SyncPage() {
 
   useEffect(() => {
     if (!worklogInfos || !isSyncingRunning) return;
-    setDisplayedWorklogInfos(prevLogs => [...prevLogs, ...worklogInfos]);
+
+    setDisplayedWorklogInfos(prevLogs => {
+      const newLogs = [...prevLogs, ...worklogInfos];
+      return newLogs.slice(-100);
+    });
   }, [worklogInfos, isSyncingRunning]);
 
   const handleScroll = () => {

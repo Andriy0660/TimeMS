@@ -12,9 +12,9 @@ public class SyncJiraUtils {
   public static LocalTime DEFAULT_WORKLOG_START_TIME = LocalTime.of(10, 0);
 
   public static boolean areDescriptionsEqual(String descr1, String descr2) {
-    descr1 = descr1 != null ? removeNonLetterAndDigitCharacters(descr1) : null;
-    descr2 = descr2 != null ? removeNonLetterAndDigitCharacters(descr2) : null;
-    return Objects.equals(descr1, descr2);
+    descr1 = descr1 != null ? removeNonLetterAndDigitCharacters(descr1) : "";
+    descr2 = descr2 != null ? removeNonLetterAndDigitCharacters(descr2) : "";
+    return (descr1.isEmpty() && descr2.isEmpty()) || Objects.equals(descr1, descr2);
   }
 
   public static boolean isWorklogsAndTimeLogsCompatibleInTime(final List<TimeLogEntity> timeLogs, final List<WorklogEntity> worklogs) {

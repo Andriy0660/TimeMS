@@ -10,16 +10,8 @@ const worklogService = {
     if (tickets.length === 0) {
       return worklogs;
     } else {
-      let filtered = worklogs.filter(timeLog => tickets.some(ticket => timeLog.ticket?.startsWith(ticket)));
-      if (tickets.includes("Without ticket")) {
-        filtered = filtered.concat(this.getAllWithoutTicket(worklogs))
-      }
-      return filtered
+      return worklogs.filter(worklog => tickets.some(ticket => worklog.ticket?.startsWith(ticket)));
     }
-  },
-
-  getAllWithoutTicket(worklogs) {
-    return worklogs.filter(worklog => worklog.ticket === null);
   },
 
   sortWorklogsByTimeLogsOrder(worklogs, timeLogs) {

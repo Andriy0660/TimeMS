@@ -48,6 +48,7 @@ export default function TimeLogMoreActionsMenu({
         ticket: timeLog.ticket,
         startTime: timeLog.startTime,
         endTime: currentTime,
+        labels: timeLog.labels
       }),
       text: "Stop"
     },
@@ -57,6 +58,7 @@ export default function TimeLogMoreActionsMenu({
         id: timeLog.id,
         ticket: timeLog.ticket,
         startTime: currentTime,
+        labels: timeLog.labels
       }),
       text: "Start"
     }

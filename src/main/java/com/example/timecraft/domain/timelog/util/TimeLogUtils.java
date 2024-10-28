@@ -17,8 +17,10 @@ public class TimeLogUtils {
   }
 
   public static String generateColor(final String ticket, final String descr) {
-    if (descr == null) return null;
-    String input = descr;
+    String input = "";
+    if (descr != null) {
+      input = descr;
+    }
     if (ticket != null) {
       input = input.concat(ticket.chars()
           .filter(Character::isDigit)
