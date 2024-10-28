@@ -202,6 +202,7 @@ public class TimeLogServiceImpl implements TimeLogService {
   public TimeLogConfigResponse getConfig() {
     return new TimeLogConfigResponse(
         props.getConfig().getIsJiraSyncingEnabled(),
+        props.getConfig().getUpworkTimeCf(),
         props.getConfig().getOffset(),
         props.getConfig().getStartHourOfWorkingDay(),
         props.getConfig().getEndHourOfWorkingDay()
