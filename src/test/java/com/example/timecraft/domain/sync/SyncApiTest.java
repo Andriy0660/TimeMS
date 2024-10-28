@@ -14,7 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.example.timecraft.config.IntegrationTest;
+import com.example.timecraft.config.ApiTest;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@IntegrationTest
+@ApiTest
 public class SyncApiTest {
   @Autowired
   private WireMockServer wm;

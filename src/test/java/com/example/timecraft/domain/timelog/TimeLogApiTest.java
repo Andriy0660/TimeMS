@@ -14,7 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.example.timecraft.config.IntegrationTest;
+import com.example.timecraft.config.ApiTest;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
@@ -54,7 +54,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@IntegrationTest
+@ApiTest
 class TimeLogApiTest {
 
   @Autowired

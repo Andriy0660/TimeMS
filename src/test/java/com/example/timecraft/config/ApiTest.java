@@ -16,5 +16,5 @@ import java.lang.annotation.Target;
 @ActiveProfiles("test")
 @Import({TestPostgresContainerConfiguration.class, MockMvcConfig.class, WireMockConfig.class})
 @SpringBootTest
-public @interface IntegrationTest {
+public @interface ApiTest {
 }
