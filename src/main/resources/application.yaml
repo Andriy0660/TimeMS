@@ -19,11 +19,11 @@ spring:
 
 app:
   config:
-    isJiraSyncingEnabled: true
+    is-jira-syncing-enabled: true
     offset: 3
-    startHourOfWorkingDay: 7
-    endHourOfWorkingDay: 17
-    workingDayDurationInHours: 8
+    start-hour-of-working-day: 7
+    end-hour-of-working-day: 17
+    working-day-duration-in-hours: 8
   cors:
     allowed-origins:
       - http://localhost:*

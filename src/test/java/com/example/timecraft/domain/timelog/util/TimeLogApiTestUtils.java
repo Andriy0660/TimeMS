@@ -8,10 +8,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.hamcrest.Matcher;
+import org.instancio.Instancio;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
@@ -20,6 +22,7 @@ import com.jayway.jsonpath.JsonPath;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
+import static org.instancio.Select.field;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,24 +60,20 @@ public class TimeLogApiTestUtils {
     return hasItem(allOf(matchers));
   }
 
-  public static TimeLogEntity createTimeLogEntity(final LocalDate date, final LocalTime startTime) {
-    return TimeLogEntity.builder()
-        .ticket("TMC-" + (int) (Math.random() * 1000))
-        .description("Description " + (int) (Math.random() * 10))
-        .date(date)
-        .startTime(startTime)
-        .endTime(startTime != null ? startTime.plusHours(1) : null)
-        .build();
+  public static TimeLogCreateRequest createTimeLogCreateRequest(final LocalDate date, final LocalTime startTime) {
+    return Instancio.of(TimeLogCreateRequest.class)
+        .set(field(TimeLogCreateRequest::getDate), date)
+        .set(field(TimeLogCreateRequest::getStartTime), startTime)
+        .create();
   }
 
-  public static TimeLogEntity createTimeLogEntity(final LocalDate date, final LocalTime startTime, final LocalTime endTime) {
-    return TimeLogEntity.builder()
-        .ticket("TMC-" + (int) (Math.random() * 1000))
-        .description("Description " + (int) (Math.random() * 10))
-        .date(date)
-        .startTime(startTime)
-        .endTime(endTime)
-        .build();
+  public static TimeLogCreateRequest createTimeLogCreateRequest(final LocalDate date, final LocalTime startTime, final String ticket, final String descr) {
+    return Instancio.of(TimeLogCreateRequest.class)
+        .set(field(TimeLogCreateRequest::getDate), date)
+        .set(field(TimeLogCreateRequest::getStartTime), startTime)
+        .set(field(TimeLogCreateRequest::getTicket), ticket)
+        .set(field(TimeLogCreateRequest::getDescription), descr)
+        .create();
   }
 
   public static TimeLogImportRequest.TimeLogDto createImportTimeLogDto(final LocalDate date, final LocalTime startTime, final LocalTime endTime) {

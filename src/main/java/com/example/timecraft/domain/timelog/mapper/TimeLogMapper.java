@@ -21,6 +21,7 @@ public interface TimeLogMapper {
   TimeLogListResponse.TimeLogDto toListItem(final TimeLogEntity entity);
 
   TimeLogEntity fromCreateRequest(final TimeLogCreateRequest request);
+
   TimeLogEntity fromMergeRequest(final TimeLogImportRequest.TimeLogDto timeLogDto);
 
   TimeLogCreateResponse toCreateResponse(final TimeLogEntity entity);

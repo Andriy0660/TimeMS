@@ -2,7 +2,6 @@ package com.example.timecraft.domain.sync.util;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -12,44 +11,27 @@ import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingExcept
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
-import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
-
-import static com.example.timecraft.domain.sync.jira.util.SyncJiraUtils.defaultWorklogStartTime;
 
 public class SyncApiTestUtils {
 
   public static String accountIdForTesting = "accountIdForTesting";
 
-  public static List<TimeLogEntity> createTimeLogsWithSameInfo(int count, LocalDate date, String ticket, String description) {
-    List<TimeLogEntity> timeLogs = new ArrayList<>();
-    for (int i = 0; i < count; i++) {
-      timeLogs.add(TimeLogEntity.builder()
-          .id(UUID.randomUUID().getMostSignificantBits())
-          .description(description)
-          .ticket(ticket)
-          .date(date)
-          .startTime(LocalTime.of(9, 0))
-          .endTime(LocalTime.of(10, 0))
-          .build());
-    }
-    return timeLogs;
-  }
-
   public static List<WorklogEntity> createWorklogsWithSameInfo(int count, LocalDate date, String ticket, String description) {
-    List<WorklogEntity> timeLogs = new ArrayList<>();
+    List<WorklogEntity> worklogs = new ArrayList<>();
     for (int i = 0; i < count; i++) {
-      timeLogs.add(WorklogEntity.builder()
+      worklogs.add(WorklogEntity.builder()
           .id(UUID.randomUUID().getMostSignificantBits())
           .comment(description)
           .ticket(ticket)
           .date(date)
-          .startTime(defaultWorklogStartTime)
-          .updated(LocalDateTime.of(date, defaultWorklogStartTime))
+          .startTime(SyncJiraUtils.DEFAULT_WORKLOG_START_TIME)
+          .updated(LocalDateTime.of(date, SyncJiraUtils.DEFAULT_WORKLOG_START_TIME))
           .timeSpentSeconds(3600)
           .build());
     }
-    return timeLogs;
+    return worklogs;
   }
 
   public static String convertListToJSONString(List<WorklogEntity> worklogs) {
@@ -66,7 +48,7 @@ public class SyncApiTestUtils {
 
 
   public static String convertToJSONString(WorklogEntity worklogEntity) {
-    LocalDateTime startDateTime = LocalDateTime.of(worklogEntity.getDate(), defaultWorklogStartTime);
+    LocalDateTime startDateTime = LocalDateTime.of(worklogEntity.getDate(), SyncJiraUtils.DEFAULT_WORKLOG_START_TIME);
     String time = JiraWorklogUtils.getJiraStartedTime(startDateTime);
 
     try {
