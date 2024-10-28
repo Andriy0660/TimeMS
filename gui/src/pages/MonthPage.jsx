@@ -24,6 +24,7 @@ import {viewMode} from "../consts/viewMode.js";
 import {syncStatus} from "../consts/syncStatus.js";
 import LoadingPage from "../components/general/LoadingPage.jsx";
 import useSync from "../hooks/useSync.js";
+import BigLabel from "../components/general/BigLabel.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -154,9 +155,7 @@ export default function MonthPage() {
           isActive={view === monthViewMode.LIST}
           onClick={() => setView(monthViewMode.LIST)}
         />
-        <div className="font-medium ml-10">
-          Month: {data.totalHours}
-        </div>
+        <BigLabel className="ml-12">{data.totalHours}</BigLabel>
         {view === monthViewMode.LIST && <FormControlLabel
           control={
             <Switch
