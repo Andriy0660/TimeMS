@@ -202,7 +202,7 @@ export default function TimeLog({
   const isContinueUntilTomorrow = timeLog.endTime?.isAfter(isTimeLogInNextDay.startTime
     ? dateTimeService.getStartOfDay(timeLog.startTime)
     : dateTimeService.getStartOfDay(timeLog.startTime.add(1, "day")));
-
+  console.log(labels)
   return (
     <div
       ref={timeLogRef}
@@ -327,7 +327,7 @@ export default function TimeLog({
             )}
           </div>
         </div>
-        {labels.length >= 4 || isJiraEditMode && (
+        {(labels.length >= 4 || isJiraEditMode) && (
           <TimeLogLabelList labels={labels} timeLog={timeLog} onUpdate={handleUpdateTimeLog} wrap/>
         )}
       </div>
