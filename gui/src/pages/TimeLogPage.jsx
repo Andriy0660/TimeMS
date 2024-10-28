@@ -17,7 +17,7 @@ import LoadingPage from "../components/general/LoadingPage.jsx";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import useSync from "../hooks/useSync.js";
 import useWorklogMutations from "../hooks/useWorklogMutations.js";
-import {isJiraSyncingEnabled, upworkTimeCf} from "../config/config.js";
+import {isJiraSyncingEnabled, isUpworkSyncingEnabled, upworkTimeCf} from "../config/config.js";
 import timeLogService from "../service/timeLogService.js";
 import dateTimeService from "../service/dateTimeService.js";
 import SyncInfoLabel from "../components/sync/SyncInfoLabel.jsx";
@@ -102,13 +102,15 @@ export default function TimeLogPage() {
               </SyncInfoLabel>
             )}
 
-            <SyncInfoLabel className="ml-8" color="green">
-              Upwork: {dateTimeService.formatMinutesToHM(
-              timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, upworkTimeCf)
+            {isUpworkSyncingEnabled && (
+              <SyncInfoLabel className="ml-8" color="green">
+                Upwork: {dateTimeService.formatMinutesToHM(
+                timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, upworkTimeCf)
+              )}
+              </SyncInfoLabel>
             )}
-            </SyncInfoLabel>
-
           </div>
+
           <div className="flex justify-between items-center">
             <BigLabel className="ml-4 mt-4">{date.format("dddd")}</BigLabel>
             <BigLabel className="ml-4 mt-4">{totalTimeLabel}</BigLabel>

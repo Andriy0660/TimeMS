@@ -20,6 +20,7 @@ public class AppProperties {
   public static class Config {
     private Double upworkTimeCf;
     private Boolean isJiraSyncingEnabled;
+    private Boolean isUpworkSyncingEnabled;
     private Integer offset;
     private Integer startHourOfWorkingDay;
     private Integer endHourOfWorkingDay;

@@ -4,6 +4,7 @@ let startHourOfDay = 0;
 let startHourOfWorkingDay = 9;
 let endHourOfWorkingDay = 18;
 let isJiraSyncingEnabled = false;
+let isUpworkSyncingEnabled = false;
 let upworkTimeCf = 1;
 
 const initialize = async () => {
@@ -12,8 +13,9 @@ const initialize = async () => {
   startHourOfWorkingDay = res.startHourOfWorkingDay;
   endHourOfWorkingDay = res.endHourOfWorkingDay;
   isJiraSyncingEnabled = res.isJiraSyncingEnabled;
+  isUpworkSyncingEnabled = res.isUpworkSyncingEnabled;
   upworkTimeCf = res.upworkTimeCf;
 };
 
 initialize();
-export {startHourOfDay, startHourOfWorkingDay, endHourOfWorkingDay, isJiraSyncingEnabled, upworkTimeCf};
+export {startHourOfDay, startHourOfWorkingDay, endHourOfWorkingDay, isJiraSyncingEnabled, isUpworkSyncingEnabled, upworkTimeCf};
