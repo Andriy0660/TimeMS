@@ -16,6 +16,7 @@ export default function WeekTable({dayInfos, handleClickDate}) {
             key={dayInfo.date}
             date={dayInfo.date}
             isHover
+            upworkSyncStatus={dayInfo.upworkSyncInfo.status}
             isConflicted={dayInfo.conflicted}
             onClick={() => handleClickDate(dayInfo.date)}
           >
