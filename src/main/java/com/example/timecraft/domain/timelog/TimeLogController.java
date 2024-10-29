@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.timecraft.domain.sync.jira.api.SyncJiraProcessingService;
+import com.example.timecraft.domain.sync.upwork.api.SyncUpworkProcessingService;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
@@ -37,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 public class TimeLogController {
   private final TimeLogService timeLogService;
   private final SyncJiraProcessingService syncJiraProcessingService;
+  private final SyncUpworkProcessingService syncUpworkProcessingService;
 
   @GetMapping
   public TimeLogListResponse list(@RequestParam final LocalDate startDate, @RequestParam final LocalDate endDate) {
@@ -75,13 +77,25 @@ public class TimeLogController {
 
   @GetMapping("/hoursForWeek")
   public TimeLogWeekResponse getHoursForWeek(@RequestParam final LocalDate date, @RequestParam final Boolean includeTickets) {
-    if (includeTickets) return syncJiraProcessingService.processWeekDayInfos(timeLogService.getHoursForWeekWithTickets(date));
-    else return timeLogService.getHoursForWeek(date);
+    if (includeTickets) {
+      return syncUpworkProcessingService.processWeekDayInfos(
+          syncJiraProcessingService.processWeekDayInfos(
+              timeLogService.getHoursForWeekWithTickets(date)
+          )
+      );
+    }
+    else {
+      return syncUpworkProcessingService.processWeekDayInfos(timeLogService.getHoursForWeek(date));
+    }
   }
 
   @GetMapping("/hoursForMonth")
   public TimeLogHoursForMonthResponse getHoursForMonth(@RequestParam final LocalDate date) {
-    return syncJiraProcessingService.processMonthDayInfos(timeLogService.getHoursForMonth(date));
+    return syncUpworkProcessingService.processMonthDayInfos(
+        syncJiraProcessingService.processMonthDayInfos(
+            timeLogService.getHoursForMonth(date)
+        )
+    );
   }
 
   @PutMapping("/{timeLogId}")

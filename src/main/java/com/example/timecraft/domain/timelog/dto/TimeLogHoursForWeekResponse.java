@@ -3,6 +3,7 @@ package com.example.timecraft.domain.timelog.dto;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.example.timecraft.domain.sync.upwork.model.UpworkSyncInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class TimeLogHoursForWeekResponse implements TimeLogWeekResponse {
     private String dayName;
     private LocalDate date;
     private String duration;
+    private UpworkSyncInfo upworkSyncInfo;
     private boolean isConflicted;
   }
 }
