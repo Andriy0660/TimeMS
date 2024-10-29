@@ -87,6 +87,7 @@ const dateTimeService = {
   },
 
   getMinutesFromHMFormat(timeString) {
+    if (!timeString) return 0;
     const hoursMatch = parseInt(timeString.match(/(\d+)h/)[1], 10);
     const minutesMatch = parseInt(timeString.match(/(\d+)m/)[1], 10);
     return hoursMatch * 60 + minutesMatch;
