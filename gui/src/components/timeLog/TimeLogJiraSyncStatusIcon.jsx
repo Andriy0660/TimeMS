@@ -8,21 +8,21 @@ export default function TimeLogJiraSyncStatusIcon({showOnlyNotSuccessfullySynced
   return (
     <div className={`flex items-center ${className}`}>
       {!showOnlyNotSuccessfullySynced && status === syncStatus.SYNCED && (
-          <Tooltip title="Synchronized">
+          <Tooltip title="Jira: Synchronized">
             <DoneIcon color="success" />
           </Tooltip>
         )
       }
       {
         status === syncStatus.PARTIAL_SYNCED && (
-          <Tooltip title="Partial synchronized">
+          <Tooltip title="Jira: Partial synchronized">
             <SyncProblemIcon color="warning" />
           </Tooltip>
         )
       }
       {
         status === syncStatus.NOT_SYNCED && (
-          <Tooltip title="Not synchronized">
+          <Tooltip title="Jira: Not synchronized">
             <SyncDisabledIcon color="error" />
           </Tooltip>
         )

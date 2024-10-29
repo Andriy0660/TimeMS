@@ -122,7 +122,7 @@ export default function MonthPage() {
       <div className="flex justify-between p-1">
           <div>
             {dayInfo && dayjs(cellDate).$M === date.$M && (
-              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} jiraSyncStatus={dayInfo.jiraSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
+              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} jiraSyncStatus={dayInfo.jiraSyncInfo.status} upworkSyncStatus={dayInfo.upworkSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
             )}
           </div>
         <div>
