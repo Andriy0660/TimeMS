@@ -26,7 +26,7 @@ public class WorklogController {
   private final SyncJiraProcessingService syncJiraProcessingService;
 
   @GetMapping()
-  public WorklogListResponse listWorklogs(@RequestParam final LocalDate date) {
+  public WorklogListResponse list(@RequestParam final LocalDate date) {
     return syncJiraProcessingService.processWorklogDtos(worklogService.list(date));
   }
 
