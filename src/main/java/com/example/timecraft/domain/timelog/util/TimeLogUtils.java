@@ -5,7 +5,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.stream.Collectors;
+
+import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 
 public class TimeLogUtils {
 
@@ -62,5 +65,12 @@ public class TimeLogUtils {
     float brightness = 0.7f + (brightnessSum % 300) / 1000f;
 
     return Color.HSBtoRGB(hue, saturation, brightness);
+  }
+
+  public static int getTotalSpentSecondsForTimeLogs(final List<TimeLogEntity> timeLogEntityList) {
+    return timeLogEntityList.stream().map(timeLogEntity -> {
+      if (timeLogEntity.getStartTime() == null || timeLogEntity.getEndTime() == null) return 0;
+      return (int) DurationUtils.getDurationBetweenStartAndEndTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()).toSeconds();
+    }).reduce(0, Integer::sum);
   }
 }

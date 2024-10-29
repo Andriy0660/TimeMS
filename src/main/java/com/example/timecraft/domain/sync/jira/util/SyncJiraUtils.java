@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
-import com.example.timecraft.domain.timelog.util.DurationUtils;
+import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 
 public class SyncJiraUtils {
@@ -21,9 +21,7 @@ public class SyncJiraUtils {
     if (timeLogs.isEmpty() || worklogs.isEmpty()) {
       return false;
     }
-    final int totalTimeLogDurationInSeconds = timeLogs.stream()
-        .map((timeLogEntity -> (int) DurationUtils.getDurationBetweenStartAndEndTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()).toSeconds()))
-        .reduce(0, Integer::sum);
+    final int totalTimeLogDurationInSeconds = TimeLogUtils.getTotalSpentSecondsForTimeLogs(timeLogs);
     final int totalWorklogDurationInSeconds = worklogs.stream().map(WorklogEntity::getTimeSpentSeconds).reduce(0, Integer::sum);
     return totalTimeLogDurationInSeconds == totalWorklogDurationInSeconds;
   }
