@@ -27,6 +27,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
   private final TimeLogSyncService timeLogSyncService;
   private final WorklogSyncService worklogSyncService;
 
+  @Override
   public TimeLogListResponse processTimeLogDtos(final TimeLogListResponse response) {
     final int offset = props.getConfig().getOffset();
     final List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
@@ -45,6 +46,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
         ).toList());
   }
 
+  @Override
   public TimeLogHoursForWeekWithTicketsResponse processWeekDayInfos(final TimeLogHoursForWeekWithTicketsResponse response) {
     final List<TimeLogHoursForWeekWithTicketsResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekWithTicketsResponse(
@@ -65,6 +67,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
     }
   }
 
+  @Override
   public TimeLogHoursForMonthResponse processMonthDayInfos(final TimeLogHoursForMonthResponse response) {
     final List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
@@ -73,6 +76,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
             .toList());
   }
 
+  @Override
   public WorklogListResponse processWorklogDtos(final WorklogListResponse response) {
     final int offset = props.getConfig().getOffset();
     final List<WorklogListResponse.WorklogDto> worklogDtos = response.getItems();
