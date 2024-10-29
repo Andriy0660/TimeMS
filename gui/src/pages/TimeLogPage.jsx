@@ -1,6 +1,6 @@
 import TimeLogList from "../components/timeLog/TimeLogList.jsx";
 import TimeLogCreateBar from "../components/timeLog/TimeLogCreateBar.jsx";
-import {FormControlLabel, IconButton, Switch} from "@mui/material";
+import {CircularProgress, FormControlLabel, IconButton, Switch} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import BigLabel from "../components/general/BigLabel.jsx";
 import DayProgressBar from "../components/day/DayProgressBar.jsx";
@@ -8,7 +8,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ImportButton from "../components/timeLog/ImportButton.jsx";
 import WorklogList from "../components/worklog/WorklogList.jsx";
 import useTimeLogMutations from "../hooks/useTimeLogMutations.js";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {viewMode} from "../consts/viewMode.js";
 import worklogService from "../service/worklogService.js";
 import ExportButton from "../components/timeLog/ExportButton.jsx";
@@ -21,14 +21,36 @@ import {isJiraSyncingEnabled, isUpworkSyncingEnabled, upworkTimeCf} from "../con
 import timeLogService from "../service/timeLogService.js";
 import dateTimeService from "../service/dateTimeService.js";
 import SyncInfoLabel from "../components/sync/SyncInfoLabel.jsx";
+import TimeLogUpworkSyncer from "../components/timeLog/TimeLogUpworkSyncer.jsx";
+import {useQuery} from "@tanstack/react-query";
+import syncUpworkApi from "../api/syncUpworkApi.js";
 
 export default function TimeLogPage() {
-  const {date, mode} = useAppContext();
+  const {date, mode, addAlert} = useAppContext();
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
   const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
   const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);
 
   const [isJiraEditMode, setIsJiraEditMode] = useState(false);
+
+  const {
+    data: upworkStatus,
+    isPending: isGettingUpworkStatus,
+    error: upworkStatusError
+  } = useQuery({
+    queryKey: [date],
+    queryFn: () => syncUpworkApi.getStatus(dateTimeService.getFormattedDate(date)),
+    retryDelay: 300,
+  });
+
+  useEffect(() => {
+    if (upworkStatusError) {
+      addAlert({
+        text: `${upworkStatusError.displayMessage} Try again later`,
+        type: "error"
+      });
+    }
+  }, [upworkStatusError]);
 
   const {
     groupByDescription, setGroupByDescription, timeLogs, processedTimeLogsArray, isListing,
@@ -103,11 +125,19 @@ export default function TimeLogPage() {
             )}
 
             {isUpworkSyncingEnabled && (
-              <SyncInfoLabel className="ml-8" color="green">
-                Upwork: {dateTimeService.formatMinutesToHM(
-                timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, upworkTimeCf)
-              )}
-              </SyncInfoLabel>
+              <>
+                <SyncInfoLabel className="ml-8" color="green">
+                  Upwork: {dateTimeService.formatMinutesToHM(
+                  timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, upworkTimeCf)
+                )}
+                  {isGettingUpworkStatus ? <CircularProgress className="ml-2" size={25} /> : <TimeLogUpworkSyncer
+                    status={upworkStatus}
+                    date={date}
+                    timeSpentSeconds={timeLogService.getTotalSecondsForTimeLogsArray(processedTimeLogsArray)}
+                  />
+                  }
+                </SyncInfoLabel>
+              </>
             )}
           </div>
 

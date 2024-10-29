@@ -150,9 +150,16 @@ const timeLogService = {
 
   getTotalMinutesForTimeLogsArray(timelogsArr, cf = 1) {
     let totalMinutes = 0;
-    timelogsArr.forEach(timeLog => totalMinutes += dateTimeService.getMinutesFromHMFormat(timeLog.totalTime));
+    timelogsArr.forEach(timeLog => totalMinutes += timeLog.endTime?.diff(timeLog.startTime, "minute") || 0);
     return Math.round(totalMinutes / cf);
   },
+
+  getTotalSecondsForTimeLogsArray(timelogsArr) {
+    let totalSeconds = 0;
+    timelogsArr.forEach(timeLog => totalSeconds += timeLog.endTime?.diff(timeLog.startTime, "second") || 0);
+    return Math.round(totalSeconds);
+  },
+
 };
 
 export default timeLogService;

@@ -63,7 +63,7 @@ export default function WeekPage() {
   }
 
   return (
-    <div className="w-3/5 mx-auto">
+    <div className="w-4/5 mx-auto">
       <div className="flex justify-start my-2">
         <ViewModeIcon
           title={weekViewMode.TABLE}

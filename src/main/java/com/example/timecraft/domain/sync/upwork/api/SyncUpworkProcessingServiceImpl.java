@@ -51,8 +51,8 @@ public class SyncUpworkProcessingServiceImpl implements SyncUpworkProcessingServ
   }
 
   private UpworkSyncInfo getUpworkSyncInfo(final LocalDate date) {
-    final Integer timeLogsSpentSeconds = TimeLogUtils.getTotalSpentSecondsForTimeLogs(timeLogSyncService.getAllByDate(date));
-    final Integer upworkSpentSeconds = upworkSyncInfoRepository.findById(date).map(UpworkSyncInfoEntity::getTimeSpentSeconds).orElse(null);
+    final int timeLogsSpentSeconds = TimeLogUtils.getTotalSpentSecondsForTimeLogs(timeLogSyncService.getAllByDate(date));
+    final int upworkSpentSeconds = upworkSyncInfoRepository.findById(date).map(UpworkSyncInfoEntity::getTimeSpentSeconds).orElse(0);
     return new UpworkSyncInfo(SyncUpworkUtils.getSyncStatus(upworkSpentSeconds, timeLogsSpentSeconds));
   }
 
