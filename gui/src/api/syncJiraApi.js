@@ -1,6 +1,6 @@
 import axios from "./config/axiosConfig.js";
 
-const syncApi = {
+const syncJiraApi = {
   syncFromJira: async (body) => {
     const {data} = await axios.post(`/syncJira/from`, {...body}, {baseMsg: "Error while synchronizing from jira"});
     return data;
@@ -25,4 +25,4 @@ const syncApi = {
   },
 };
 
-export default syncApi;
+export default syncJiraApi;

@@ -2,14 +2,14 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import worklogApi from "../api/worklogApi.js";
 import useAppContext from "../context/useAppContext.js";
-import syncApi from "../api/syncApi.js";
+import syncJiraApi from "../api/syncJiraApi.js";
 
 export default function useSync() {
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
 
   const {mutateAsync: syncWorklogs, isPending: isSyncingLaunched} = useMutation({
-    mutationFn: () => syncApi.syncAllWorklogs(),
+    mutationFn: () => syncJiraApi.syncAllWorklogs(),
     onSuccess: () => {
       queryClient.invalidateQueries(timeLogApi.key);
       queryClient.invalidateQueries(worklogApi.key);
@@ -32,7 +32,7 @@ export default function useSync() {
     data: progressInfo,
   } = useQuery({
     queryKey: [worklogApi.key, "progress"],
-    queryFn: () => syncApi.getProgress(),
+    queryFn: () => syncJiraApi.getProgress(),
     initialData: () => 0,
     refetchInterval: (data) => isSyncingLaunched || data.state.data.inProgress ? 300 : false,
     refetchOnWindowFocus: false,
@@ -40,7 +40,7 @@ export default function useSync() {
   });
 
   const {mutateAsync: syncIntoJira} = useMutation({
-    mutationFn: (body) => syncApi.syncIntoJira(body),
+    mutationFn: (body) => syncJiraApi.syncIntoJira(body),
     onSuccess: async () => {
       queryClient.invalidateQueries(worklogApi.key);
       queryClient.invalidateQueries(timeLogApi.key);
@@ -59,7 +59,7 @@ export default function useSync() {
   });
 
   const {mutateAsync: syncFromJira} = useMutation({
-    mutationFn: (body) => syncApi.syncFromJira(body),
+    mutationFn: (body) => syncJiraApi.syncFromJira(body),
     onSuccess: async () => {
       queryClient.invalidateQueries(worklogApi.key);
       queryClient.invalidateQueries(timeLogApi.key);
@@ -79,7 +79,7 @@ export default function useSync() {
 
 
   const {mutateAsync: syncWorklogsForIssue} = useMutation({
-    mutationFn: (issueKey) => syncApi.syncWorklogsForIssue(issueKey),
+    mutationFn: (issueKey) => syncJiraApi.syncWorklogsForIssue(issueKey),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries(timeLogApi.key);
       addAlert({
