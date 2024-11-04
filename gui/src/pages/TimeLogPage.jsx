@@ -26,6 +26,7 @@ import ExternalTimeLogList from "../components/externalTimeLog/ExternalTimeLogLi
 import useExternalServiceSync from "../hooks/useExternalServiceSync.js";
 import useExternalTimeLogMutations from "../hooks/useExternalTimeLogMutations.js";
 import timeLogService from "../service/timeLogService.js";
+import externalTimeLogService from "../service/externalTimeLogService.js";
 
 export default function TimeLogPage() {
   const {date, mode, setExternalTimeLogRefs} = useAppContext();
@@ -198,7 +199,7 @@ export default function TimeLogPage() {
             </div>
             <div className="w-1/2 ml-6">
               <ExternalTimeLogList
-                externalTimeLogs={externalTimeLogs}
+                externalTimeLogs={externalTimeLogService.processData(externalTimeLogs, processedTimeLogsArray)}
                 isExternalTimeLogsListing={isExternalTimeLogsListing}
                 isExternalServiceEditMode={isExternalServiceEditMode} />
             </div>
