@@ -1,11 +1,11 @@
 import {CircularProgress} from "@mui/material";
 import Button from "@mui/material/Button";
-import useSync from "../../hooks/useSync.js";
+import useJiraSync from "../../hooks/useJiraSync.js";
 import useAsyncCall from "../../hooks/useAsyncCall.js";
 
 export default function SyncWorklogsButton({children, className}) {
-  const {isSyncingRunning, progressInfo: {progress}} = useSync();
-  const {onSync} = useSync();
+  const {isSyncingRunning, progressInfo: {progress}} = useJiraSync();
+  const {onSync} = useJiraSync();
 
   const {execute: handleSyncWorklogs, isExecuting: isSyncingLaunched} = useAsyncCall({
     fn: onSync,

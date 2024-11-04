@@ -17,8 +17,7 @@ import LoadingPage from "../components/general/LoadingPage.jsx";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import useJiraSync from "../hooks/useJiraSync.js";
 import useWorklogMutations from "../hooks/useWorklogMutations.js";
-import {isJiraSyncingEnabled, isUpworkSyncingEnabled, upworkTimeCf} from "../config/config.js";
-import timeLogService from "../service/timeLogService.js";
+import {isJiraSyncingEnabled, isExternalServiceSyncingEnabled, startHourOfDay, externalTimeLogTimeCf} from "../config/config.js";
 import dateTimeService from "../service/dateTimeService.js";
 import SyncInfoLabel from "../components/sync/SyncInfoLabel.jsx";
 import TimeLogUpworkSyncer from "../components/timeLog/TimeLogUpworkSyncer.jsx";
@@ -32,6 +31,11 @@ export default function TimeLogPage() {
   const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);
 
   const [isJiraEditMode, setIsJiraEditMode] = useState(false);
+  const [isExternalServiceEditMode, setIsExternalServiceEditMode] = useState(false);
+
+  useEffect(() => {
+    setExternalTimeLogRefs([]);
+  }, [isJiraEditMode, isExternalServiceEditMode])
 
   const {
     data: upworkStatus,
@@ -116,7 +120,14 @@ export default function TimeLogPage() {
                   control={
                     <Switch
                       checked={isJiraEditMode}
-                      onChange={(event) => setIsJiraEditMode((event.target.checked))}
+                      onChange={(event) => {
+                        if (event.target.checked) {
+                          setIsJiraEditMode(true);
+                          setIsExternalServiceEditMode(false);
+                        } else {
+                          setIsJiraEditMode(false);
+                        }
+                      }}
                     />
                   }
                   label="Jira Edit Mode"
@@ -125,41 +136,56 @@ export default function TimeLogPage() {
               </SyncInfoLabel>
             )}
 
-            {isUpworkSyncingEnabled && (
-              <>
-                <SyncInfoLabel className="ml-8" color="green">
-                  Upwork: {dateTimeService.formatMinutesToHM(
-                  timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, upworkTimeCf)
-                )}
-                  {isGettingUpworkStatus ? <CircularProgress className="ml-2" size={25} /> : <TimeLogUpworkSyncer
-                    status={upworkStatus}
-                    date={date}
-                    timeSpentSeconds={timeLogService.getTotalSecondsForTimeLogsArray(processedTimeLogsArray)}
-                  />
+            {isExternalServiceSyncingEnabled && (
+              <SyncInfoLabel className="ml-8" color="green">
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={isExternalServiceEditMode}
+                      onChange={(event) => {
+                        if (event.target.checked) {
+                          setIsExternalServiceEditMode(true);
+                          setIsJiraEditMode(false);
+                        } else {
+                          setIsExternalServiceEditMode(false);
+                        }
+                      }}
+                    />
                   }
-                </SyncInfoLabel>
-              </>
+                  label="External Service Edit Mode"
+                  labelPlacement="start"
+                />
+              </SyncInfoLabel>
             )}
           </div>
 
           <div className="flex justify-between items-center">
             <BigLabel className="ml-4 mt-4">{date.format("dddd")}</BigLabel>
             <BigLabel className="ml-4 mt-4">{totalTimeLabel}</BigLabel>
+            <Tooltip title="External Service Time">
+              <span>{isExternalServiceSyncingEnabled && isExternalServiceEditMode && <BigLabel className="mt-4" color="green">
+                {dateTimeService.formatMinutesToHM(
+                  timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, externalTimeLogTimeCf)
+                )}
+              </BigLabel>
+              }
+              </span>
+            </Tooltip>
             <div className="flex items-center mt-8">
               <ImportButton className="mr-4" onImport={timeLogMutations.onImport} />
-              <ExportButton className="mr-4" processedTimeLogsArray={processedTimeLogsArray}/>
+              <ExportButton className="mr-4" processedTimeLogsArray={processedTimeLogsArray} />
             </div>
 
           </div>
         </div>
       </div>
 
-      <div className={`${isJiraEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
+      <div className={`${isJiraEditMode || isExternalServiceEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
         {mode === viewMode.DAY &&
           <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
                           hoveredProgressIntervalId={hoveredProgressIntervalId} />}
 
-        {!isJiraEditMode && (
+        {!isJiraEditMode && !isExternalServiceEditMode && (
           <TimeLogList {...commonTimeLogListProps} />
         )}
 

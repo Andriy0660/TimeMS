@@ -12,6 +12,7 @@ export default function TimeLogGroupedByDate({
   hoveredTimeLogIds,
   setGroupDescription,
   isJiraEditMode,
+  isExternalServiceEditMode,
   ...rest
 }) {
 
@@ -22,10 +23,11 @@ export default function TimeLogGroupedByDate({
       <div>
         {renderedInner ? renderedInner : logsForDate.map((timeLog) =>
 
-          <TimeLogGroup key={timeLog.id} isJiraEditMode={isJiraEditMode} className="mb-2">
+          <TimeLogGroup key={timeLog.id} isEditMode={isJiraEditMode || isExternalServiceEditMode} className="mb-2">
             <TimeLog
               timeLog={timeLog}
               isJiraEditMode={isJiraEditMode}
+              isExternalServiceEditMode={isExternalServiceEditMode}
               {...rest}
               setGroupDescription={setGroupDescription}
               hovered={hoveredTimeLogIds?.includes(timeLog.id)}
