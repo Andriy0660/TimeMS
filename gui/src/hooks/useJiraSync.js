@@ -4,7 +4,7 @@ import worklogApi from "../api/worklogApi.js";
 import useAppContext from "../context/useAppContext.js";
 import syncJiraApi from "../api/syncJiraApi.js";
 
-export default function useSync() {
+export default function useJiraSync() {
   const queryClient = useQueryClient();
   const {addAlert} = useAppContext();
 

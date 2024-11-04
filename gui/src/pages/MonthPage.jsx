@@ -23,7 +23,7 @@ import ViewModeIcon from "../components/general/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import {syncStatus} from "../consts/syncStatus.js";
 import LoadingPage from "../components/general/LoadingPage.jsx";
-import useSync from "../hooks/useSync.js";
+import useJiraSync from "../hooks/useJiraSync.js";
 import BigLabel from "../components/general/BigLabel.jsx";
 import SyncUpworkDuration from "../components/sync/SyncUpworkDuration.jsx";
 
@@ -48,7 +48,7 @@ export default function MonthPage() {
   });
 
   const timeLogMutations = useTimeLogMutations();
-  const syncMutations = useSync();
+  const syncMutations = useJiraSync();
 
   const {
     groupByDescription, setGroupByDescription, timeLogs

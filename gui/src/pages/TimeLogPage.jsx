@@ -15,7 +15,7 @@ import ExportButton from "../components/timeLog/ExportButton.jsx";
 import TimeLogSelectTicketsForm from "../components/timeLog/TimeLogSelectTicketsForm.jsx";
 import LoadingPage from "../components/general/LoadingPage.jsx";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
-import useSync from "../hooks/useSync.js";
+import useJiraSync from "../hooks/useJiraSync.js";
 import useWorklogMutations from "../hooks/useWorklogMutations.js";
 import {isJiraSyncingEnabled, isUpworkSyncingEnabled, upworkTimeCf} from "../config/config.js";
 import timeLogService from "../service/timeLogService.js";
@@ -61,6 +61,7 @@ export default function TimeLogPage() {
   const timeLogMutations = useTimeLogMutations();
   const {onCreate: onWorklogCreate}  = useWorklogMutations();
   const syncMutations = useSync();
+  const syncMutations = useJiraSync();
 
   if (isListing) {
     return <LoadingPage />
