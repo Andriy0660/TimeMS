@@ -20,8 +20,8 @@ spring:
 app:
   config:
     is-jira-syncing-enabled: true
-    is-upwork-syncing-enabled: true
-    upwork-time-cf: 2
+    is-external-service-syncing-enabled: true
+    external-time-log-time-cf: 2
     offset: 3
     start-hour-of-working-day: 7
     end-hour-of-working-day: 17

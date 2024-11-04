@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TimeLogConfigResponse {
   private Boolean isJiraSyncingEnabled;
-  private Boolean isUpworkSyncingEnabled;
-  private Double upworkTimeCf;
+  private Boolean isExternalServiceSyncingEnabled;
+  private Double externalTimeLogTimeCf;
   private Integer offset;
   private Integer startHourOfWorkingDay;
   private Integer endHourOfWorkingDay;

@@ -18,9 +18,9 @@ public class AppProperties {
 
   @Data
   public static class Config {
-    private Double upworkTimeCf;
     private Boolean isJiraSyncingEnabled;
-    private Boolean isUpworkSyncingEnabled;
+    private Boolean isExternalServiceSyncingEnabled;
+    private Double externalTimeLogTimeCf;
     private Integer offset;
     private Integer startHourOfWorkingDay;
     private Integer endHourOfWorkingDay;

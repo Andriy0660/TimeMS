@@ -9,6 +9,7 @@ import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
+import com.example.timecraft.domain.sync.util.SyncUtils;
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekWithTicketsResponse;
@@ -38,9 +39,8 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
                     TimeLogUtils.getProcessedDate(timeLogDto.getDate(), timeLogDto.getStartTime(), offset),
                     timeLogDto.getTicket(),
                     timeLogDto.getDescription()))
-                .color(TimeLogUtils.generateColor(
-                    timeLogDto.getTicket(),
-                    SyncJiraUtils.removeNonLetterAndDigitCharacters(timeLogDto.getDescription())
+                .color(SyncUtils.generateColor(SyncJiraUtils.getColorInputString(timeLogDto.getTicket(),
+                    SyncJiraUtils.removeNonLetterAndDigitCharacters(timeLogDto.getDescription()))
                 ))
                 .build())
         ).toList());
@@ -86,9 +86,8 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
                 TimeLogUtils.getProcessedDate(worklogDto.getDate(), worklogDto.getStartTime(), offset),
                 worklogDto.getTicket(),
                 worklogDto.getComment()))
-            .color(TimeLogUtils.generateColor(
-                worklogDto.getTicket(),
-                SyncJiraUtils.removeNonLetterAndDigitCharacters(worklogDto.getComment())
+            .color(SyncUtils.generateColor(SyncJiraUtils.getColorInputString(worklogDto.getTicket(),
+                SyncJiraUtils.removeNonLetterAndDigitCharacters(worklogDto.getComment()))
             ))
             .build())
         ).toList()
