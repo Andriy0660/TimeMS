@@ -4,8 +4,8 @@ import CustomTableCell from "./CustomTableCell.jsx";
 import TableBody from "@mui/material/TableBody";
 import Table from "@mui/material/Table";
 import dateTimeService from "../../service/dateTimeService.js";
-import {isUpworkSyncingEnabled, upworkTimeCf} from "../../config/config.js";
-import SyncUpworkDuration from "../sync/SyncUpworkDuration.jsx";
+import {isExternalServiceSyncingEnabled, externalTimeLogTimeCf} from "../../config/config.js";
+import SyncExternalTimeLogDuration from "../sync/SyncExternalTimeLogDuration.jsx";
 
 export default function WeekJiraTable({dayInfos, handleClickDate}) {
 
@@ -30,7 +30,7 @@ export default function WeekJiraTable({dayInfos, handleClickDate}) {
               date={dayInfo.date}
               isHover
               jiraSyncStatus={dayInfo?.jiraSyncInfo.status}
-              upworkSyncStatus={dayInfo.upworkSyncInfo.status}
+              externalTimeLogSyncStatus={dayInfo?.externalTimeLogSyncInfo.status}
               isConflicted={dayInfo.conflicted}
               onClick={() => handleClickDate(dayInfo.date)}
             >
@@ -46,8 +46,8 @@ export default function WeekJiraTable({dayInfos, handleClickDate}) {
             <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
             {dayInfos.map(dayInfo => {
               const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
-              const upworkDuration = dateTimeService.formatMinutesToHM(Math.round(
-                dateTimeService.getMinutesFromHMFormat(ticketDuration.duration) / upworkTimeCf));
+              const externalTimeLogDuration = dateTimeService.formatMinutesToHM(Math.round(
+                dateTimeService.getMinutesFromHMFormat(ticketDuration.duration) / externalTimeLogTimeCf));
               return (
                 <CustomTableCell
                   key={`${dayInfo.date}-${ticket}`}
@@ -60,8 +60,8 @@ export default function WeekJiraTable({dayInfos, handleClickDate}) {
                   }}
                 >
                   {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
-                  {isUpworkSyncingEnabled && ticket === "Total" && (
-                    <SyncUpworkDuration duration={upworkDuration} textSize="small"/>
+                  {isExternalServiceSyncingEnabled && ticket === "Total" && (
+                    <SyncExternalTimeLogDuration duration={externalTimeLogDuration} textSize="small"/>
                   )}
                 </CustomTableCell>
               );

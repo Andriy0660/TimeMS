@@ -3,8 +3,8 @@ import TableRow from "@mui/material/TableRow";
 import CustomTableCell from "./CustomTableCell.jsx";
 import TableBody from "@mui/material/TableBody";
 import Table from "@mui/material/Table";
-import {isUpworkSyncingEnabled, upworkTimeCf} from "../../config/config.js";
-import SyncUpworkDuration from "../sync/SyncUpworkDuration.jsx";
+import {isExternalServiceSyncingEnabled, externalTimeLogTimeCf} from "../../config/config.js";
+import SyncExternalTimeLogDuration from "../sync/SyncExternalTimeLogDuration.jsx";
 import dateTimeService from "../../service/dateTimeService.js";
 
 export default function WeekTable({dayInfos, handleClickDate}) {
@@ -16,7 +16,7 @@ export default function WeekTable({dayInfos, handleClickDate}) {
             key={dayInfo.date}
             date={dayInfo.date}
             isHover
-            upworkSyncStatus={dayInfo.upworkSyncInfo.status}
+            externalTimeLogSyncStatus={dayInfo.externalTimeLogSyncInfo.status}
             isConflicted={dayInfo.conflicted}
             onClick={() => handleClickDate(dayInfo.date)}
           >
@@ -27,13 +27,13 @@ export default function WeekTable({dayInfos, handleClickDate}) {
       <TableBody>
         <TableRow>
           {dayInfos.map(dayInfo => {
-            const upworkDuration = dateTimeService.formatMinutesToHM(Math.round(
-              dateTimeService.getMinutesFromHMFormat(dayInfo.duration) / upworkTimeCf));
+            const externalTimeLogDuration = dateTimeService.formatMinutesToHM(Math.round(
+              dateTimeService.getMinutesFromHMFormat(dayInfo.duration) / externalTimeLogTimeCf));
             return (
               <CustomTableCell isBold key={dayInfo.date}>
                 {dayInfo.duration}
-                {isUpworkSyncingEnabled && (
-                  <SyncUpworkDuration duration={upworkDuration} textSize="small" />
+                {isExternalServiceSyncingEnabled && (
+                  <SyncExternalTimeLogDuration duration={externalTimeLogDuration} textSize="small" />
                 )}
               </CustomTableCell>
             )

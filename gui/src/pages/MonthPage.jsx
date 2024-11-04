@@ -8,7 +8,7 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {isJiraSyncingEnabled, isUpworkSyncingEnabled, startHourOfDay, upworkTimeCf} from "../config/config.js";
+import {isJiraSyncingEnabled, isExternalServiceSyncingEnabled, startHourOfDay, externalTimeLogTimeCf} from "../config/config.js";
 import MonthPageDuration from "../components/month/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import TimeLogStatusIcons from "../components/timeLog/TimeLogStatusIcons.jsx";
@@ -25,7 +25,7 @@ import {syncStatus} from "../consts/syncStatus.js";
 import LoadingPage from "../components/general/LoadingPage.jsx";
 import useJiraSync from "../hooks/useJiraSync.js";
 import BigLabel from "../components/general/BigLabel.jsx";
-import SyncUpworkDuration from "../components/sync/SyncUpworkDuration.jsx";
+import SyncExternalTimeLogDuration from "../components/sync/SyncExternalTimeLogDuration.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -122,7 +122,7 @@ export default function MonthPage() {
       <div className="flex justify-between p-1">
           <div>
             {dayInfo && dayjs(cellDate).$M === date.$M && (
-              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} jiraSyncStatus={dayInfo.jiraSyncInfo.status} upworkSyncStatus={dayInfo.upworkSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
+              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} jiraSyncStatus={dayInfo.jiraSyncInfo.status} externalTimeLogSyncStatus={dayInfo.externalTimeLogSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
             )}
           </div>
         <div>
@@ -134,13 +134,13 @@ export default function MonthPage() {
 
   const getEventContent = (eventInfo) => {
     const {duration} = eventInfo.event.extendedProps;
-    const upworkDuration = dateTimeService.formatMinutesToHM(Math.round(
-      dateTimeService.getMinutesFromHMFormat(duration) / upworkTimeCf));
+    const externalTimeLogDuration = dateTimeService.formatMinutesToHM(Math.round(
+      dateTimeService.getMinutesFromHMFormat(duration) / externalTimeLogTimeCf));
 
     return (
       <>
         <MonthPageDuration duration={duration} />
-        {isUpworkSyncingEnabled && <SyncUpworkDuration duration={upworkDuration} textSize="base"/>}
+        {isExternalServiceSyncingEnabled && <SyncExternalTimeLogDuration duration={externalTimeLogDuration} textSize="base"/>}
       </>
     )
   }
