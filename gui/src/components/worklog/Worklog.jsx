@@ -12,24 +12,24 @@ import Brightness1Icon from "@mui/icons-material/Brightness1.js";
 import {syncStatus} from "../../consts/syncStatus.js";
 import TimeLogJiraSyncStatusIcon from "../timeLog/TimeLogJiraSyncStatusIcon.jsx";
 import TimeLogNonEditableFields from "../timeLog/TimeLogNonEditableFields.jsx";
-import TimeLogWorklogConnectors from "../timeLog/TimeLogWorklogConnectors.jsx";
+import WorklogConnectors from "./WorklogConnectors.jsx";
 import timeLogService from "../../service/timeLogService.js";
 import {isJiraSyncingEnabled} from "../../config/config.js";
 
 export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditMode}) {
   const worklogRef = useRef(null);
-  const {worklogRefs, setWorklogRefs, timeLogRefs} = useAppContext();
+  const {externalTimeLogRefs, setExternalTimeLogRefs, timeLogRefs} = useAppContext();
 
   useEffect(() => {
     if (worklogRef.current && isJiraEditMode) {
-      setWorklogRefs((prev) => {
-        const existingIndex = prev.findIndex(({worklog: {id}}) => id === worklog.id);
+      setExternalTimeLogRefs((prev) => {
+        const existingIndex = prev.findIndex(({externalTimeLog: {id}}) => id === worklog.id);
         if (existingIndex !== -1) {
           const updatedRefs = [...prev];
-          updatedRefs[existingIndex] = {worklog, ref: worklogRef};
+          updatedRefs[existingIndex] = {externalTimeLog: worklog, ref: worklogRef};
           return updatedRefs;
         } else {
-          return [...prev, {worklog, ref: worklogRef}];
+          return [...prev, {externalTimeLog: worklog, ref: worklogRef}];
         }
       });
     }
@@ -62,10 +62,10 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
             <>
               <Brightness1Icon className="mr-2" sx={{color: worklog.jiraSyncInfo.color}} />
               {isHovered && (
-                <TimeLogWorklogConnectors
+                <WorklogConnectors
                   isHovered={isHovered}
                   sourceRefs={timeLogRefs}
-                  targetRefs={worklogRefs}
+                  targetRefs={externalTimeLogRefs}
                   sourceItem={worklog}
                 />
               )}

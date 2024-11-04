@@ -26,7 +26,7 @@ import {useQuery} from "@tanstack/react-query";
 import syncUpworkApi from "../api/syncUpworkApi.js";
 
 export default function TimeLogPage() {
-  const {date, mode, addAlert} = useAppContext();
+  const {date, mode, setExternalTimeLogRefs} = useAppContext();
   const [hoveredTimeLogIds, setHoveredTimeLogIds] = useState([]);
   const [hoveredProgressIntervalId, setHoveredProgressIntervalId] = useState(0);
   const [hoveredConflictedIds, setHoveredConflictedIds] = useState([]);

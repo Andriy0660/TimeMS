@@ -54,7 +54,7 @@ export default function TimeLog({
 
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
-  const {addAlert, worklogRefs, timeLogRefs, setTimeLogRefs} = useAppContext();
+  const {addAlert, externalTimeLogRefs, timeLogRefs, setTimeLogRefs} = useAppContext();
 
   const timeLogRef = useRef(null);
   const timeLogUpperPartRef = useRef(null);
@@ -317,6 +317,15 @@ export default function TimeLog({
                 <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />
                 {isHovered && (
                   <TimeLogWorklogConnectors
+                  <WorklogConnectors
+                    isHovered={isHovered}
+                    sourceRefs={timeLogRefs}
+                    targetRefs={externalTimeLogRefs}
+                    sourceItem={timeLog}
+                  />
+                )}
+              </>
+            )}
                     isHovered={isHovered}
                     sourceRefs={timeLogRefs}
                     targetRefs={worklogRefs}
