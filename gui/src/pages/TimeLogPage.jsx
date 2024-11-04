@@ -41,19 +41,10 @@ export default function TimeLogPage() {
   }, [isJiraEditMode, isExternalServiceEditMode])
 
   const {
-    data: externalTimeLogs,
-    isPending: isExternalTimeLogsListing,
-    error: listExternalTimeLogsError
-  } = useQuery({
-    queryKey: [externalTimeLogApi.key, mode, date, startHourOfDay],
-    queryFn: () => externalTimeLogApi.list({date: dateTimeService.getFormattedDate(date)}),
-    retryDelay: 300,
-  });
-
-  const {
     groupByDescription, setGroupByDescription, timeLogs, processedTimeLogsArray, isListing,
     worklogs, isWorklogsListing,
     totalTimeLabel, filterTickets, selectedTickets, setSelectedTickets,
+    externalTimeLogs, isExternalTimeLogsListing
   } = useProcessedTimeLogs();
 
   const timeLogMutations = useTimeLogMutations();
@@ -208,9 +199,8 @@ export default function TimeLogPage() {
             <div className="w-1/2 ml-6">
               <ExternalTimeLogList
                 externalTimeLogs={externalTimeLogs}
-                isExternalTimeLogListing={isExternalTimeLogsListing}
-                isExternalServiceEditMode={isExternalServiceEditMode}
-              />
+                isExternalTimeLogsListing={isExternalTimeLogsListing}
+                isExternalServiceEditMode={isExternalServiceEditMode} />
             </div>
           </div>
         )}

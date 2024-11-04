@@ -6,6 +6,9 @@ import java.security.NoSuchAlgorithmException;
 
 public class SyncUtils {
   public static String generateColor(final String input) {
+    if (input == null || input.isEmpty()) {
+      return null;
+    }
     MessageDigest digest = null;
     try {
       digest = MessageDigest.getInstance("SHA-512");

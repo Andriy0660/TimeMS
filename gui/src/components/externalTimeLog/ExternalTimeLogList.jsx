@@ -3,10 +3,10 @@ import NoLogs from "../general/NoLogs.jsx";
 import ExternalTimeLog from "./ExternalTimeLog.jsx";
 import useExternalTimeLogMutations from "../../hooks/useExternalTimeLogMutations.js";
 
-export default function ExternalTimeLogList({externalTimeLogs, isExternalTimeLogListing, isExternalServiceEditMode}) {
+export default function ExternalTimeLogList({externalTimeLogs, isExternalTimeLogsListing, isExternalServiceEditMode}) {
   const {onDelete} = useExternalTimeLogMutations();
 
-  if (isExternalTimeLogListing) {
+  if (isExternalTimeLogsListing) {
     return <div className="text-center">
       <CircularProgress />
     </div>

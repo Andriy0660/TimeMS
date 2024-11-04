@@ -9,7 +9,7 @@ export default function BigLabel({children, className, color="blue"}) {
   return (
     <div
       className={classNames(
-        "flex items-center w-fit p-2 border border-solid rounded-xl shadow-md",
+        "flex items-center w-fit p-2 border border-solid text-4xl rounded-xl shadow-md",
         colorClasses[color],
         className
       )}
