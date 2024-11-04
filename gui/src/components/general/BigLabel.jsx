@@ -1,7 +1,20 @@
-export default function BigLabel({children, className}) {
+import classNames from "classnames";
+
+export default function BigLabel({children, className, color="blue"}) {
+  const colorClasses = {
+    blue: "text-blue-500",
+    green: "text-green-500",
+  };
+
   return (
-    <div className={`flex items-center w-fit p-2 text-4xl border border-solid rounded-xl text-blue-400 shadow-md ${className}`}>
+    <div
+      className={classNames(
+        "flex items-center w-fit p-2 border border-solid rounded-xl shadow-md",
+        colorClasses[color],
+        className
+      )}
+    >
       {children}
     </div>
-  )
+  );
 }
