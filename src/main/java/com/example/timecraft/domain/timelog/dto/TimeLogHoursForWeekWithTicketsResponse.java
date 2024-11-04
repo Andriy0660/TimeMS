@@ -3,8 +3,8 @@ package com.example.timecraft.domain.timelog.dto;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.example.timecraft.domain.external_timelog.model.ExternalTimeLogSyncInfo;
 import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
-import com.example.timecraft.domain.sync.upwork.model.UpworkSyncInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +23,7 @@ public class TimeLogHoursForWeekWithTicketsResponse implements TimeLogWeekRespon
     private String dayName;
     private LocalDate date;
     private JiraSyncInfo jiraSyncInfo;
-    private UpworkSyncInfo upworkSyncInfo;
+    private ExternalTimeLogSyncInfo externalTimeLogSyncInfo;
     private boolean isConflicted;
     private List<TicketDuration> ticketDurations;
   }

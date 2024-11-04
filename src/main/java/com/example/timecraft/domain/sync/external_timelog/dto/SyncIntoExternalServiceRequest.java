@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.upwork.dto;
+package com.example.timecraft.domain.sync.external_timelog.dto;
 
 import java.time.LocalDate;
 
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SyncUpworkRequest {
+public class SyncIntoExternalServiceRequest {
   private LocalDate date;
-  private Integer timeSpentSeconds;
+  private String description;
 }

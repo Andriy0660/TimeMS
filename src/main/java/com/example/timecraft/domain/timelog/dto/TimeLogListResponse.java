@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import com.example.timecraft.domain.external_timelog.model.ExternalTimeLogSyncInfo;
 import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,7 @@ public class TimeLogListResponse {
     private String description;
     private String totalTime;
     private JiraSyncInfo jiraSyncInfo;
+    private ExternalTimeLogSyncInfo externalTimeLogSyncInfo;
     private List<String> labels;
   }
 }

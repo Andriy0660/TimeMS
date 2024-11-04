@@ -26,6 +26,12 @@ public class TimeLogSyncServiceImpl implements TimeLogSyncService {
   }
 
   @Override
+  public List<TimeLogEntity> getAllByDateAndDescription(final LocalDate date, final String description) {
+    final int offset = props.getConfig().getOffset();
+    return repository.findAllByDateAndDescription(date, date.plusDays(1), LocalTime.of(offset, 0), description);
+  }
+
+  @Override
   public List<TimeLogEntity> getAllByDateAndDescriptionAndTicket(final LocalDate date, final String description, final String ticket) {
     final int offset = props.getConfig().getOffset();
     return repository.findAllByDateAndTicket(date, date.plusDays(1), LocalTime.of(offset, 0), ticket).stream()
