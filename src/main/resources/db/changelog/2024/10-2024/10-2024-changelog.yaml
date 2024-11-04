@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/2024/10-2024/TMC-55-add-labels.yaml
   - include:
       file: db/changelog/2024/10-2024/TMC-24-sync-upwork.yaml
+  - include:
+      file: db/changelog/2024/10-2024/TMC-24-sync-upwork-2.yaml
