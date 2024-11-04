@@ -1,6 +1,6 @@
 import TimeLogList from "../components/timeLog/TimeLogList.jsx";
 import TimeLogCreateBar from "../components/timeLog/TimeLogCreateBar.jsx";
-import {CircularProgress, FormControlLabel, IconButton, Switch} from "@mui/material";
+import {FormControlLabel, IconButton, Switch, Tooltip} from "@mui/material";
 import useAppContext from "../context/useAppContext.js";
 import BigLabel from "../components/general/BigLabel.jsx";
 import DayProgressBar from "../components/day/DayProgressBar.jsx";
@@ -20,9 +20,12 @@ import useWorklogMutations from "../hooks/useWorklogMutations.js";
 import {isJiraSyncingEnabled, isExternalServiceSyncingEnabled, startHourOfDay, externalTimeLogTimeCf} from "../config/config.js";
 import dateTimeService from "../service/dateTimeService.js";
 import SyncInfoLabel from "../components/sync/SyncInfoLabel.jsx";
-import TimeLogUpworkSyncer from "../components/timeLog/TimeLogUpworkSyncer.jsx";
 import {useQuery} from "@tanstack/react-query";
-import syncUpworkApi from "../api/syncUpworkApi.js";
+import externalTimeLogApi from "../api/externalTimeLogApi.js";
+import ExternalTimeLogList from "../components/externalTimeLog/ExternalTimeLogList.jsx";
+import useExternalServiceSync from "../hooks/useExternalServiceSync.js";
+import useExternalTimeLogMutations from "../hooks/useExternalTimeLogMutations.js";
+import timeLogService from "../service/timeLogService.js";
 
 export default function TimeLogPage() {
   const {date, mode, setExternalTimeLogRefs} = useAppContext();
@@ -38,23 +41,14 @@ export default function TimeLogPage() {
   }, [isJiraEditMode, isExternalServiceEditMode])
 
   const {
-    data: upworkStatus,
-    isPending: isGettingUpworkStatus,
-    error: upworkStatusError
+    data: externalTimeLogs,
+    isPending: isExternalTimeLogsListing,
+    error: listExternalTimeLogsError
   } = useQuery({
-    queryKey: [date],
-    queryFn: () => syncUpworkApi.getStatus(dateTimeService.getFormattedDate(date)),
+    queryKey: [externalTimeLogApi.key, mode, date, startHourOfDay],
+    queryFn: () => externalTimeLogApi.list({date: dateTimeService.getFormattedDate(date)}),
     retryDelay: 300,
   });
-
-  useEffect(() => {
-    if (upworkStatusError) {
-      addAlert({
-        text: `${upworkStatusError.displayMessage} Try again later`,
-        type: "error"
-      });
-    }
-  }, [upworkStatusError]);
 
   const {
     groupByDescription, setGroupByDescription, timeLogs, processedTimeLogsArray, isListing,
@@ -63,8 +57,9 @@ export default function TimeLogPage() {
   } = useProcessedTimeLogs();
 
   const timeLogMutations = useTimeLogMutations();
-  const {onCreate: onWorklogCreate}  = useWorklogMutations();
-  const syncMutations = useSync();
+  const {onCreate: onWorklogCreate} = useWorklogMutations();
+  const {onCreate: onExternalTimeLogCreate} = useExternalTimeLogMutations();
+  const {onSyncIntoExternalService} = useExternalServiceSync();
   const syncMutations = useJiraSync();
 
   if (isListing) {
@@ -80,7 +75,9 @@ export default function TimeLogPage() {
     hoveredTimeLogIds,
     setHoveredProgressIntervalId,
     hoveredConflictedIds,
-    setHoveredConflictedIds
+    setHoveredConflictedIds,
+    onExternalTimeLogCreate,
+    onSyncIntoExternalService
   };
 
   return (
@@ -199,6 +196,20 @@ export default function TimeLogPage() {
                 worklogs={worklogService.processData(worklogs, processedTimeLogsArray, selectedTickets)}
                 isWorklogsListing={isWorklogsListing}
                 isJiraEditMode={isJiraEditMode}
+              />
+            </div>
+          </div>
+        )}
+        {isExternalServiceSyncingEnabled && isExternalServiceEditMode && (
+          <div className="flex">
+            <div className="w-1/2 mr-6">
+              <TimeLogList {...commonTimeLogListProps} isExternalServiceEditMode/>
+            </div>
+            <div className="w-1/2 ml-6">
+              <ExternalTimeLogList
+                externalTimeLogs={externalTimeLogs}
+                isExternalTimeLogListing={isExternalTimeLogsListing}
+                isExternalServiceEditMode={isExternalServiceEditMode}
               />
             </div>
           </div>
