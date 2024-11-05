@@ -25,6 +25,7 @@ import useExternalServiceSync from "../hooks/useExternalServiceSync.js";
 import useExternalTimeLogMutations from "../hooks/useExternalTimeLogMutations.js";
 import timeLogService from "../service/timeLogService.js";
 import externalTimeLogService from "../service/externalTimeLogService.js";
+import EditModeSwitcher from "../components/sync/EditModeSwitcher.jsx";
 
 export default function TimeLogPage() {
   const {date, mode, setExternalTimeLogRefs} = useAppContext();
@@ -35,6 +36,16 @@ export default function TimeLogPage() {
   const [isJiraEditMode, setIsJiraEditMode] = useState(false);
   const [isExternalServiceEditMode, setIsExternalServiceEditMode] = useState(false);
 
+  const allEditModeStates = [
+    {
+      checked: isJiraEditMode,
+      setChecked: setIsJiraEditMode,
+    },
+    {
+      checked: isExternalServiceEditMode,
+      setChecked: setIsExternalServiceEditMode,
+    },
+  ]
   const isInEditMode = isJiraEditMode || isExternalServiceEditMode;
 
   useEffect(() => {
@@ -101,50 +112,15 @@ export default function TimeLogPage() {
                 <IconButton className="mr-2" onClick={() => setSelectedTickets([])}>
                   <ClearIcon />
                 </IconButton>
+                <SyncInfoLabel className="ml-8" color="blue">
+                  <EditModeSwitcher checked={isJiraEditMode} setChecked={setIsJiraEditMode} allEditModeStates={allEditModeStates} />
+                </SyncInfoLabel>
               </>
-            )}
-
-            {isJiraSyncingEnabled && (
-              <SyncInfoLabel className="ml-8" color="blue">
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={isJiraEditMode}
-                      onChange={(event) => {
-                        if (event.target.checked) {
-                          setIsJiraEditMode(true);
-                          setIsExternalServiceEditMode(false);
-                        } else {
-                          setIsJiraEditMode(false);
-                        }
-                      }}
-                    />
-                  }
-                  label="Jira Edit Mode"
-                  labelPlacement="start"
-                />
-              </SyncInfoLabel>
             )}
 
             {isExternalServiceSyncingEnabled && (
               <SyncInfoLabel className="ml-8" color="green">
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={isExternalServiceEditMode}
-                      onChange={(event) => {
-                        if (event.target.checked) {
-                          setIsExternalServiceEditMode(true);
-                          setIsJiraEditMode(false);
-                        } else {
-                          setIsExternalServiceEditMode(false);
-                        }
-                      }}
-                    />
-                  }
-                  label="External Service Edit Mode"
-                  labelPlacement="start"
-                />
+                <EditModeSwitcher checked={isExternalServiceEditMode} setChecked={setIsExternalServiceEditMode} allEditModeStates={allEditModeStates}/>
               </SyncInfoLabel>
             )}
           </div>
