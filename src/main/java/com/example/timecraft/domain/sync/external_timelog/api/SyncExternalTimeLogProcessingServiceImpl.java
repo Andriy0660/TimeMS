@@ -36,12 +36,10 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
     final List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
     return new TimeLogListResponse(
         timeLogDtos.stream().peek(timeLogDto ->
-            timeLogDto.setExternalTimeLogSyncInfo(ExternalTimeLogSyncInfo.builder()
-                .status(getSyncStatus(
+            timeLogDto.setExternalTimeLogSyncInfo(
+                getExternalTimeLogSyncInfo(
                     TimeLogUtils.getProcessedDate(timeLogDto.getDate(), timeLogDto.getStartTime(), offset),
                     timeLogDto.getDescription()))
-                .color(SyncUtils.generateColor(timeLogDto.getDescription()))
-                .build())
         ).toList()
     );
   }
@@ -90,20 +88,45 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
     final int offset = props.getConfig().getOffset();
     final List<ExternalTimeLogListResponse.ExternalTimeLogDto> externalTimeLogDtos = response.getItems();
     return new ExternalTimeLogListResponse(
-        externalTimeLogDtos.stream().peek(externalTimeLogDto -> externalTimeLogDto.setExternalTimeLogSyncInfo(ExternalTimeLogSyncInfo.builder()
-            .status(getSyncStatus(
+        externalTimeLogDtos.stream().peek(externalTimeLogDto -> externalTimeLogDto.setExternalTimeLogSyncInfo(
+            getExternalTimeLogSyncInfo(
                 TimeLogUtils.getProcessedDate(externalTimeLogDto.getDate(), externalTimeLogDto.getStartTime(), offset),
-                externalTimeLogDto.getDescription()))
-            .color(SyncUtils.generateColor(externalTimeLogDto.getDescription()))
-            .build())
+                externalTimeLogDto.getDescription())
+            )
         ).toList()
     );
+  }
+
+  private ExternalTimeLogSyncInfo getExternalTimeLogSyncInfo(final LocalDate processedDate, final String description) {
+    final Boolean externalServiceIncludeDescription = props.getConfig().getExternalServiceIncludeDescription();
+
+    if (externalServiceIncludeDescription) {
+      return ExternalTimeLogSyncInfo.builder()
+          .status(getSyncStatus(processedDate, description))
+          .color(SyncUtils.generateColor(description))
+          .build();
+    } else {
+      return ExternalTimeLogSyncInfo.builder()
+          .status(getSyncStatus(processedDate))
+          .build();
+    }
   }
 
   private SyncStatus getSyncStatus(final LocalDate date, final String description) {
     final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescription(date, description);
     final List<ExternalTimeLogEntity> externalTimeLogEntityList = externalTimeLogSyncService.getAllByDateAndDescription(date, description);
 
+    return calculateStatus(timeLogEntityList, externalTimeLogEntityList);
+  }
+
+  private SyncStatus getSyncStatus(final LocalDate date) {
+    final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDate(date);
+    final List<ExternalTimeLogEntity> externalTimeLogEntityList = externalTimeLogSyncService.getAllByDate(date);
+
+    return calculateStatus(timeLogEntityList, externalTimeLogEntityList);
+  }
+
+  private SyncStatus calculateStatus(final List<TimeLogEntity> timeLogEntityList, final List<ExternalTimeLogEntity> externalTimeLogEntityList) {
     final int timeLogsSpentSeconds = TimeLogUtils.getTotalSpentSecondsForTimeLogs(timeLogEntityList);
     final int externalTimeLogsSpentSeconds = SyncExternalTimeLogUtils.getTotalSpentSecondsForExternalTimeLogs(externalTimeLogEntityList);
 

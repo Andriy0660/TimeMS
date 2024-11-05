@@ -4,14 +4,14 @@ import ConfirmationModal from "../general/ConfirmationModal.jsx";
 import {useEffect, useRef, useState} from "react";
 import useAsyncCall from "../../hooks/useAsyncCall.js";
 import dayjs from "dayjs";
-import TimeLogJiraSyncStatusIcon from "../timeLog/TimeLogJiraSyncStatusIcon.jsx";
 import TimeLogNonEditableFields from "../timeLog/TimeLogNonEditableFields.jsx";
 import timeLogService from "../../service/timeLogService.js";
 import useAppContext from "../../context/useAppContext.js";
-import {isExternalServiceSyncingEnabled} from "../../config/config.js";
+import {externalServiceIncludeDescription, isExternalServiceSyncingEnabled} from "../../config/config.js";
 import {syncStatus} from "../../consts/syncStatus.js";
 import Brightness1Icon from "@mui/icons-material/Brightness1";
 import ExternalTimeLogConnectors from "./ExternalTimeLogConnectors.jsx";
+import TimeLogExternalSyncStatusIcon from "../timeLog/TimeLogExternalSyncStatusIcon.jsx";
 
 export default function ExternalTimeLog({externalTimeLog, onDelete, isExternalServiceEditMode}) {
   const externalTimeLogRef = useRef(null);
@@ -51,7 +51,7 @@ export default function ExternalTimeLog({externalTimeLog, onDelete, isExternalSe
     >
       <div className="flex justify-between">
         <div className="flex items-center pt-1.5 my-1">
-          {isExternalServiceSyncingEnabled && isExternalServiceEditMode && externalTimeLog.externalTimeLogSyncInfo.status !== syncStatus.NOT_SYNCED && (
+          {isExternalServiceSyncingEnabled && isExternalServiceEditMode && externalServiceIncludeDescription && externalTimeLog.externalTimeLogSyncInfo.status !== syncStatus.NOT_SYNCED && (
             <>
               <Brightness1Icon className="mr-2" sx={{color: externalTimeLog.externalTimeLogSyncInfo.color}} />
               {isHovered && (
@@ -70,7 +70,7 @@ export default function ExternalTimeLog({externalTimeLog, onDelete, isExternalSe
             endTime={endTime}
             isTimeLogInNextDay={isTimeLogInNextDay}
           />
-          <TimeLogJiraSyncStatusIcon status={externalTimeLog.externalTimeLogSyncInfo.status} />
+          <TimeLogExternalSyncStatusIcon status={externalTimeLog.externalTimeLogSyncInfo.status} />
         </div>
         <div>
           {isHovered && (

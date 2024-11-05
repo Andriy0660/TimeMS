@@ -20,6 +20,7 @@ public class AppProperties {
   public static class Config {
     private Boolean isJiraSyncingEnabled;
     private Boolean isExternalServiceSyncingEnabled;
+    private Boolean externalServiceIncludeDescription;
     private Double externalTimeLogTimeCf;
     private Integer offset;
     private Integer startHourOfWorkingDay;

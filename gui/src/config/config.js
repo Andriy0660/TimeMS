@@ -6,6 +6,7 @@ let endHourOfWorkingDay = 18;
 let isJiraSyncingEnabled = false;
 let isExternalServiceSyncingEnabled = false;
 let externalTimeLogTimeCf = 1;
+let externalServiceIncludeDescription = false;
 
 const initialize = async () => {
   const res = await timeLogApi.getConfig();
@@ -15,7 +16,15 @@ const initialize = async () => {
   isJiraSyncingEnabled = res.isJiraSyncingEnabled;
   isExternalServiceSyncingEnabled = res.isExternalServiceSyncingEnabled;
   externalTimeLogTimeCf = res.externalTimeLogTimeCf;
+  externalServiceIncludeDescription = res.externalServiceIncludeDescription
 };
 
 initialize();
-export {startHourOfDay, startHourOfWorkingDay, endHourOfWorkingDay, isJiraSyncingEnabled, isExternalServiceSyncingEnabled, externalTimeLogTimeCf};
+export {
+  startHourOfDay,
+  startHourOfWorkingDay,
+  endHourOfWorkingDay,
+  isJiraSyncingEnabled,
+  isExternalServiceSyncingEnabled,
+  externalTimeLogTimeCf,
+  externalServiceIncludeDescription};

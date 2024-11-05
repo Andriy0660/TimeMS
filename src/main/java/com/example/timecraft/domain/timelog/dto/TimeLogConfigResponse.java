@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class TimeLogConfigResponse {
   private Boolean isJiraSyncingEnabled;
   private Boolean isExternalServiceSyncingEnabled;
+  private Boolean externalServiceIncludeDescription;
   private Double externalTimeLogTimeCf;
   private Integer offset;
   private Integer startHourOfWorkingDay;
