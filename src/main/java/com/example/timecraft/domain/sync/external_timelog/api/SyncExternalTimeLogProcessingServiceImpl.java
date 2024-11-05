@@ -65,6 +65,23 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
     }
   }
 
+  private boolean hasTimeLogsSyncStatusForDay(final LocalDate date, final SyncStatus syncStatus) {
+    final int offset = props.getConfig().getOffset();
+    return timeLogSyncService.getAllByDate(date).stream().anyMatch(
+        timeLogEntity -> getSyncStatus(
+            TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
+            timeLogEntity.getDescription()
+        ).equals(syncStatus)
+    );
+  }
+
+  private boolean hasExternalTimeLogsSyncStatusForDay(final LocalDate date, final SyncStatus syncStatus) {
+    return externalTimeLogSyncService.getAllByDate(date).stream()
+        .anyMatch(
+            externalTimeLogEntity -> getSyncStatus(externalTimeLogEntity.getDate(), externalTimeLogEntity.getDescription()).equals(syncStatus)
+        );
+  }
+
   @Override
   public TimeLogWeekResponse processWeekDayInfos(final TimeLogHoursForWeekResponse response) {
     final List<TimeLogHoursForWeekResponse.DayInfo> dayInfos = response.getItems();
@@ -98,32 +115,27 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
   }
 
   private ExternalTimeLogSyncInfo getExternalTimeLogSyncInfo(final LocalDate processedDate, final String description) {
-    final Boolean externalServiceIncludeDescription = props.getConfig().getExternalServiceIncludeDescription();
-
-    if (externalServiceIncludeDescription) {
-      return ExternalTimeLogSyncInfo.builder()
-          .status(getSyncStatus(processedDate, description))
-          .color(SyncUtils.generateColor(description))
-          .build();
-    } else {
-      return ExternalTimeLogSyncInfo.builder()
-          .status(getSyncStatus(processedDate))
-          .build();
-    }
+    return ExternalTimeLogSyncInfo.builder()
+        .status(getSyncStatus(processedDate, description))
+        .color(SyncUtils.generateColor(description))
+        .build();
   }
 
   private SyncStatus getSyncStatus(final LocalDate date, final String description) {
-    final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescription(date, description);
-    final List<ExternalTimeLogEntity> externalTimeLogEntityList = externalTimeLogSyncService.getAllByDateAndDescription(date, description);
+    final Boolean externalServiceIncludeDescription = props.getConfig().getExternalServiceIncludeDescription();
 
-    return calculateStatus(timeLogEntityList, externalTimeLogEntityList);
-  }
+    if (externalServiceIncludeDescription) {
+      final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescription(date, description);
+      final List<ExternalTimeLogEntity> externalTimeLogEntityList = externalTimeLogSyncService.getAllByDateAndDescription(date, description);
 
-  private SyncStatus getSyncStatus(final LocalDate date) {
-    final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDate(date);
-    final List<ExternalTimeLogEntity> externalTimeLogEntityList = externalTimeLogSyncService.getAllByDate(date);
+      return calculateStatus(timeLogEntityList, externalTimeLogEntityList);
 
-    return calculateStatus(timeLogEntityList, externalTimeLogEntityList);
+    } else {
+      final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDate(date);
+      final List<ExternalTimeLogEntity> externalTimeLogEntityList = externalTimeLogSyncService.getAllByDate(date);
+
+      return calculateStatus(timeLogEntityList, externalTimeLogEntityList);
+    }
   }
 
   private SyncStatus calculateStatus(final List<TimeLogEntity> timeLogEntityList, final List<ExternalTimeLogEntity> externalTimeLogEntityList) {
@@ -140,21 +152,6 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
     }
   }
 
-  private boolean hasTimeLogsSyncStatusForDay(final LocalDate date, final SyncStatus syncStatus) {
-    final int offset = props.getConfig().getOffset();
-    return timeLogSyncService.getAllByDate(date).stream().anyMatch(
-        timeLogEntity -> getSyncStatus(
-            TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
-            timeLogEntity.getDescription()
-        ).equals(syncStatus)
-    );
-  }
 
-  private boolean hasExternalTimeLogsSyncStatusForDay(final LocalDate date, final SyncStatus syncStatus) {
-    return externalTimeLogSyncService.getAllByDate(date).stream()
-        .anyMatch(
-            externalTimeLogEntity -> getSyncStatus(externalTimeLogEntity.getDate(), externalTimeLogEntity.getDescription()).equals(syncStatus)
-        );
-  }
 
 }

@@ -31,6 +31,7 @@ public class ExternalTimeLogServiceImpl implements ExternalTimeLogService {
   @Override
   public ExternalTimeLogCreateFromTimeLogResponse createFromTimeLog(final ExternalTimeLogCreateFromTimeLogRequest request) {
     ExternalTimeLogEntity entity = mapper.fromCreateFromTimeLogRequest(request);
+    entity.setDescription(entity.getDescription().trim());
     entity = repository.save(entity);
     return mapper.toCreateResponse(entity);
   }

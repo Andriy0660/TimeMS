@@ -92,7 +92,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     if(timeLogEntity.getStartTime() != null) {
       stopOtherTimeLogs(null);
     }
-
+    timeLogEntity.setDescription(timeLogEntity.getDescription().trim());
     timeLogEntity = repository.save(timeLogEntity);
     return mapper.toCreateResponse(timeLogEntity);
   }
