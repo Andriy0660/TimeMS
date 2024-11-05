@@ -80,13 +80,13 @@ export default function MonthPage() {
 
     const conflictedClassNames = ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
 
-    const getClassNamesByJiraStatus = (dayInfo) => {
-      if (!dayInfo) return null;
+    const getSyncClassNames = (status) => {
+      if (!status) return null;
 
       const notSyncedClassNames = ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
       const partiallySyncedClassNames = ["bg-orange-200 hover:cursor-pointer hover:bg-orange-300"];
 
-      switch (dayInfo.jiraSyncInfo.status) {
+      switch (status) {
         case syncStatus.NOT_SYNCED:
           return notSyncedClassNames;
         case syncStatus.PARTIAL_SYNCED:
@@ -108,8 +108,12 @@ export default function MonthPage() {
       }
 
       if (isJiraSyncingEnabled) {
-        const syncState = getClassNamesByJiraStatus(dayInfo);
-        if (syncState) return syncState;
+        const syncClassNames = getSyncClassNames(dayInfo.jiraSyncInfo.status);
+        if (syncClassNames) return syncClassNames;
+      }
+      if (isExternalServiceSyncingEnabled) {
+        const syncClassNames = getSyncClassNames(dayInfo.externalTimeLogSyncInfo.status);
+        if (syncClassNames) return syncClassNames;
       }
     }
 
