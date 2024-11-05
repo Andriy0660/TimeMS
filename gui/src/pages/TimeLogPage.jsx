@@ -17,11 +17,9 @@ import LoadingPage from "../components/general/LoadingPage.jsx";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import useJiraSync from "../hooks/useJiraSync.js";
 import useWorklogMutations from "../hooks/useWorklogMutations.js";
-import {isJiraSyncingEnabled, isExternalServiceSyncingEnabled, startHourOfDay, externalTimeLogTimeCf} from "../config/config.js";
+import {externalTimeLogTimeCf, isExternalServiceSyncingEnabled, isJiraSyncingEnabled} from "../config/config.js";
 import dateTimeService from "../service/dateTimeService.js";
 import SyncInfoLabel from "../components/sync/SyncInfoLabel.jsx";
-import {useQuery} from "@tanstack/react-query";
-import externalTimeLogApi from "../api/externalTimeLogApi.js";
 import ExternalTimeLogList from "../components/externalTimeLog/ExternalTimeLogList.jsx";
 import useExternalServiceSync from "../hooks/useExternalServiceSync.js";
 import useExternalTimeLogMutations from "../hooks/useExternalTimeLogMutations.js";
@@ -36,6 +34,8 @@ export default function TimeLogPage() {
 
   const [isJiraEditMode, setIsJiraEditMode] = useState(false);
   const [isExternalServiceEditMode, setIsExternalServiceEditMode] = useState(false);
+
+  const isInEditMode = isJiraEditMode || isExternalServiceEditMode;
 
   useEffect(() => {
     setExternalTimeLogRefs([]);
@@ -69,7 +69,8 @@ export default function TimeLogPage() {
     hoveredConflictedIds,
     setHoveredConflictedIds,
     onExternalTimeLogCreate,
-    onSyncIntoExternalService
+    onSyncIntoExternalService,
+    isInEditMode
   };
 
   return (
@@ -169,12 +170,12 @@ export default function TimeLogPage() {
         </div>
       </div>
 
-      <div className={`${isJiraEditMode || isExternalServiceEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
+      <div className={`${isInEditMode ? "w-4/5" : "w-3/5"} mx-auto`}>
         {mode === viewMode.DAY &&
           <DayProgressBar timeLogs={processedTimeLogsArray} date={date} setHoveredTimeLogIds={setHoveredTimeLogIds}
                           hoveredProgressIntervalId={hoveredProgressIntervalId} />}
 
-        {!isJiraEditMode && !isExternalServiceEditMode && (
+        {!isInEditMode && (
           <TimeLogList {...commonTimeLogListProps} />
         )}
 
@@ -195,7 +196,7 @@ export default function TimeLogPage() {
         {isExternalServiceSyncingEnabled && isExternalServiceEditMode && (
           <div className="flex">
             <div className="w-1/2 mr-6">
-              <TimeLogList {...commonTimeLogListProps} isExternalServiceEditMode/>
+              <TimeLogList {...commonTimeLogListProps} isExternalServiceEditMode />
             </div>
             <div className="w-1/2 ml-6">
               <ExternalTimeLogList
