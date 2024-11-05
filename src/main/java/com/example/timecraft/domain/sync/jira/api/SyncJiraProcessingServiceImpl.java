@@ -9,7 +9,7 @@ import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
-import com.example.timecraft.domain.sync.util.SyncUtils;
+import com.example.timecraft.domain.sync.jira.util.SyncUtils;
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekWithTicketsResponse;

@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.external_timelog.util;
+package com.example.timecraft.domain.sync.external_service.util;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLog
 import com.example.timecraft.domain.timelog.util.DurationUtils;
 
 
-public class SyncExternalTimeLogUtils {
+public class SyncExternalServiceUtils {
   public static int getTotalSpentSecondsForExternalTimeLogs(final List<ExternalTimeLogEntity> entities) {
     return entities.stream().map(entity ->
             (int) DurationUtils.getDurationBetweenStartAndEndTime(entity.getStartTime(), entity.getEndTime()).toSeconds())

@@ -9,13 +9,13 @@ const externalTimeLogService = {
     const newExternalTimeLogs = [];
     for (let timeLog of timeLogs) {
       for (let externalTimeLog of externalTimeLogs) {
-        if (externalTimeLog.externalTimeLogSyncInfo.color === timeLog.externalTimeLogSyncInfo.color && externalTimeLog.externalTimeLogSyncInfo.status === syncStatus.SYNCED) {
+        if (externalTimeLog.externalServiceSyncInfo.color === timeLog.externalServiceSyncInfo.color && externalTimeLog.externalServiceSyncInfo.status === syncStatus.SYNCED) {
           newExternalTimeLogs.push(externalTimeLog);
           externalTimeLogs = externalTimeLogs.filter(externalTimeLog1 => externalTimeLog1 !== externalTimeLog);
         }
       }
     }
-    const nonMatchingExternalTimeLogs = externalTimeLogs.filter(externalTimeLog => externalTimeLog.externalTimeLogSyncInfo.status !== syncStatus.SYNCED);
+    const nonMatchingExternalTimeLogs = externalTimeLogs.filter(externalTimeLog => externalTimeLog.externalServiceSyncInfo.status !== syncStatus.SYNCED);
     newExternalTimeLogs.push(...nonMatchingExternalTimeLogs);
     return newExternalTimeLogs;
   }

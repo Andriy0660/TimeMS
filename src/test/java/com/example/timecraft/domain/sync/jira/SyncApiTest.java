@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync;
+package com.example.timecraft.domain.sync.jira;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -21,7 +21,7 @@ import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
-import com.example.timecraft.domain.sync.util.SyncApiTestUtils;
+import com.example.timecraft.domain.sync.jira.util.SyncApiTestUtils;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.service.TestTimeLogClient;
 import com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils;
@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
-import static com.example.timecraft.domain.sync.util.SyncApiTestUtils.accountIdForTesting;
+import static com.example.timecraft.domain.sync.jira.util.SyncApiTestUtils.accountIdForTesting;
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.createTimeLogCreateRequest;
 import static com.example.timecraft.domain.worklog.util.WorklogApiTestUtils.createWorklogCreateRequest;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;

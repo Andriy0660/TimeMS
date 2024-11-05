@@ -8,7 +8,7 @@ export default function TimeLogExternalServiceSyncButtons({timeLog, handleCreate
   return (
     <>
       {
-        (timeLog.startTime && timeLog.endTime && timeLog.externalTimeLogSyncInfo.status === syncStatus.NOT_SYNCED) && (
+        (timeLog.startTime && timeLog.endTime && timeLog.externalServiceSyncInfo.status === syncStatus.NOT_SYNCED) && (
           <MenuItem onClick={() => handleCreateExternalTimeLog({
             date: dateTimeService.getFormattedDate(timeLog.date),
             startTime: dateTimeService.getFormattedDateTime(timeLog.startTime),
@@ -26,7 +26,7 @@ export default function TimeLogExternalServiceSyncButtons({timeLog, handleCreate
       }
 
       {
-        (timeLog.startTime && timeLog.endTime && timeLog.externalTimeLogSyncInfo.status === syncStatus.PARTIAL_SYNCED) && (
+        (timeLog.startTime && timeLog.endTime && timeLog.externalServiceSyncInfo.status === syncStatus.PARTIAL_SYNCED) && (
           <MenuItem
             onClick={() => handleSyncIntoExternalService({
               date: dateTimeService.getFormattedDate(timeLog.date),

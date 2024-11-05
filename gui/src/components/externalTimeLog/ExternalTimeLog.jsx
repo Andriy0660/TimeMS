@@ -51,9 +51,9 @@ export default function ExternalTimeLog({externalTimeLog, onDelete, isExternalSe
     >
       <div className="flex justify-between">
         <div className="flex items-center pt-1.5 my-1">
-          {isExternalServiceSyncingEnabled && isExternalServiceEditMode && externalServiceIncludeDescription && externalTimeLog.externalTimeLogSyncInfo.status !== syncStatus.NOT_SYNCED && (
+          {isExternalServiceSyncingEnabled && isExternalServiceEditMode && externalServiceIncludeDescription && externalTimeLog.externalServiceSyncInfo.status !== syncStatus.NOT_SYNCED && (
             <>
-              <Brightness1Icon className="mr-2" sx={{color: externalTimeLog.externalTimeLogSyncInfo.color}} />
+              <Brightness1Icon className="mr-2" sx={{color: externalTimeLog.externalServiceSyncInfo.color}} />
               {isHovered && (
                 <ExternalTimeLogConnectors
                   isHovered={isHovered}
@@ -70,7 +70,7 @@ export default function ExternalTimeLog({externalTimeLog, onDelete, isExternalSe
             endTime={endTime}
             isTimeLogInNextDay={isTimeLogInNextDay}
           />
-          <TimeLogSyncStatusIcon serviceName="External Service" status={externalTimeLog.externalTimeLogSyncInfo.status} />
+          <TimeLogSyncStatusIcon serviceName="External Service" status={externalTimeLog.externalServiceSyncInfo.status} />
         </div>
         <div>
           {isHovered && (

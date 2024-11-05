@@ -3,7 +3,7 @@ package com.example.timecraft.domain.timelog.dto;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.example.timecraft.domain.sync.external_timelog.model.ExternalTimeLogSyncInfo;
+import com.example.timecraft.domain.sync.external_service.model.ExternalServiceSyncInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +22,7 @@ public class TimeLogHoursForWeekResponse implements TimeLogWeekResponse {
     private String dayName;
     private LocalDate date;
     private String duration;
-    private ExternalTimeLogSyncInfo externalTimeLogSyncInfo;
+    private ExternalServiceSyncInfo externalServiceSyncInfo;
     private boolean isConflicted;
   }
 }

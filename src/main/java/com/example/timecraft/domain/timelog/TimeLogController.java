@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.timecraft.domain.sync.external_timelog.api.SyncExternalTimeLogProcessingService;
+import com.example.timecraft.domain.sync.external_service.api.SyncExternalServiceProcessingService;
 import com.example.timecraft.domain.sync.jira.api.SyncJiraProcessingService;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
@@ -38,11 +38,11 @@ import lombok.RequiredArgsConstructor;
 public class TimeLogController {
   private final TimeLogService timeLogService;
   private final SyncJiraProcessingService syncJiraProcessingService;
-  private final SyncExternalTimeLogProcessingService syncExternalTimeLogProcessingService;
+  private final SyncExternalServiceProcessingService syncExternalServiceProcessingService;
 
   @GetMapping
   public TimeLogListResponse list(@RequestParam final LocalDate startDate, @RequestParam final LocalDate endDate) {
-    return syncExternalTimeLogProcessingService.processTimeLogDtos(
+    return syncExternalServiceProcessingService.processTimeLogDtos(
         syncJiraProcessingService.processTimeLogDtos(
             timeLogService.list(startDate, endDate)
         )
@@ -82,19 +82,19 @@ public class TimeLogController {
   @GetMapping("/hoursForWeek")
   public TimeLogWeekResponse getHoursForWeek(@RequestParam final LocalDate date, @RequestParam final Boolean includeTickets) {
     if (includeTickets) {
-      return syncExternalTimeLogProcessingService.processWeekDayInfos(
+      return syncExternalServiceProcessingService.processWeekDayInfos(
           syncJiraProcessingService.processWeekDayInfos(
               timeLogService.getHoursForWeekWithTickets(date)
           )
       );
     } else {
-      return syncExternalTimeLogProcessingService.processWeekDayInfos(timeLogService.getHoursForWeek(date));
+      return syncExternalServiceProcessingService.processWeekDayInfos(timeLogService.getHoursForWeek(date));
     }
   }
 
   @GetMapping("/hoursForMonth")
   public TimeLogHoursForMonthResponse getHoursForMonth(@RequestParam final LocalDate date) {
-    return syncExternalTimeLogProcessingService.processMonthDayInfos(
+    return syncExternalServiceProcessingService.processMonthDayInfos(
         syncJiraProcessingService.processMonthDayInfos(
             timeLogService.getHoursForMonth(date)
         )

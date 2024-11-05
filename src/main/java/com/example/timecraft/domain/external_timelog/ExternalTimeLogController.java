@@ -15,7 +15,7 @@ import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogCreateFr
 import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogListResponse;
 import com.example.timecraft.domain.external_timelog.service.ExternalTimeLogService;
-import com.example.timecraft.domain.sync.external_timelog.api.SyncExternalTimeLogProcessingService;
+import com.example.timecraft.domain.sync.external_service.api.SyncExternalServiceProcessingService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -24,11 +24,11 @@ import lombok.RequiredArgsConstructor;
 public class ExternalTimeLogController {
 
   private final ExternalTimeLogService externalTimeLogService;
-  private final SyncExternalTimeLogProcessingService syncExternalTimeLogProcessingService;
+  private final SyncExternalServiceProcessingService syncExternalServiceProcessingService;
 
   @GetMapping()
   public ExternalTimeLogListResponse list(@RequestParam final LocalDate date) {
-    return syncExternalTimeLogProcessingService.processExternalTimeLogDtos(externalTimeLogService.list(date));
+    return syncExternalServiceProcessingService.processExternalTimeLogDtos(externalTimeLogService.list(date));
   }
 
   @PostMapping

@@ -283,7 +283,7 @@ export default function TimeLog({
               isConflicted={timeLog.isConflicted}
               isContinueUntilTomorrow={isContinueUntilTomorrow}
               jiraSyncStatus={timeLog.jiraSyncInfo.status}
-              externalTimeLogSyncStatus={timeLog.externalTimeLogSyncInfo.status}
+              externalTimeLogSyncStatus={timeLog.externalServiceSyncInfo.status}
             />
             {labels.length < 4 && !isInEditMode && (
               <TimeLogLabelList className="ml-2" labels={labels} timeLog={timeLog} onUpdate={handleUpdateTimeLog} />
@@ -366,9 +366,9 @@ export default function TimeLog({
               </>
             )}
 
-            {isExternalServiceSyncingEnabled && isExternalServiceEditMode && externalServiceIncludeDescription && timeLog.externalTimeLogSyncInfo.status !== syncStatus.NOT_SYNCED && (
+            {isExternalServiceSyncingEnabled && isExternalServiceEditMode && externalServiceIncludeDescription && timeLog.externalServiceSyncInfo.status !== syncStatus.NOT_SYNCED && (
               <>
-                <Brightness1Icon sx={{color: timeLog.externalTimeLogSyncInfo.color}} />
+                <Brightness1Icon sx={{color: timeLog.externalServiceSyncInfo.color}} />
                 {isHovered && (
                   <ExternalTimeLogConnectors
                     isHovered={isHovered}

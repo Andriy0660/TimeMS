@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.util;
+package com.example.timecraft.domain.sync.jira.util;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,7 +11,6 @@ import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingExcept
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
-import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 
 public class SyncApiTestUtils {

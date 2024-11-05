@@ -113,14 +113,14 @@ export default function TimeLogPage() {
                   <ClearIcon />
                 </IconButton>
                 <SyncInfoLabel className="ml-8" color="blue">
-                  <EditModeSwitcher checked={isJiraEditMode} setChecked={setIsJiraEditMode} allEditModeStates={allEditModeStates} />
+                  <EditModeSwitcher serviceName="Jira" checked={isJiraEditMode} setChecked={setIsJiraEditMode} allEditModeStates={allEditModeStates} />
                 </SyncInfoLabel>
               </>
             )}
 
             {isExternalServiceSyncingEnabled && (
               <SyncInfoLabel className="ml-8" color="green">
-                <EditModeSwitcher checked={isExternalServiceEditMode} setChecked={setIsExternalServiceEditMode} allEditModeStates={allEditModeStates}/>
+                <EditModeSwitcher serviceName="External Service" checked={isExternalServiceEditMode} setChecked={setIsExternalServiceEditMode} allEditModeStates={allEditModeStates}/>
               </SyncInfoLabel>
             )}
           </div>

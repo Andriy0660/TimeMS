@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.external_timelog.service;
+package com.example.timecraft.domain.sync.external_service.service;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -6,14 +6,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.timecraft.core.exception.BadRequestException;
-import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.external_timelog.api.ExternalTimeLogSyncService;
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogEntity;
-import com.example.timecraft.domain.sync.external_timelog.dto.SyncIntoExternalServiceRequest;
+import com.example.timecraft.domain.sync.external_service.dto.SyncIntoExternalServiceRequest;
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
-import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import lombok.RequiredArgsConstructor;
 
 @Service

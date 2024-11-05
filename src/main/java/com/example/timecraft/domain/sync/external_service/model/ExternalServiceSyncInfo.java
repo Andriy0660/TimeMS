@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.external_timelog.model;
+package com.example.timecraft.domain.sync.external_service.model;
 
 import com.example.timecraft.domain.sync.model.SyncInfo;
 import lombok.AllArgsConstructor;
@@ -12,6 +12,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class ExternalTimeLogSyncInfo extends SyncInfo {
+public class ExternalServiceSyncInfo extends SyncInfo {
   private String color;
 }

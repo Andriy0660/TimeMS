@@ -112,7 +112,7 @@ export default function MonthPage() {
         if (syncClassNames) return syncClassNames;
       }
       if (isExternalServiceSyncingEnabled) {
-        const syncClassNames = getSyncClassNames(dayInfo.externalTimeLogSyncInfo.status);
+        const syncClassNames = getSyncClassNames(dayInfo.externalServiceSyncInfo.status);
         if (syncClassNames) return syncClassNames;
       }
     }
@@ -126,7 +126,7 @@ export default function MonthPage() {
       <div className="flex justify-between p-1">
           <div>
             {dayInfo && dayjs(cellDate).$M === date.$M && (
-              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} jiraSyncStatus={dayInfo.jiraSyncInfo.status} externalTimeLogSyncStatus={dayInfo.externalTimeLogSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
+              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} jiraSyncStatus={dayInfo.jiraSyncInfo.status} externalTimeLogSyncStatus={dayInfo.externalServiceSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
             )}
           </div>
         <div>

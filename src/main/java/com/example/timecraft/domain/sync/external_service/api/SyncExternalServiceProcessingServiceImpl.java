@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.external_timelog.api;
+package com.example.timecraft.domain.sync.external_service.api;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.external_timelog.api.ExternalTimeLogSyncService;
 import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogListResponse;
-import com.example.timecraft.domain.sync.external_timelog.model.ExternalTimeLogSyncInfo;
+import com.example.timecraft.domain.sync.external_service.model.ExternalServiceSyncInfo;
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogEntity;
-import com.example.timecraft.domain.sync.external_timelog.util.SyncExternalTimeLogUtils;
+import com.example.timecraft.domain.sync.external_service.util.SyncExternalServiceUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
-import com.example.timecraft.domain.sync.util.SyncUtils;
+import com.example.timecraft.domain.sync.jira.util.SyncUtils;
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTimeLogProcessingService {
+public class SyncExternalServiceProcessingServiceImpl implements SyncExternalServiceProcessingService {
   private final TimeLogSyncService timeLogSyncService;
   private final ExternalTimeLogSyncService externalTimeLogSyncService;
   private final AppProperties props;
@@ -36,7 +36,7 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
     final List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
     return new TimeLogListResponse(
         timeLogDtos.stream().peek(timeLogDto ->
-            timeLogDto.setExternalTimeLogSyncInfo(
+            timeLogDto.setExternalServiceSyncInfo(
                 getExternalTimeLogSyncInfo(
                     TimeLogUtils.getProcessedDate(timeLogDto.getDate(), timeLogDto.getStartTime(), offset),
                     timeLogDto.getDescription()))
@@ -49,7 +49,7 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
     final List<TimeLogHoursForWeekWithTicketsResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekWithTicketsResponse(
         dayInfos.stream()
-            .peek(dayInfo -> dayInfo.setExternalTimeLogSyncInfo(ExternalTimeLogSyncInfo.builder().status(determineSyncStatusForDay(dayInfo.getDate())).build()))
+            .peek(dayInfo -> dayInfo.setExternalServiceSyncInfo(ExternalServiceSyncInfo.builder().status(determineSyncStatusForDay(dayInfo.getDate())).build()))
             .toList());
   }
 
@@ -87,7 +87,7 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
     final List<TimeLogHoursForWeekResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekResponse(
         dayInfos.stream()
-            .peek(dayInfo -> dayInfo.setExternalTimeLogSyncInfo(ExternalTimeLogSyncInfo.builder().status(determineSyncStatusForDay(dayInfo.getDate())).build()))
+            .peek(dayInfo -> dayInfo.setExternalServiceSyncInfo(ExternalServiceSyncInfo.builder().status(determineSyncStatusForDay(dayInfo.getDate())).build()))
             .toList());
   }
 
@@ -96,7 +96,7 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
     final List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
         dayInfos.stream()
-            .peek(dayInfo -> dayInfo.setExternalTimeLogSyncInfo(ExternalTimeLogSyncInfo.builder().status(determineSyncStatusForDay(dayInfo.getDate())).build()))
+            .peek(dayInfo -> dayInfo.setExternalServiceSyncInfo(ExternalServiceSyncInfo.builder().status(determineSyncStatusForDay(dayInfo.getDate())).build()))
             .toList());
   }
 
@@ -105,7 +105,7 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
     final int offset = props.getConfig().getOffset();
     final List<ExternalTimeLogListResponse.ExternalTimeLogDto> externalTimeLogDtos = response.getItems();
     return new ExternalTimeLogListResponse(
-        externalTimeLogDtos.stream().peek(externalTimeLogDto -> externalTimeLogDto.setExternalTimeLogSyncInfo(
+        externalTimeLogDtos.stream().peek(externalTimeLogDto -> externalTimeLogDto.setExternalServiceSyncInfo(
             getExternalTimeLogSyncInfo(
                 TimeLogUtils.getProcessedDate(externalTimeLogDto.getDate(), externalTimeLogDto.getStartTime(), offset),
                 externalTimeLogDto.getDescription())
@@ -114,8 +114,8 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
     );
   }
 
-  private ExternalTimeLogSyncInfo getExternalTimeLogSyncInfo(final LocalDate processedDate, final String description) {
-    return ExternalTimeLogSyncInfo.builder()
+  private ExternalServiceSyncInfo getExternalTimeLogSyncInfo(final LocalDate processedDate, final String description) {
+    return ExternalServiceSyncInfo.builder()
         .status(getSyncStatus(processedDate, description))
         .color(SyncUtils.generateColor(description))
         .build();
@@ -140,7 +140,7 @@ public class SyncExternalTimeLogProcessingServiceImpl implements SyncExternalTim
 
   private SyncStatus calculateStatus(final List<TimeLogEntity> timeLogEntityList, final List<ExternalTimeLogEntity> externalTimeLogEntityList) {
     final int timeLogsSpentSeconds = TimeLogUtils.getTotalSpentSecondsForTimeLogs(timeLogEntityList);
-    final int externalTimeLogsSpentSeconds = SyncExternalTimeLogUtils.getTotalSpentSecondsForExternalTimeLogs(externalTimeLogEntityList);
+    final int externalTimeLogsSpentSeconds = SyncExternalServiceUtils.getTotalSpentSecondsForExternalTimeLogs(externalTimeLogEntityList);
 
     final boolean isCompatibleInTime = timeLogsSpentSeconds == externalTimeLogsSpentSeconds;
     if (isCompatibleInTime) {

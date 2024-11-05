@@ -10,16 +10,16 @@ export default function ExternalTimeLogConnectors({
   if (!isHovered) return null;
   if (!sourceRefs?.length || !targetRefs?.length) return null;
 
-  const targetColor = sourceItem.externalTimeLogSyncInfo.color;
-  const isDashed = sourceItem.externalTimeLogSyncInfo.status === syncStatus.PARTIAL_SYNCED;
+  const targetColor = sourceItem.externalServiceSyncInfo.color;
+  const isDashed = sourceItem.externalServiceSyncInfo.status === syncStatus.PARTIAL_SYNCED;
   return (
     <>
       {sourceRefs.map((sourceRef, index1) => {
         return targetRefs.map((targetRef, index2) => {
-          const sourceColor = sourceRef.timeLog?.externalTimeLogSyncInfo?.color ||
-            sourceRef.externalTimeLog?.externalTimeLogSyncInfo?.color;
-          const targetColor2 = targetRef.timeLog?.externalTimeLogSyncInfo?.color ||
-            targetRef.externalTimeLog?.externalTimeLogSyncInfo?.color;
+          const sourceColor = sourceRef.timeLog?.externalServiceSyncInfo?.color ||
+            sourceRef.externalTimeLog?.externalServiceSyncInfo?.color;
+          const targetColor2 = targetRef.timeLog?.externalServiceSyncInfo?.color ||
+            targetRef.externalTimeLog?.externalServiceSyncInfo?.color;
 
           if (sourceColor === targetColor && targetColor2 === targetColor) {
             return (

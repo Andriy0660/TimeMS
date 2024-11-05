@@ -16,7 +16,7 @@ export default function WeekTable({dayInfos, handleClickDate}) {
             key={dayInfo.date}
             date={dayInfo.date}
             isHover
-            externalTimeLogSyncStatus={dayInfo.externalTimeLogSyncInfo.status}
+            externalTimeLogSyncStatus={dayInfo.externalServiceSyncInfo.status}
             isConflicted={dayInfo.conflicted}
             onClick={() => handleClickDate(dayInfo.date)}
           >

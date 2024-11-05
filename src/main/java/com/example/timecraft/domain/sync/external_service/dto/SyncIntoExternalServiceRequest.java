@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.external_timelog.dto;
+package com.example.timecraft.domain.sync.external_service.dto;
 
 import java.time.LocalDate;
 

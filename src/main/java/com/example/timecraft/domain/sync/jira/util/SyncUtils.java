@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync.util;
+package com.example.timecraft.domain.sync.jira.util;
 
 import java.awt.*;
 import java.security.MessageDigest;

@@ -30,7 +30,7 @@ export default function WeekJiraTable({dayInfos, handleClickDate}) {
               date={dayInfo.date}
               isHover
               jiraSyncStatus={dayInfo?.jiraSyncInfo.status}
-              externalTimeLogSyncStatus={dayInfo?.externalTimeLogSyncInfo.status}
+              externalTimeLogSyncStatus={dayInfo?.externalServiceSyncInfo.status}
               isConflicted={dayInfo.conflicted}
               onClick={() => handleClickDate(dayInfo.date)}
             >

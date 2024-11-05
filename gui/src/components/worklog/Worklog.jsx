@@ -79,7 +79,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
             isTimeLogInNextDay={isTimeLogInNextDay}
           />
           <Duration className="mx-2" duration={dateTimeService.formatMinutesToHM(worklog.timeSpentSeconds / 60)} />
-          {isJiraSyncingEnabled && <TimeLogSyncStatusIcon status={worklog.jiraSyncInfo.status} />}
+          {isJiraSyncingEnabled && <TimeLogSyncStatusIcon serviceName="Jira" status={worklog.jiraSyncInfo.status} />}
         </div>
         <div>
           {isHovered && (
