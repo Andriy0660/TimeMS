@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.external_timelog.api.ExternalTimeLogSyncService;
 import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogListResponse;
-import com.example.timecraft.domain.external_timelog.model.ExternalTimeLogSyncInfo;
+import com.example.timecraft.domain.sync.external_timelog.model.ExternalTimeLogSyncInfo;
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogEntity;
 import com.example.timecraft.domain.sync.external_timelog.util.SyncExternalTimeLogUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;

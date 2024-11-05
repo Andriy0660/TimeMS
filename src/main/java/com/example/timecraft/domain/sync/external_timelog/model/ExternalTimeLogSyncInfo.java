@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.external_timelog.model;
+package com.example.timecraft.domain.sync.external_timelog.model;
 
 import com.example.timecraft.domain.sync.model.SyncInfo;
 import lombok.AllArgsConstructor;
