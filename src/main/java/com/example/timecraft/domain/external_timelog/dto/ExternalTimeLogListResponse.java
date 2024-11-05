@@ -25,7 +25,6 @@ public class ExternalTimeLogListResponse {
     private LocalTime startTime;
     private LocalTime endTime;
     private String description;
-    private String color;
     private ExternalTimeLogSyncInfo externalTimeLogSyncInfo;
   }
 }
