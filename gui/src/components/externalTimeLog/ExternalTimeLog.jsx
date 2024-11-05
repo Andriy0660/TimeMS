@@ -11,7 +11,7 @@ import {externalServiceIncludeDescription, isExternalServiceSyncingEnabled} from
 import {syncStatus} from "../../consts/syncStatus.js";
 import Brightness1Icon from "@mui/icons-material/Brightness1";
 import ExternalTimeLogConnectors from "./ExternalTimeLogConnectors.jsx";
-import TimeLogExternalSyncStatusIcon from "../timeLog/TimeLogExternalSyncStatusIcon.jsx";
+import TimeLogSyncStatusIcon from "../timeLog/TimeLogSyncStatusIcon.jsx";
 
 export default function ExternalTimeLog({externalTimeLog, onDelete, isExternalServiceEditMode}) {
   const externalTimeLogRef = useRef(null);
@@ -45,7 +45,7 @@ export default function ExternalTimeLog({externalTimeLog, onDelete, isExternalSe
 
   return (
     <div className="mb-2 px-4 py-1 shadow-md rounded-md bg-gray-50"
-      ref={externalTimeLogRef}
+         ref={externalTimeLogRef}
          onMouseEnter={() => setIsHovered(true)}
          onMouseLeave={() => setIsHovered(false)}
     >
@@ -70,7 +70,7 @@ export default function ExternalTimeLog({externalTimeLog, onDelete, isExternalSe
             endTime={endTime}
             isTimeLogInNextDay={isTimeLogInNextDay}
           />
-          <TimeLogExternalSyncStatusIcon status={externalTimeLog.externalTimeLogSyncInfo.status} />
+          <TimeLogSyncStatusIcon serviceName="External Service" status={externalTimeLog.externalTimeLogSyncInfo.status} />
         </div>
         <div>
           {isHovered && (

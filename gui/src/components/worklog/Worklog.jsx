@@ -10,7 +10,7 @@ import dayjs from "dayjs";
 import useAppContext from "../../context/useAppContext.js";
 import Brightness1Icon from "@mui/icons-material/Brightness1.js";
 import {syncStatus} from "../../consts/syncStatus.js";
-import TimeLogJiraSyncStatusIcon from "../timeLog/TimeLogJiraSyncStatusIcon.jsx";
+import TimeLogSyncStatusIcon from "../timeLog/TimeLogSyncStatusIcon.jsx";
 import TimeLogNonEditableFields from "../timeLog/TimeLogNonEditableFields.jsx";
 import WorklogConnectors from "./WorklogConnectors.jsx";
 import timeLogService from "../../service/timeLogService.js";
@@ -79,7 +79,7 @@ export default function Worklog({worklog, onTimeLogCreate, onDelete, isJiraEditM
             isTimeLogInNextDay={isTimeLogInNextDay}
           />
           <Duration className="mx-2" duration={dateTimeService.formatMinutesToHM(worklog.timeSpentSeconds / 60)} />
-          {isJiraSyncingEnabled && <TimeLogJiraSyncStatusIcon status={worklog.jiraSyncInfo.status} />}
+          {isJiraSyncingEnabled && <TimeLogSyncStatusIcon status={worklog.jiraSyncInfo.status} />}
         </div>
         <div>
           {isHovered && (
