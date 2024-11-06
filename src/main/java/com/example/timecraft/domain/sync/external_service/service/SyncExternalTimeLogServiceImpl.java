@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.external_timelog.api.ExternalTimeLogSyncService;
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogEntity;
@@ -21,14 +22,23 @@ import lombok.RequiredArgsConstructor;
 public class SyncExternalTimeLogServiceImpl implements SyncExternalTimeLogService {
   private final TimeLogSyncService timeLogSyncService;
   private final ExternalTimeLogSyncService externalTimeLogSyncService;
+  private final AppProperties props;
 
   @Override
   public void syncIntoExternalService(final SyncIntoExternalServiceRequest request) {
+    Boolean externalServiceIncludeDescription = props.getConfig().getExternalServiceIncludeDescription();
     final LocalDate date = request.getDate();
     final String description = request.getDescription();
-    final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescription(date, description);
-    final List<ExternalTimeLogEntity> externalTimeLogEntities = externalTimeLogSyncService.getAllByDateAndDescription(date, description);
+    final List<TimeLogEntity> timeLogEntityList;
+    final List<ExternalTimeLogEntity> externalTimeLogEntities;
 
+    if (externalServiceIncludeDescription) {
+      timeLogEntityList = timeLogSyncService.getAllByDateAndDescription(date, description);
+      externalTimeLogEntities = externalTimeLogSyncService.getAllByDateAndDescription(date, description);
+    } else {
+      timeLogEntityList = timeLogSyncService.getAllByDate(date);
+      externalTimeLogEntities = externalTimeLogSyncService.getAllByDate(date);
+    }
     final int totalSpentSeconds = TimeLogUtils.getTotalSpentSecondsForTimeLogs(timeLogEntityList);
 
     if (externalTimeLogEntities.isEmpty()) {
