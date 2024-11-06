@@ -102,12 +102,11 @@ public class SyncExternalServiceProcessingServiceImpl implements SyncExternalSer
 
   @Override
   public ExternalTimeLogListResponse processExternalTimeLogDtos(final ExternalTimeLogListResponse response) {
-    final int offset = props.getConfig().getOffset();
     final List<ExternalTimeLogListResponse.ExternalTimeLogDto> externalTimeLogDtos = response.getItems();
     return new ExternalTimeLogListResponse(
         externalTimeLogDtos.stream().peek(externalTimeLogDto -> externalTimeLogDto.setExternalServiceSyncInfo(
             getExternalTimeLogSyncInfo(
-                TimeLogUtils.getProcessedDate(externalTimeLogDto.getDate(), externalTimeLogDto.getStartTime(), offset),
+                externalTimeLogDto.getDate(),
                 externalTimeLogDto.getDescription())
             )
         ).toList()

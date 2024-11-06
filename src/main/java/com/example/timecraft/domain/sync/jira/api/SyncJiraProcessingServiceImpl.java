@@ -83,7 +83,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
     return new WorklogListResponse(
         worklogDtos.stream().peek(worklogDto -> worklogDto.setJiraSyncInfo(JiraSyncInfo.builder()
             .status(getSyncStatus(
-                TimeLogUtils.getProcessedDate(worklogDto.getDate(), worklogDto.getStartTime(), offset),
+                worklogDto.getDate(),
                 worklogDto.getTicket(),
                 worklogDto.getComment()))
             .color(SyncUtils.generateColor(SyncJiraUtils.getColorInputString(worklogDto.getTicket(),
