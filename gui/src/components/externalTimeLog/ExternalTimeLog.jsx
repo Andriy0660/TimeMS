@@ -101,10 +101,11 @@ export default function ExternalTimeLog({externalTimeLog, onDelete, isExternalSe
         </div>
       </div>
 
-      <div className="flex items-center">
-        {externalTimeLog.description}
-      </div>
-
+      {externalServiceIncludeDescription && (
+        <div className="flex items-center">
+          {externalTimeLog.description}
+        </div>
+      )}
       {isDeleteLoading && <LinearProgress />}
     </div>
   )

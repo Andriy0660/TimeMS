@@ -270,7 +270,7 @@ export default function TimeLog({
             )}
 
             <Duration className="mr-2" duration={timeLog.totalTime ? timeLog.totalTime : timeLogStatus.PENDING} />
-            {isExternalServiceSyncingEnabled && isExternalServiceEditMode && <Tooltip title="External Service Time">
+            {isExternalServiceSyncingEnabled && isExternalServiceEditMode && timeLog.status === timeLogStatus.DONE && <Tooltip title="External Service Time">
               <span>
                 <Duration color="green"
                         duration={dateTimeService.formatMinutesToHM(
