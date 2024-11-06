@@ -12,10 +12,12 @@ import com.example.timecraft.domain.sync.external_service.dto.SyncIntoExternalSe
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SyncExternalTimeLogServiceImpl implements SyncExternalTimeLogService {
   private final TimeLogSyncService timeLogSyncService;
   private final ExternalTimeLogSyncService externalTimeLogSyncService;

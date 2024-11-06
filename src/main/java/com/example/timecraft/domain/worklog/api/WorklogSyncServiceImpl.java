@@ -9,10 +9,12 @@ import org.springframework.stereotype.Service;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.persistence.WorklogRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class WorklogSyncServiceImpl implements WorklogSyncService {
   private final WorklogRepository repository;
   @Override

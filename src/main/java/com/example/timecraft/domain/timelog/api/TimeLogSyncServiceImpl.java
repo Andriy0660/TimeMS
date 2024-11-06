@@ -10,10 +10,12 @@ import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TimeLogSyncServiceImpl implements TimeLogSyncService {
   private final TimeLogRepository repository;
   private final AppProperties props;

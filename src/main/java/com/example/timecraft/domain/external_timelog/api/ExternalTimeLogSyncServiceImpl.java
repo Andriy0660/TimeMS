@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogEntity;
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogRepository;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ExternalTimeLogSyncServiceImpl implements ExternalTimeLogSyncService {
   private final ExternalTimeLogRepository repository;
 
