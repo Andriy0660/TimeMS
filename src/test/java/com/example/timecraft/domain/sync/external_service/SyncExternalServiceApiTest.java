@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -48,7 +49,7 @@ public class SyncExternalServiceApiTest {
 
   @Test
   void shouldSyncIntoExternalService() throws Exception {
-    final String descr = "syncintoexternalservicedescr";
+    final String descr = Instancio.of(String.class).create();
     TimeLogCreateRequest timeLogCreateRequest = createTimeLogCreateRequest(LocalDate.now(clock), LocalTime.now(clock));
     timeLogCreateRequest.setDescription(descr);
     timeLogClient.saveTimeLog(timeLogCreateRequest);
@@ -61,12 +62,13 @@ public class SyncExternalServiceApiTest {
 
     SyncIntoExternalServiceRequest request = new SyncIntoExternalServiceRequest(LocalDate.now(clock), descr);
 
+    int initialSize = ExternalTimeLogsApiTestUtils.getSize(mvc, LocalDate.now(clock));
     mvc.perform(post("/syncExternalService/to")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
     int sizeAfterSyncing = ExternalTimeLogsApiTestUtils.getSize(mvc, LocalDate.now(clock));
-    assertThat(sizeAfterSyncing).isEqualTo(1);
+    assertThat(sizeAfterSyncing).isEqualTo(initialSize - 1);
   }
 
   @Test
