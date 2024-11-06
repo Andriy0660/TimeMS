@@ -11,10 +11,12 @@ import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogListResp
 import com.example.timecraft.domain.external_timelog.mapper.ExternalTimeLogMapper;
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogEntity;
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ExternalTimeLogServiceImpl implements ExternalTimeLogService {
   private final ExternalTimeLogRepository repository;
   private final ExternalTimeLogMapper mapper;
