@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.external_timelog.api.ExternalTimeLogSyncService;
 import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogListResponse;
-import com.example.timecraft.domain.sync.external_service.model.ExternalServiceSyncInfo;
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogEntity;
+import com.example.timecraft.domain.sync.external_service.model.ExternalServiceSyncInfo;
 import com.example.timecraft.domain.sync.external_service.util.SyncExternalServiceUtils;
-import com.example.timecraft.domain.sync.model.SyncStatus;
 import com.example.timecraft.domain.sync.jira.util.SyncUtils;
+import com.example.timecraft.domain.sync.model.SyncStatus;
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
@@ -105,9 +105,9 @@ public class SyncExternalServiceProcessingServiceImpl implements SyncExternalSer
     final List<ExternalTimeLogListResponse.ExternalTimeLogDto> externalTimeLogDtos = response.getItems();
     return new ExternalTimeLogListResponse(
         externalTimeLogDtos.stream().peek(externalTimeLogDto -> externalTimeLogDto.setExternalServiceSyncInfo(
-            getExternalTimeLogSyncInfo(
-                externalTimeLogDto.getDate(),
-                externalTimeLogDto.getDescription())
+                getExternalTimeLogSyncInfo(
+                    externalTimeLogDto.getDate(),
+                    externalTimeLogDto.getDescription())
             )
         ).toList()
     );
@@ -123,34 +123,28 @@ public class SyncExternalServiceProcessingServiceImpl implements SyncExternalSer
   private SyncStatus getSyncStatus(final LocalDate date, final String description) {
     final Boolean externalServiceIncludeDescription = props.getConfig().getExternalServiceIncludeDescription();
 
+    final List<TimeLogEntity> timeLogEntityList;
+    final List<ExternalTimeLogEntity> externalTimeLogEntityList;
     if (externalServiceIncludeDescription) {
-      final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescription(date, description);
-      final List<ExternalTimeLogEntity> externalTimeLogEntityList = externalTimeLogSyncService.getAllByDateAndDescription(date, description);
-
-      return calculateStatus(timeLogEntityList, externalTimeLogEntityList);
+      timeLogEntityList = timeLogSyncService.getAllByDateAndDescription(date, description);
+      externalTimeLogEntityList = externalTimeLogSyncService.getAllByDateAndDescription(date, description);
 
     } else {
-      final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDate(date);
-      final List<ExternalTimeLogEntity> externalTimeLogEntityList = externalTimeLogSyncService.getAllByDate(date);
+      timeLogEntityList = timeLogSyncService.getAllByDate(date);
+      externalTimeLogEntityList = externalTimeLogSyncService.getAllByDate(date);
 
-      return calculateStatus(timeLogEntityList, externalTimeLogEntityList);
     }
+    return calculateStatus(timeLogEntityList, externalTimeLogEntityList);
   }
 
-  private SyncStatus calculateStatus(final List<TimeLogEntity> timeLogEntityList, final List<ExternalTimeLogEntity> externalTimeLogEntityList) {
-    final int timeLogsSpentSeconds = TimeLogUtils.getTotalSpentSecondsForTimeLogs(timeLogEntityList);
-    final int externalTimeLogsSpentSeconds = SyncExternalServiceUtils.getTotalSpentSecondsForExternalTimeLogs(externalTimeLogEntityList);
-
-    final boolean isCompatibleInTime = timeLogsSpentSeconds == externalTimeLogsSpentSeconds;
+  private SyncStatus calculateStatus(final List<TimeLogEntity> timeLogs, final List<ExternalTimeLogEntity> externalTimeLogs) {
+    final boolean isCompatibleInTime = SyncExternalServiceUtils.isExternalTimeLogsAndTimeLogsCompatibleInTime(externalTimeLogs, timeLogs);
     if (isCompatibleInTime) {
       return SyncStatus.SYNCED;
-    } else if (!timeLogEntityList.isEmpty() && !externalTimeLogEntityList.isEmpty()) {
+    } else if (!timeLogs.isEmpty() && !externalTimeLogs.isEmpty()) {
       return SyncStatus.PARTIAL_SYNCED;
     } else {
       return SyncStatus.NOT_SYNCED;
     }
   }
-
-
-
 }
