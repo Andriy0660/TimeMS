@@ -24,8 +24,7 @@ const worklogService = {
         }
       }
     }
-    const nonMatchingWorklogs = worklogs.filter(worklog => worklog.jiraSyncInfo.status !== syncStatus.SYNCED);
-    newWorklogs.push(...nonMatchingWorklogs);
+    newWorklogs.push(...worklogs);
     return newWorklogs;
   }
 }

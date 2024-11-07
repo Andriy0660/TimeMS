@@ -3,6 +3,7 @@ import {ListItemIcon, ListItemText, MenuItem, Typography} from "@mui/material";
 import dateTimeService from "../../service/dateTimeService.js";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight.js";
 import CallMissedOutgoingIcon from "@mui/icons-material/CallMissedOutgoing.js";
+import {externalServiceIncludeDescription} from "../../config/config.js";
 
 export default function TimeLogExternalServiceSyncButtons({timeLog, handleCreateExternalTimeLog, handleSyncIntoExternalService}) {
   return (
@@ -13,7 +14,7 @@ export default function TimeLogExternalServiceSyncButtons({timeLog, handleCreate
             date: dateTimeService.getFormattedDate(timeLog.date),
             startTime: dateTimeService.getFormattedDateTime(timeLog.startTime),
             endTime: dateTimeService.getFormattedDateTime(timeLog.endTime),
-            description: timeLog.description
+            description: externalServiceIncludeDescription ? timeLog.description : null
           })}>
             <ListItemIcon>
               <KeyboardDoubleArrowRightIcon color="primary" fontSize="small" />

@@ -15,8 +15,7 @@ const externalTimeLogService = {
         }
       }
     }
-    const nonMatchingExternalTimeLogs = externalTimeLogs.filter(externalTimeLog => externalTimeLog.externalServiceSyncInfo.status !== syncStatus.SYNCED);
-    newExternalTimeLogs.push(...nonMatchingExternalTimeLogs);
+    newExternalTimeLogs.push(...externalTimeLogs);
     return newExternalTimeLogs;
   }
 }
