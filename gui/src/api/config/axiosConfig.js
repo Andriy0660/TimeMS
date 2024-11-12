@@ -20,13 +20,16 @@ axiosInstance.interceptors.response.use(
   error => {
     if (error.response?.status === 500) {
       error.displayMessage = 'Server error, try again later...';
-    } else if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/app/login";
     } else {
       const baseMsg = error.config.baseMsg || 'Error occurred';
       const detailMsg = error.response?.data?.detail ?? "";
       error.displayMessage = `${baseMsg}. ${detailMsg}`;
+    }
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      if (!window.location.href.match("login")) {
+        window.location.href = "/app/login";
+      }
     }
     return Promise.reject(error);
   }
