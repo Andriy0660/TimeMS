@@ -29,7 +29,11 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
     final String accessToken = request.getHeader("Authorization");
     if (accessToken == null) {
-      filterChain.doFilter(request, response);
+      if (!request.getRequestURI().matches(".*auth.*")) {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+      } else {
+        filterChain.doFilter(request, response);
+      }
       return;
     }
     final UserEntity user;
