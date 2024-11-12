@@ -10,6 +10,7 @@ const timeLogApi = {
   },
 
   getConfig: async () => {
+    if (!localStorage.getItem("token")) { return; }
     const {data} = await axios.get(`/${key}/config`, {baseMsg: "Error while getting config"});
     return data;
   },
