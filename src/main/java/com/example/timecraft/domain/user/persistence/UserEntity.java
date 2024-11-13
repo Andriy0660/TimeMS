@@ -1,10 +1,17 @@
 package com.example.timecraft.domain.user.persistence;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.example.timecraft.domain.multitenant.persistence.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,4 +54,9 @@ public class UserEntity {
   @Column(name = "access_token")
   @ToString.Include
   private String accessToken;
+
+  @ManyToMany
+  @JoinTable(name = "user_tenant", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "tenant_id"))
+  @Builder.Default
+  private List<TenantEntity> tenants = new ArrayList<>();
 }
