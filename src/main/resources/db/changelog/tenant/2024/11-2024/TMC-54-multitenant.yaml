@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: task/TMC-54-multitenant
+      author: Andrii Snovyda
+      changes:
+        - dropTable:
+            tableName: app_user

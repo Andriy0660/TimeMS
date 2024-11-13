@@ -14,8 +14,13 @@ spring:
     database: postgresql
     open-in-view: false
 
-  liquibase:
-    change-log: db/changelog/main-changelog.yaml
+multitenancy:
+  main:
+    liquibase:
+      change-log: db/changelog/main/main-changelog.yaml
+  tenant:
+    liquibase:
+      change-log: db/changelog/tenant/tenant-changelog.yaml
 
 app:
   config:
