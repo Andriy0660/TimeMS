@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.example.timecraft.domain.multitenant.util.MultiTenantUtils;
 import liquibase.integration.spring.SpringLiquibase;
 
 @Configuration
@@ -26,20 +27,10 @@ public class LiquibaseConfig {
 
   @Bean
   public SpringLiquibase liquibase(ObjectProvider<DataSource> liquibaseDataSource) {
-    LiquibaseProperties liquibaseProperties = masterLiquibaseProperties();
-    SpringLiquibase liquibase = new SpringLiquibase();
+    final LiquibaseProperties liquibaseProperties = masterLiquibaseProperties();
+    final SpringLiquibase liquibase = new SpringLiquibase();
     liquibase.setDataSource(liquibaseDataSource.getIfAvailable());
-    liquibase.setChangeLog(liquibaseProperties.getChangeLog());
-    liquibase.setContexts(liquibaseProperties.getContexts());
-    liquibase.setLiquibaseSchema(liquibaseProperties.getLiquibaseSchema());
-    liquibase.setLiquibaseTablespace(liquibaseProperties.getLiquibaseTablespace());
-    liquibase.setDatabaseChangeLogTable(liquibaseProperties.getDatabaseChangeLogTable());
-    liquibase.setDatabaseChangeLogLockTable(liquibaseProperties.getDatabaseChangeLogLockTable());
-    liquibase.setDropFirst(liquibaseProperties.isDropFirst());
-    liquibase.setShouldRun(liquibaseProperties.isEnabled());
-    liquibase.setChangeLogParameters(liquibaseProperties.getParameters());
-    liquibase.setRollbackFile(liquibaseProperties.getRollbackFile());
-    liquibase.setTestRollbackOnUpdate(liquibaseProperties.isTestRollbackOnUpdate());
+    MultiTenantUtils.setLiquibaseProperties(liquibase, liquibaseProperties);
     return liquibase;
   }
 }

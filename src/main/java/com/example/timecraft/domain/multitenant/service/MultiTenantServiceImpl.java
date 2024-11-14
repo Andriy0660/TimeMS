@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.multitenant.persistence.TenantEntity;
 import com.example.timecraft.domain.multitenant.persistence.TenantRepository;
+import com.example.timecraft.domain.multitenant.util.MultiTenantUtils;
 import liquibase.exception.LiquibaseException;
 import liquibase.integration.spring.SpringLiquibase;
 
@@ -45,7 +46,7 @@ public class MultiTenantServiceImpl implements MultiTenantService {
     } catch (LiquibaseException e) {
       throw new BadRequestException("Error while running schema creation : " + e.getMessage());
     }
-    TenantEntity tenant = TenantEntity.builder()
+    final TenantEntity tenant = TenantEntity.builder()
         .schemaName(schemaName)
         .build();
     return tenantRepository.save(tenant);
@@ -56,12 +57,12 @@ public class MultiTenantServiceImpl implements MultiTenantService {
   }
 
   private void runLiquibase(DataSource dataSource, String schema) throws LiquibaseException {
-    SpringLiquibase liquibase = getSpringLiquibase(dataSource, schema);
+    final SpringLiquibase liquibase = getSpringLiquibase(dataSource, schema);
     liquibase.afterPropertiesSet();
   }
 
   private SpringLiquibase getSpringLiquibase(DataSource dataSource, String schema) {
-    SpringLiquibase liquibase = new SpringLiquibase();
+    final SpringLiquibase liquibase = new SpringLiquibase();
     liquibase.setResourceLoader(resourceLoader);
     liquibase.setDataSource(dataSource);
     liquibase.setDefaultSchema(schema);
@@ -71,16 +72,7 @@ public class MultiTenantServiceImpl implements MultiTenantService {
     } else {
       liquibase.setChangeLogParameters(Collections.singletonMap("schema", schema));
     }
-    liquibase.setChangeLog(liquibaseProperties.getChangeLog());
-    liquibase.setContexts(liquibaseProperties.getContexts());
-    liquibase.setLiquibaseSchema(liquibaseProperties.getLiquibaseSchema());
-    liquibase.setLiquibaseTablespace(liquibaseProperties.getLiquibaseTablespace());
-    liquibase.setDatabaseChangeLogTable(liquibaseProperties.getDatabaseChangeLogTable());
-    liquibase.setDatabaseChangeLogLockTable(liquibaseProperties.getDatabaseChangeLogLockTable());
-    liquibase.setDropFirst(liquibaseProperties.isDropFirst());
-    liquibase.setShouldRun(liquibaseProperties.isEnabled());
-    liquibase.setRollbackFile(liquibaseProperties.getRollbackFile());
-    liquibase.setTestRollbackOnUpdate(liquibaseProperties.isTestRollbackOnUpdate());
+    MultiTenantUtils.setLiquibaseProperties(liquibase, liquibaseProperties);
     return liquibase;
   }
 }
