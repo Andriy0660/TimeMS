@@ -19,6 +19,7 @@ multitenancy:
     liquibase:
       change-log: db/changelog/main/main-changelog.yaml
   tenant:
+    default-tenant: public
     liquibase:
       change-log: db/changelog/tenant/tenant-changelog.yaml
 

@@ -16,10 +16,12 @@ import com.example.timecraft.domain.multitenant.persistence.TenantEntity;
 import com.example.timecraft.domain.multitenant.service.MultiTenantService;
 import com.example.timecraft.domain.user.api.UserService;
 import com.example.timecraft.domain.user.persistence.UserEntity;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AuthServiceImpl implements AuthService {
   private final UserService userService;
   private final MultiTenantService multiTenantService;

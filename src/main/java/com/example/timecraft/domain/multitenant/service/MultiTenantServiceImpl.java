@@ -13,10 +13,12 @@ import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.multitenant.persistence.TenantEntity;
 import com.example.timecraft.domain.multitenant.persistence.TenantRepository;
 import com.example.timecraft.domain.multitenant.util.MultiTenantUtils;
+import jakarta.transaction.Transactional;
 import liquibase.exception.LiquibaseException;
 import liquibase.integration.spring.SpringLiquibase;
 
 @Service
+@Transactional
 public class MultiTenantServiceImpl implements MultiTenantService {
   private final DataSource dataSource;
   private final JdbcTemplate jdbcTemplate;
@@ -54,6 +56,7 @@ public class MultiTenantServiceImpl implements MultiTenantService {
 
   private void createSchema(String schema) {
     jdbcTemplate.execute("CREATE SCHEMA " + schema);
+    jdbcTemplate.execute("COMMIT");
   }
 
   private void runLiquibase(DataSource dataSource, String schema) throws LiquibaseException {
