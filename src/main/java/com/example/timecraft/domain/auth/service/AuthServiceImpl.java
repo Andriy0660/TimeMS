@@ -33,7 +33,6 @@ public class AuthServiceImpl implements AuthService {
         .lastName(request.getLastName())
         .email(request.getEmail())
         .password(passwordEncoder.encode(request.getPassword()))
-        .accessToken(UUID.randomUUID().toString())
         .build();
 
     userService.save(userEntity);
@@ -41,10 +40,12 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public AuthLogInResponse logIn(final AuthLogInRequest request) {
-    Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+    final Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
         request.getEmail(), request.getPassword()
     ));
-
-    return new AuthLogInResponse(((UserEntity) auth.getPrincipal()).getAccessToken());
+    final UserEntity user = (UserEntity) auth.getPrincipal();
+    user.setAccessToken(UUID.randomUUID().toString());
+    userService.save(user);
+    return new AuthLogInResponse(user.getAccessToken());
   }
 }
