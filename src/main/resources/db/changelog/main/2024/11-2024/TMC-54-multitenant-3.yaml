@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: task/TMC-54-multitenant
+      author: Andrii Snovyda
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: app_user
+      changes:
+        - createTable:
+            tableName: app_user
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: varchar
+                  constraints:
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: varchar
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: varchar
+              - column:
+                  name: access_token
+                  type: varchar
+                  constraints:
+                    nullable: false
