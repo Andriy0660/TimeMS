@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 import {useState} from "react";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import MonthPicker from "./month/MonthPicker..jsx";
 import WeekPicker from "./week/WeekPicker.jsx";
 import DayPicker from "./day/DayPicker.jsx";
@@ -27,10 +27,14 @@ import useViewChanger from "../hooks/useViewChanger.js";
 import SyncWorklogsButton from "./sync/SyncWorklogsButton.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import {isJiraSyncingEnabled} from "../config/config.js";
+import ConfirmationModal from "./general/ConfirmationModal.jsx";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
   const {date, setDate, mode} = useAppContext();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const navigate = useNavigate();
 
   useDateInUrl(date);
   const {changeView} = useViewChanger();
@@ -72,6 +76,13 @@ export default function NavBar() {
             </ListItemButton>
           </Link>
         </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton onClick={() => setShowLogoutModal(true)}>
+            <ListItemText primary="Logout" />
+          </ListItemButton>
+        </ListItem>
+
       </List>
 
     </Box>
@@ -121,6 +132,20 @@ export default function NavBar() {
       <Drawer open={open} onClose={toggleMenu(false)}>
         {DrawerList}
       </Drawer>
+      <ConfirmationModal
+        open={showLogoutModal}
+        type="warning"
+        actionText="Logout"
+        onConfirm={() => {
+          navigate("/app/login");
+          localStorage.removeItem("token");
+        }}
+        onClose={() => {
+          setShowLogoutModal(false);
+        }}
+      >
+        Are you sure you want to log out of your account?
+      </ConfirmationModal>
     </AppBar>
   );
 }

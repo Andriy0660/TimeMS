@@ -5,6 +5,8 @@ import Root from "./Root.jsx";
 import WeekPage from "./pages/WeekPage.jsx";
 import MonthPage from "./pages/MonthPage.jsx";
 import SyncPage from "./pages/SyncPage.jsx";
+import SignUpPage from "./pages/SignUpPage.jsx";
+import LogInPage from "./pages/LogInPage.jsx";
 function App() {
   const router = createBrowserRouter([
     {
@@ -38,6 +40,14 @@ function App() {
         {
           path: "/app/info",
           element: <InfoPage />,
+        },
+        {
+          path: "/app/login",
+          element: <LogInPage />,
+        },
+        {
+          path: "/app/signup",
+          element: <SignUpPage />,
         },
       ],
     },
