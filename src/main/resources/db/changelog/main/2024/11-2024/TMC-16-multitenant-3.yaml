@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: task/TMC-54-multitenant
+      id: task/TMC-16-multitenant
       author: Andrii Snovyda
       preConditions:
         - onFail: MARK_RAN
@@ -40,5 +40,3 @@ databaseChangeLog:
               - column:
                   name: access_token
                   type: varchar
-                  constraints:
-                    nullable: false

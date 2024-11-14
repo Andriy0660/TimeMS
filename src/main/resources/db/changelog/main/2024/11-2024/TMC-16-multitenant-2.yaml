@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: task/TMC-54-multitenant-2
+      id: task/TMC-16-multitenant-2
       author: Andrii Snovyda
       changes:
         - createTable:
