@@ -1,11 +1,12 @@
 import {useEffect, useMemo, useState} from "react";
-import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
+import {isExternalServiceSyncingEnabled, isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
 import worklogApi from "../api/worklogApi.js";
 import dateTimeService from "../service/dateTimeService.js";
 import timeLogService from "../service/timeLogService.js";
 import useAppContext from "../context/useAppContext.js";
+import externalTimeLogApi from "../api/externalTimeLogApi.js";
 
 export default function useProcessedTimeLogs() {
   const queryParams = new URLSearchParams(location.search);
@@ -33,17 +34,21 @@ export default function useProcessedTimeLogs() {
     }
   }, [listAllError, addAlert]);
 
-  const jiraInfo = useJira(isJiraSyncingEnabled, mode, date, timeLogsData);
+  const worklogsInfo = useProcessedWorklogs(isJiraSyncingEnabled, mode, date, timeLogsData);
+  const externalTimeLogsInfo = useProcessedExternalTimeLogs(isExternalServiceSyncingEnabled, mode, date);
+
   const processedTimeLogsArray = useMemo(() => isJiraSyncingEnabled
-      ? timeLogService.processData(timeLogsData, jiraInfo.selectedTickets)
+      ? timeLogService.processData(timeLogsData, worklogsInfo.selectedTickets)
       : timeLogService.processData(timeLogsData),
-    [timeLogsData, jiraInfo.selectedTickets]);
+    [timeLogsData, worklogsInfo.selectedTickets]);
 
   useEffect(() => {
     const groupedData = groupAndSortData(processedTimeLogsArray, groupByDescription);
     setTimeLogs(groupedData);
-    setTotalTimeLabel(timeLogService.getTotalTimeLabel(groupedData, groupByDescription));
-  }, [timeLogsData, groupByDescription, isJiraSyncingEnabled, jiraInfo.selectedTickets]);
+    setTotalTimeLabel(dateTimeService.formatMinutesToHM(
+      timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray)
+    ))
+  }, [timeLogsData, groupByDescription, isJiraSyncingEnabled, worklogsInfo.selectedTickets]);
 
   function groupAndSortData(data, groupByDescription) {
     if (groupByDescription) {
@@ -60,11 +65,12 @@ export default function useProcessedTimeLogs() {
     processedTimeLogsArray,
     isListing,
     totalTimeLabel,
-    ...(isJiraSyncingEnabled ? jiraInfo : {}),
+    ...(isJiraSyncingEnabled ? worklogsInfo : {}),
+    ...(isExternalServiceSyncingEnabled ? externalTimeLogsInfo : {}),
   };
 }
 
-function useJira(isJiraSyncingEnabled, mode, date, timeLogsData) {
+function useProcessedWorklogs(isJiraSyncingEnabled, mode, date, timeLogsData) {
   const {addAlert} = useAppContext();
   const [filterTickets, setFilterTickets] = useState([""]);
   const [selectedTickets, setSelectedTickets] = useState([]);
@@ -113,5 +119,33 @@ function useJira(isJiraSyncingEnabled, mode, date, timeLogsData) {
     filterTickets,
     selectedTickets,
     setSelectedTickets,
+  }
+}
+
+function useProcessedExternalTimeLogs(isExternalServiceSyncingEnabled, mode, date) {
+  const {addAlert} = useAppContext();
+
+  const {
+    data: externalTimeLogs,
+    isPending: isExternalTimeLogsListing,
+    error: listExternalTimeLogsError
+  } = useQuery({
+    queryKey: [externalTimeLogApi.key, mode, date, startHourOfDay],
+    queryFn: () => externalTimeLogApi.list({date: dateTimeService.getFormattedDate(date)}),
+    retryDelay: 300,
+  });
+
+  useEffect(() => {
+    if (listExternalTimeLogsError) {
+      addAlert({
+        text: `${listExternalTimeLogsError.displayMessage} Try agail later`,
+        type: "error"
+      });
+    }
+  }, [listExternalTimeLogsError]);
+
+  return {
+    externalTimeLogs,
+    isExternalTimeLogsListing
   }
 }

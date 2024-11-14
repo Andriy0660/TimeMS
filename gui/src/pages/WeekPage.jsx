@@ -19,7 +19,7 @@ import {viewMode} from "../consts/viewMode.js";
 import WeekTable from "../components/week/WeekTable.jsx";
 import WeekJiraTable from "../components/week/WeekJiraTable.jsx";
 import LoadingPage from "../components/general/LoadingPage.jsx";
-import useSync from "../hooks/useSync.js";
+import useJiraSync from "../hooks/useJiraSync.js";
 
 export default function WeekPage() {
   const offset = startHourOfDay;
@@ -47,7 +47,7 @@ export default function WeekPage() {
   });
 
   const timeLogMutations = useTimeLogMutations();
-  const syncMutations = useSync();
+  const syncMutations = useJiraSync();
 
   const {
     groupByDescription, setGroupByDescription, timeLogs
@@ -63,7 +63,7 @@ export default function WeekPage() {
   }
 
   return (
-    <div className="w-3/5 mx-auto">
+    <div className="w-4/5 mx-auto">
       <div className="flex justify-start my-2">
         <ViewModeIcon
           title={weekViewMode.TABLE}

@@ -3,8 +3,8 @@ package com.example.timecraft.domain.timelog.dto;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.example.timecraft.domain.sync.external_service.model.ExternalServiceSyncInfo;
 import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
-import com.example.timecraft.domain.sync.model.SyncStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,6 +24,7 @@ public class TimeLogHoursForMonthResponse {
     private LocalDate date;
     private String duration;
     private JiraSyncInfo jiraSyncInfo;
+    private ExternalServiceSyncInfo externalServiceSyncInfo;
     private boolean isConflicted;
   }
 }

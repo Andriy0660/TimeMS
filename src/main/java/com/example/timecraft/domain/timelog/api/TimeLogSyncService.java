@@ -8,6 +8,8 @@ import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 public interface TimeLogSyncService {
   List<TimeLogEntity> getAllByDate(final LocalDate date);
 
+  List<TimeLogEntity> getAllByDateAndDescription(final LocalDate date, final String description);
+
   List<TimeLogEntity> getAllByDateAndDescriptionAndTicket(final LocalDate date, final String description, final String ticket);
 
   void saveAll(final List<TimeLogEntity> entities);

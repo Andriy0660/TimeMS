@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import SyncProgressInfo from "../components/sync/SyncProgressInfo.jsx";
 import SyncAllProgressInfo from "../components/sync/SyncAllProgressInfo.jsx";
 import LoadingPage from "../components/general/LoadingPage.jsx";
-import useSync from "../hooks/useSync.js";
+import useJiraSync from "../hooks/useJiraSync.js";
 
 export default function SyncPage() {
   const {
@@ -11,7 +11,7 @@ export default function SyncPage() {
     progressInfo: {
       worklogInfos,
     }
-  } = useSync();
+  } = useJiraSync();
 
   const [displayedWorklogInfos, setDisplayedWorklogInfos] = useState([]);
   const logsContainerRef = useRef(null);

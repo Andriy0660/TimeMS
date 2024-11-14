@@ -14,14 +14,20 @@ import TimeLogStatusIcons from "./TimeLogStatusIcons.jsx";
 import TimeLogEditableFields from "./TimeLogEditableFields.jsx";
 import TimeLogNonEditableFields from "./TimeLogNonEditableFields.jsx";
 import TimeLogMoreActionsMenu from "./TimeLogMoreActionsMenu.jsx";
-import TimeLogWorklogConnectors from "./TimeLogWorklogConnectors.jsx";
+import WorklogConnectors from "../worklog/WorklogConnectors.jsx";
 import SaveButton from "./SaveButton.jsx";
 import ResetButton from "./ResetButton.jsx";
 import {timeLogStatus} from "../../consts/timeLogStatus.js";
 import timeLogService from "../../service/timeLogService.js";
-import {isJiraSyncingEnabled} from "../../config/config.js";
+import {
+  externalServiceIncludeDescription,
+  externalTimeLogTimeCf,
+  isExternalServiceSyncingEnabled,
+  isJiraSyncingEnabled
+} from "../../config/config.js";
 import TimeLogLabelList from "./TimeLogLabelList.jsx";
 import TimeLogLabelEditor from "./TimeLogLabelEditor.jsx";
+import ExternalTimeLogConnectors from "../externalTimeLog/ExternalTimeLogConnectors.jsx";
 
 export default function TimeLog({
   timeLog,
@@ -40,7 +46,11 @@ export default function TimeLog({
   hoveredConflictedIds,
   setHoveredConflictedIds,
   onSyncForIssue,
+  isInEditMode,
   isJiraEditMode,
+  isExternalServiceEditMode,
+  onExternalTimeLogCreate,
+  onSyncIntoExternalService
 }) {
   const [ticket, setTicket] = useState(timeLog.ticket || "");
   const [startTime, setStartTime] = useState(timeLog.startTime);
@@ -54,7 +64,7 @@ export default function TimeLog({
 
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeError, setEndTimeError] = useState(false);
-  const {addAlert, worklogRefs, timeLogRefs, setTimeLogRefs} = useAppContext();
+  const {addAlert, externalTimeLogRefs, timeLogRefs, setTimeLogRefs} = useAppContext();
 
   const timeLogRef = useRef(null);
   const timeLogUpperPartRef = useRef(null);
@@ -64,7 +74,7 @@ export default function TimeLog({
   const [isLabelAdding, setIsLabelAdding] = useState(false);
 
   useEffect(() => {
-    if (timeLogRef.current && isJiraEditMode) {
+    if (timeLogRef.current && isInEditMode) {
       setTimeLogRefs((prev) => {
         const existingIndex = prev.findIndex(({timeLog: {id}}) => id === timeLog.id);
         if (existingIndex !== -1) {
@@ -148,6 +158,12 @@ export default function TimeLog({
   })
   const {execute: handleSyncForTicket, isExecuting: isSyncing} = useAsyncCall({
     fn: onSyncForIssue
+  })
+  const {execute: handleCreateExternalTimeLog, isExecuting: isCreatingExternalTimeLogLoading} = useAsyncCall({
+    fn: onExternalTimeLogCreate,
+  })
+  const {execute: handleSyncIntoExternalService, isExecuting: isSyncingIntoExternalService} = useAsyncCall({
+    fn: onSyncIntoExternalService,
   })
 
   useEffect(() => {
@@ -254,20 +270,37 @@ export default function TimeLog({
             )}
 
             <Duration className="mr-2" duration={timeLog.totalTime ? timeLog.totalTime : timeLogStatus.PENDING} />
+            {isExternalServiceSyncingEnabled && isExternalServiceEditMode && timeLog.status === timeLogStatus.DONE && <Tooltip title="External Service Time">
+              <span>
+                <Duration color="green"
+                        duration={dateTimeService.formatMinutesToHM(
+                          Math.round(timeLog.endTime.diff(timeLog.startTime, "minute") / externalTimeLogTimeCf))} />
+              </span>
+            </Tooltip>
+            }
+
             <TimeLogStatusIcons
               isConflicted={timeLog.isConflicted}
               isContinueUntilTomorrow={isContinueUntilTomorrow}
               jiraSyncStatus={timeLog.jiraSyncInfo.status}
+              externalTimeLogSyncStatus={timeLog.externalServiceSyncInfo.status}
             />
-            {labels.length < 4 && !isJiraEditMode && (
+            {labels.length < 4 && !isInEditMode && (
               <TimeLogLabelList className="ml-2" labels={labels} timeLog={timeLog} onUpdate={handleUpdateTimeLog} />
             )}
-            <TimeLogLabelEditor className="ml-2" timeLog={timeLog} isLabelAdding={isLabelAdding} setIsLabelAdding={setIsLabelAdding} handleUpdateTimeLog={handleUpdateTimeLog} isHovered={isHovered}/>
+            {!isInEditMode && <TimeLogLabelEditor
+              className="ml-2"
+              timeLog={timeLog}
+              isLabelAdding={isLabelAdding}
+              setIsLabelAdding={setIsLabelAdding}
+              handleUpdateTimeLog={handleUpdateTimeLog}
+              isHovered={isHovered}/>
+            }
 
           </div>
 
           <div className="flex items-center flex-nowrap">
-            {(isEditing && !isJiraEditMode) && (
+            {(isEditing && !isInEditMode) && (
               <>
                 <ResetButton onReset={resetChanges} />
                 <SaveButton
@@ -299,6 +332,10 @@ export default function TimeLog({
                   timeLog={timeLog}
                   setIsEditing={setIsEditing}
                   isContinueUntilTomorrow={isContinueUntilTomorrow}
+
+                  isJiraEditMode={isJiraEditMode}
+                  isExternalServiceEditMode={isExternalServiceEditMode}
+
                   handleCreateTimeLog={handleCreateTimeLog}
                   handleUpdateTimeLog={handleUpdateTimeLog}
                   setShowDeleteModal={setShowDeleteModal}
@@ -309,6 +346,9 @@ export default function TimeLog({
                   handleSyncForTicket={handleSyncForTicket}
                   handleSyncFromJira={handleSyncFromJira}
                   handleSyncIntoJira={handleSyncIntoJira}
+
+                  handleCreateExternalTimeLog={handleCreateExternalTimeLog}
+                  handleSyncIntoExternalService={handleSyncIntoExternalService}
                 />
               </div>
             )}
@@ -316,10 +356,24 @@ export default function TimeLog({
               <>
                 <Brightness1Icon sx={{color: timeLog.jiraSyncInfo.color}} />
                 {isHovered && (
-                  <TimeLogWorklogConnectors
+                  <WorklogConnectors
                     isHovered={isHovered}
                     sourceRefs={timeLogRefs}
-                    targetRefs={worklogRefs}
+                    targetRefs={externalTimeLogRefs}
+                    sourceItem={timeLog}
+                  />
+                )}
+              </>
+            )}
+
+            {isExternalServiceSyncingEnabled && isExternalServiceEditMode && externalServiceIncludeDescription && timeLog.externalServiceSyncInfo.status !== syncStatus.NOT_SYNCED && (
+              <>
+                <Brightness1Icon sx={{color: timeLog.externalServiceSyncInfo.color}} />
+                {isHovered && (
+                  <ExternalTimeLogConnectors
+                    isHovered={isHovered}
+                    sourceRefs={timeLogRefs}
+                    targetRefs={externalTimeLogRefs}
                     sourceItem={timeLog}
                   />
                 )}
@@ -327,7 +381,7 @@ export default function TimeLog({
             )}
           </div>
         </div>
-        {(labels.length >= 4 || isJiraEditMode) && (
+        {(labels.length >= 4 || isInEditMode) && (
           <TimeLogLabelList labels={labels} timeLog={timeLog} onUpdate={handleUpdateTimeLog} wrap/>
         )}
       </div>
@@ -345,10 +399,10 @@ export default function TimeLog({
       </ConfirmationModal>
 
       {!groupByDescription &&
-        <TimeLogDescription className="w-fit" description={description} ids={[timeLog.id]} isJiraEditMode={isJiraEditMode}
-                            setGroupDescription={setGroupDescription} />}
+        <TimeLogDescription className="w-fit" description={description} ids={[timeLog.id]} setGroupDescription={setGroupDescription} />}
       {(isCreateLoading || isUpdateLoading || isDeleteLoading || isDivideLoading || isCreatingWorklogLoading || isChangingDate
-          || isSyncingIntoJira || isSyncingFromJira || isSyncing) &&
+          || isSyncingIntoJira || isSyncingFromJira || isSyncing
+          || isCreatingExternalTimeLogLoading || isSyncingIntoExternalService) &&
         <LinearProgress />}
     </div>
   );

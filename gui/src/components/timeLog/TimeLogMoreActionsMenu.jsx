@@ -10,7 +10,8 @@ import dayjs from "dayjs";
 import StartOutlinedIcon from "@mui/icons-material/StartOutlined.js";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
-import {isJiraSyncingEnabled} from "../../config/config.js";
+import {isExternalServiceSyncingEnabled, isJiraSyncingEnabled} from "../../config/config.js";
+import TimeLogExternalServiceSyncButtons from "./TimeLogExternalServiceSyncButtons.jsx";
 
 export default function TimeLogMoreActionsMenu({
   moreActionsMenuEl,
@@ -18,6 +19,10 @@ export default function TimeLogMoreActionsMenu({
   timeLog,
   setIsEditing,
   isContinueUntilTomorrow,
+
+  isJiraEditMode,
+  isExternalServiceEditMode,
+
   handleCreateTimeLog,
   handleUpdateTimeLog,
   setShowDeleteModal,
@@ -27,7 +32,10 @@ export default function TimeLogMoreActionsMenu({
   handleCreateWorklog,
   handleSyncForTicket,
   handleSyncFromJira,
-  handleSyncIntoJira
+  handleSyncIntoJira,
+
+  handleCreateExternalTimeLog,
+  handleSyncIntoExternalService
 }) {
   const currentTime = dayjs();
 
@@ -101,13 +109,19 @@ export default function TimeLogMoreActionsMenu({
           </ListItemText>
         </MenuItem>
       }
-      {isJiraSyncingEnabled && <TimeLogJiraSyncButtons
+      {isJiraSyncingEnabled && isJiraEditMode && <TimeLogJiraSyncButtons
         timeLog={timeLog}
         handleCreateWorklog={handleCreateWorklog}
         handleSyncForTicket={handleSyncForTicket}
         handleSyncFromJira={handleSyncFromJira}
         handleSyncIntoJira={handleSyncIntoJira} />
       }
+
+      {isExternalServiceSyncingEnabled && isExternalServiceEditMode && <TimeLogExternalServiceSyncButtons
+        timeLog={timeLog}
+        handleCreateExternalTimeLog={handleCreateExternalTimeLog}
+        handleSyncIntoExternalService={handleSyncIntoExternalService}
+      />}
 
       <MenuItem onClick={() => {
         handleChangeDate({id: timeLog.id, isNext: false})

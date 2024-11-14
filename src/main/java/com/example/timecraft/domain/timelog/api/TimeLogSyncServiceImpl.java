@@ -10,10 +10,12 @@ import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TimeLogSyncServiceImpl implements TimeLogSyncService {
   private final TimeLogRepository repository;
   private final AppProperties props;
@@ -23,6 +25,12 @@ public class TimeLogSyncServiceImpl implements TimeLogSyncService {
     final int offset = props.getConfig().getOffset();
     final LocalTime startTime = LocalTime.of(offset, 0);
     return repository.findAllInRange(date, date.plusDays(1), startTime);
+  }
+
+  @Override
+  public List<TimeLogEntity> getAllByDateAndDescription(final LocalDate date, final String description) {
+    final int offset = props.getConfig().getOffset();
+    return repository.findAllByDateAndDescription(date, date.plusDays(1), LocalTime.of(offset, 0), description);
   }
 
   @Override

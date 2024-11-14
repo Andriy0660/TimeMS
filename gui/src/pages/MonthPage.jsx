@@ -8,7 +8,7 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {isJiraSyncingEnabled, startHourOfDay} from "../config/config.js";
+import {isJiraSyncingEnabled, isExternalServiceSyncingEnabled, startHourOfDay, externalTimeLogTimeCf} from "../config/config.js";
 import MonthPageDuration from "../components/month/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import TimeLogStatusIcons from "../components/timeLog/TimeLogStatusIcons.jsx";
@@ -23,7 +23,9 @@ import ViewModeIcon from "../components/general/ViewModeIcon.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import {syncStatus} from "../consts/syncStatus.js";
 import LoadingPage from "../components/general/LoadingPage.jsx";
-import useSync from "../hooks/useSync.js";
+import useJiraSync from "../hooks/useJiraSync.js";
+import BigLabel from "../components/general/BigLabel.jsx";
+import SyncExternalTimeLogDuration from "../components/sync/SyncExternalTimeLogDuration.jsx";
 
 export default function MonthPage() {
   const offset = startHourOfDay;
@@ -46,7 +48,7 @@ export default function MonthPage() {
   });
 
   const timeLogMutations = useTimeLogMutations();
-  const syncMutations = useSync();
+  const syncMutations = useJiraSync();
 
   const {
     groupByDescription, setGroupByDescription, timeLogs
@@ -78,13 +80,13 @@ export default function MonthPage() {
 
     const conflictedClassNames = ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
 
-    const getClassNamesByJiraStatus = (dayInfo) => {
-      if (!dayInfo) return null;
+    const getSyncClassNames = (status) => {
+      if (!status) return null;
 
       const notSyncedClassNames = ["bg-red-200 hover:cursor-pointer hover:bg-red-300"];
       const partiallySyncedClassNames = ["bg-orange-200 hover:cursor-pointer hover:bg-orange-300"];
 
-      switch (dayInfo.jiraSyncInfo.status) {
+      switch (status) {
         case syncStatus.NOT_SYNCED:
           return notSyncedClassNames;
         case syncStatus.PARTIAL_SYNCED:
@@ -106,8 +108,12 @@ export default function MonthPage() {
       }
 
       if (isJiraSyncingEnabled) {
-        const syncState = getClassNamesByJiraStatus(dayInfo);
-        if (syncState) return syncState;
+        const syncClassNames = getSyncClassNames(dayInfo.jiraSyncInfo.status);
+        if (syncClassNames) return syncClassNames;
+      }
+      if (isExternalServiceSyncingEnabled) {
+        const syncClassNames = getSyncClassNames(dayInfo.externalServiceSyncInfo.status);
+        if (syncClassNames) return syncClassNames;
       }
     }
 
@@ -120,7 +126,7 @@ export default function MonthPage() {
       <div className="flex justify-between p-1">
           <div>
             {dayInfo && dayjs(cellDate).$M === date.$M && (
-              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} jiraSyncStatus={dayInfo.jiraSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
+              <TimeLogStatusIcons isConflicted={dayInfo.conflicted} jiraSyncStatus={dayInfo.jiraSyncInfo.status} externalTimeLogSyncStatus={dayInfo.externalServiceSyncInfo.status} showOnlyNotSuccessfullySynced={true}/>
             )}
           </div>
         <div>
@@ -132,7 +138,15 @@ export default function MonthPage() {
 
   const getEventContent = (eventInfo) => {
     const {duration} = eventInfo.event.extendedProps;
-    return <MonthPageDuration duration={duration} />
+    const externalTimeLogDuration = dateTimeService.formatMinutesToHM(Math.round(
+      dateTimeService.getMinutesFromHMFormat(duration) / externalTimeLogTimeCf));
+
+    return (
+      <>
+        <MonthPageDuration duration={duration} />
+        {isExternalServiceSyncingEnabled && <SyncExternalTimeLogDuration duration={externalTimeLogDuration} textSize="base"/>}
+      </>
+    )
   }
 
   if(isPending) {
@@ -154,9 +168,7 @@ export default function MonthPage() {
           isActive={view === monthViewMode.LIST}
           onClick={() => setView(monthViewMode.LIST)}
         />
-        <div className="font-medium ml-10">
-          Month: {data.totalHours}
-        </div>
+        <BigLabel className="ml-12">{data.totalHours}</BigLabel>
         {view === monthViewMode.LIST && <FormControlLabel
           control={
             <Switch

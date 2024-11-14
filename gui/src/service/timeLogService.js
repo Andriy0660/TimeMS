@@ -148,40 +148,18 @@ const timeLogService = {
     }
   },
 
-  getTotalTimeForTimeLogs(timelogs) {
-    let totalTime = 0;
-    totalTime += timelogs.reduce((result, item) => {
-      if (item.status === timeLogStatus.DONE || item.status === timeLogStatus.IN_PROGRESS) {
-        result += dateTimeService.parseMinutes(item.totalTime);
-      }
-      return result;
-    }, 0)
-    return totalTime;
+  getTotalMinutesForTimeLogsArray(timelogsArr, cf = 1) {
+    let totalMinutes = 0;
+    timelogsArr.forEach(timeLog => totalMinutes += timeLog.endTime?.diff(timeLog.startTime, "minute") || 0);
+    return Math.round(totalMinutes / cf);
   },
 
-  getTotalTimeLabel(groupedData, groupByDescription) {
-    if (groupByDescription) {
-      return dateTimeService.formatDurationMinutes(this.getTotalTimeGroupedByDateAndDescription(groupedData.data));
-    } else {
-      return dateTimeService.formatDurationMinutes(this.getTotalTimeGroupedByDate(groupedData.data));
-    }
+  getTotalSecondsForTimeLogsArray(timelogsArr) {
+    let totalSeconds = 0;
+    timelogsArr.forEach(timeLog => totalSeconds += timeLog.endTime?.diff(timeLog.startTime, "second") || 0);
+    return Math.round(totalSeconds);
   },
 
-  getTotalTimeGroupedByDate(groupedByDate) {
-    let totalTime = 0;
-    groupedByDate.forEach(({items: logsForDate}) => {
-      totalTime += this.getTotalTimeForTimeLogs(logsForDate)
-    })
-    return totalTime;
-  },
-
-  getTotalTimeGroupedByDateAndDescription(groupedByDateAndDescription) {
-    let totalTime = 0;
-    groupedByDateAndDescription.forEach(({items: logsForDate}) => {
-      totalTime += this.getTotalTimeGroupedByDate(logsForDate);
-    })
-    return totalTime;
-  },
 };
 
 export default timeLogService;

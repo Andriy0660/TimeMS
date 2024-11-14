@@ -92,7 +92,7 @@ public class TimeLogServiceImpl implements TimeLogService {
     if(timeLogEntity.getStartTime() != null) {
       stopOtherTimeLogs(null);
     }
-
+    timeLogEntity.setDescription(timeLogEntity.getDescription().trim());
     timeLogEntity = repository.save(timeLogEntity);
     return mapper.toCreateResponse(timeLogEntity);
   }
@@ -202,6 +202,9 @@ public class TimeLogServiceImpl implements TimeLogService {
   public TimeLogConfigResponse getConfig() {
     return new TimeLogConfigResponse(
         props.getConfig().getIsJiraSyncingEnabled(),
+        props.getConfig().getIsExternalServiceSyncingEnabled(),
+        props.getConfig().getExternalServiceIncludeDescription(),
+        props.getConfig().getExternalTimeLogTimeCf(),
         props.getConfig().getOffset(),
         props.getConfig().getStartHourOfWorkingDay(),
         props.getConfig().getEndHourOfWorkingDay()

@@ -27,6 +27,7 @@ import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.util.DurationUtils;
+import com.example.timecraft.domain.timelog.util.TimeLogUtils;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.api.WorklogSyncService;
@@ -69,7 +70,7 @@ public class SyncJiraServiceImpl implements SyncJiraService {
     final List<TimeLogEntity> timeLogEntityList = timeLogSyncService.getAllByDateAndDescriptionAndTicket(date, description, ticket);
     final List<WorklogEntity> worklogEntityList = worklogSyncService.getAllByDateAndCommentAndTicket(date, description, ticket);
 
-    final int totalSpentSeconds = getTotalSpentSeconds(timeLogEntityList);
+    final int totalSpentSeconds = TimeLogUtils.getTotalSpentSecondsForTimeLogs(timeLogEntityList);
 
     if (worklogEntityList.isEmpty()) {
       throw new BadRequestException("There is no worklog associated with the given ticket");
@@ -83,13 +84,6 @@ public class SyncJiraServiceImpl implements SyncJiraService {
 
     WorklogEntity entity = worklogMapper.toWorklogEntity(updated);
     worklogSyncService.save(entity);
-  }
-
-  private int getTotalSpentSeconds(final List<TimeLogEntity> timeLogEntityList) {
-    return timeLogEntityList.stream().map(timeLogEntity -> {
-      if (timeLogEntity.getStartTime() == null || timeLogEntity.getEndTime() == null) return 0;
-      return (int) DurationUtils.getDurationBetweenStartAndEndTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()).toSeconds();
-    }).reduce(0, Integer::sum);
   }
 
   private void deleteWorklogs(final List<WorklogEntity> worklogEntityList) {

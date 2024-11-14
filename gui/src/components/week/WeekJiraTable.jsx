@@ -4,16 +4,18 @@ import CustomTableCell from "./CustomTableCell.jsx";
 import TableBody from "@mui/material/TableBody";
 import Table from "@mui/material/Table";
 import dateTimeService from "../../service/dateTimeService.js";
+import {isExternalServiceSyncingEnabled, externalTimeLogTimeCf} from "../../config/config.js";
+import SyncExternalTimeLogDuration from "../sync/SyncExternalTimeLogDuration.jsx";
 
 export default function WeekJiraTable({dayInfos, handleClickDate}) {
 
   const getTotalTimeForTicket = (ticket) => {
     const totalTime = dayInfos.reduce((result, {ticketDurations}) => {
       const ticketDuration = ticketDurations.find(td => td.ticket === ticket);
-      result += dateTimeService.parseMinutes(ticketDuration.duration)
+      result += dateTimeService.getMinutesFromHMFormat(ticketDuration.duration)
       return result;
     }, 0)
-    return dateTimeService.formatDurationMinutes(totalTime);
+    return dateTimeService.formatMinutesToHM(totalTime);
   }
 
   return (
@@ -28,6 +30,7 @@ export default function WeekJiraTable({dayInfos, handleClickDate}) {
               date={dayInfo.date}
               isHover
               jiraSyncStatus={dayInfo?.jiraSyncInfo.status}
+              externalTimeLogSyncStatus={dayInfo?.externalServiceSyncInfo.status}
               isConflicted={dayInfo.conflicted}
               onClick={() => handleClickDate(dayInfo.date)}
             >
@@ -43,6 +46,8 @@ export default function WeekJiraTable({dayInfos, handleClickDate}) {
             <CustomTableCell isBold={ticket === "Total"}>{ticket}</CustomTableCell>
             {dayInfos.map(dayInfo => {
               const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
+              const externalTimeLogDuration = dateTimeService.formatMinutesToHM(Math.round(
+                dateTimeService.getMinutesFromHMFormat(ticketDuration.duration) / externalTimeLogTimeCf));
               return (
                 <CustomTableCell
                   key={`${dayInfo.date}-${ticket}`}
@@ -55,6 +60,9 @@ export default function WeekJiraTable({dayInfos, handleClickDate}) {
                   }}
                 >
                   {ticketDuration.duration !== "0h 0m" ? ticketDuration.duration : ""}
+                  {isExternalServiceSyncingEnabled && ticket === "Total" && (
+                    <SyncExternalTimeLogDuration duration={externalTimeLogDuration} textSize="small"/>
+                  )}
                 </CustomTableCell>
               );
             })}

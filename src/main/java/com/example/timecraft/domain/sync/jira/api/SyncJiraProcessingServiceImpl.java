@@ -9,6 +9,7 @@ import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
+import com.example.timecraft.domain.sync.jira.util.SyncUtils;
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekWithTicketsResponse;
@@ -27,6 +28,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
   private final TimeLogSyncService timeLogSyncService;
   private final WorklogSyncService worklogSyncService;
 
+  @Override
   public TimeLogListResponse processTimeLogDtos(final TimeLogListResponse response) {
     final int offset = props.getConfig().getOffset();
     final List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
@@ -37,14 +39,14 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
                     TimeLogUtils.getProcessedDate(timeLogDto.getDate(), timeLogDto.getStartTime(), offset),
                     timeLogDto.getTicket(),
                     timeLogDto.getDescription()))
-                .color(TimeLogUtils.generateColor(
-                    timeLogDto.getTicket(),
-                    SyncJiraUtils.removeNonLetterAndDigitCharacters(timeLogDto.getDescription())
+                .color(SyncUtils.generateColor(SyncJiraUtils.getColorInputString(timeLogDto.getTicket(),
+                    SyncJiraUtils.removeNonLetterAndDigitCharacters(timeLogDto.getDescription()))
                 ))
                 .build())
         ).toList());
   }
 
+  @Override
   public TimeLogHoursForWeekWithTicketsResponse processWeekDayInfos(final TimeLogHoursForWeekWithTicketsResponse response) {
     final List<TimeLogHoursForWeekWithTicketsResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForWeekWithTicketsResponse(
@@ -65,6 +67,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
     }
   }
 
+  @Override
   public TimeLogHoursForMonthResponse processMonthDayInfos(final TimeLogHoursForMonthResponse response) {
     final List<TimeLogHoursForMonthResponse.DayInfo> dayInfos = response.getItems();
     return new TimeLogHoursForMonthResponse(response.getTotalHours(),
@@ -73,18 +76,18 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
             .toList());
   }
 
+  @Override
   public WorklogListResponse processWorklogDtos(final WorklogListResponse response) {
     final int offset = props.getConfig().getOffset();
     final List<WorklogListResponse.WorklogDto> worklogDtos = response.getItems();
     return new WorklogListResponse(
         worklogDtos.stream().peek(worklogDto -> worklogDto.setJiraSyncInfo(JiraSyncInfo.builder()
             .status(getSyncStatus(
-                TimeLogUtils.getProcessedDate(worklogDto.getDate(), worklogDto.getStartTime(), offset),
+                worklogDto.getDate(),
                 worklogDto.getTicket(),
                 worklogDto.getComment()))
-            .color(TimeLogUtils.generateColor(
-                worklogDto.getTicket(),
-                SyncJiraUtils.removeNonLetterAndDigitCharacters(worklogDto.getComment())
+            .color(SyncUtils.generateColor(SyncJiraUtils.getColorInputString(worklogDto.getTicket(),
+                SyncJiraUtils.removeNonLetterAndDigitCharacters(worklogDto.getComment()))
             ))
             .build())
         ).toList()

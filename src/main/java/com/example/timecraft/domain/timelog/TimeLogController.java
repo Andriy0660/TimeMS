@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.timecraft.domain.sync.external_service.api.SyncExternalServiceProcessingService;
 import com.example.timecraft.domain.sync.jira.api.SyncJiraProcessingService;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
@@ -22,8 +23,8 @@ import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
-import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
+import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogUpdateResponse;
@@ -37,10 +38,15 @@ import lombok.RequiredArgsConstructor;
 public class TimeLogController {
   private final TimeLogService timeLogService;
   private final SyncJiraProcessingService syncJiraProcessingService;
+  private final SyncExternalServiceProcessingService syncExternalServiceProcessingService;
 
   @GetMapping
   public TimeLogListResponse list(@RequestParam final LocalDate startDate, @RequestParam final LocalDate endDate) {
-    return syncJiraProcessingService.processTimeLogDtos(timeLogService.list(startDate, endDate));
+    return syncExternalServiceProcessingService.processTimeLogDtos(
+        syncJiraProcessingService.processTimeLogDtos(
+            timeLogService.list(startDate, endDate)
+        )
+    );
   }
 
   @PostMapping
@@ -75,13 +81,24 @@ public class TimeLogController {
 
   @GetMapping("/hoursForWeek")
   public TimeLogWeekResponse getHoursForWeek(@RequestParam final LocalDate date, @RequestParam final Boolean includeTickets) {
-    if (includeTickets) return syncJiraProcessingService.processWeekDayInfos(timeLogService.getHoursForWeekWithTickets(date));
-    else return timeLogService.getHoursForWeek(date);
+    if (includeTickets) {
+      return syncExternalServiceProcessingService.processWeekDayInfos(
+          syncJiraProcessingService.processWeekDayInfos(
+              timeLogService.getHoursForWeekWithTickets(date)
+          )
+      );
+    } else {
+      return syncExternalServiceProcessingService.processWeekDayInfos(timeLogService.getHoursForWeek(date));
+    }
   }
 
   @GetMapping("/hoursForMonth")
   public TimeLogHoursForMonthResponse getHoursForMonth(@RequestParam final LocalDate date) {
-    return syncJiraProcessingService.processMonthDayInfos(timeLogService.getHoursForMonth(date));
+    return syncExternalServiceProcessingService.processMonthDayInfos(
+        syncJiraProcessingService.processMonthDayInfos(
+            timeLogService.getHoursForMonth(date)
+        )
+    );
   }
 
   @PutMapping("/{timeLogId}")

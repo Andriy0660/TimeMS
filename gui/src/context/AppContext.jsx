@@ -12,16 +12,13 @@ export const AppProvider = ({children}) => {
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs())
 
   const [timeLogRefs, setTimeLogRefs] = useState([]);
+  const [externalTimeLogRefs, setExternalTimeLogRefs] = useState([]);
 
   useEffect(() => {
-    setTimeLogRefs([])
+    setTimeLogRefs([]);
+    setExternalTimeLogRefs([]);
   }, [date]);
 
-  const [worklogRefs, setWorklogRefs] = useState([]);
-
-  useEffect(() => {
-    setWorklogRefs([])
-  }, [date]);
 
   const addAlert = ({type, text}) => {
     return toast[type](text);
@@ -51,8 +48,8 @@ export const AppProvider = ({children}) => {
         setMode,
         timeLogRefs,
         setTimeLogRefs,
-        worklogRefs,
-        setWorklogRefs
+        externalTimeLogRefs,
+        setExternalTimeLogRefs
       }}>
         {children}
       </AppContext.Provider>

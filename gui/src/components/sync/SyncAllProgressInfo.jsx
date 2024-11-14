@@ -1,7 +1,7 @@
 import SyncProgressInfo from './SyncProgressInfo.jsx';
 import dateTimeService from "../../service/dateTimeService.js";
 import dayjs from "dayjs";
-import useSync from "../../hooks/useSync.js";
+import useJiraSync from "../../hooks/useJiraSync.js";
 
 export default function SyncAllProgressInfo() {
   const {
@@ -17,7 +17,7 @@ export default function SyncAllProgressInfo() {
       totalIssues,
       duration
     }
-  } = useSync();
+  } = useJiraSync();
 
   return (
     <>

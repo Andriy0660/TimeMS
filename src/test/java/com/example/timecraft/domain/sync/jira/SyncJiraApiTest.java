@@ -1,4 +1,4 @@
-package com.example.timecraft.domain.sync;
+package com.example.timecraft.domain.sync.jira;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -21,7 +21,7 @@ import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
-import com.example.timecraft.domain.sync.util.SyncApiTestUtils;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraApiTestUtils;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.service.TestTimeLogClient;
 import com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils;
@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
-import static com.example.timecraft.domain.sync.util.SyncApiTestUtils.accountIdForTesting;
+import static com.example.timecraft.domain.sync.jira.util.SyncJiraApiTestUtils.accountIdForTesting;
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.createTimeLogCreateRequest;
 import static com.example.timecraft.domain.worklog.util.WorklogApiTestUtils.createWorklogCreateRequest;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -48,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ApiTest
-public class SyncApiTest {
+public class SyncJiraApiTest {
   @Autowired
   private WireMockServer wm;
 
@@ -180,7 +180,7 @@ public class SyncApiTest {
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
     int count = 4;
-    List<WorklogEntity> worklogEntitiesFromJira = SyncApiTestUtils.createWorklogsWithSameInfo(count, LocalDate.now(clock), ticket, jiraDescr);
+    List<WorklogEntity> worklogEntitiesFromJira = SyncJiraApiTestUtils.createWorklogsWithSameInfo(count, LocalDate.now(clock), ticket, jiraDescr);
 
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), LocalTime.of(7, 0), LocalTime.of(10, 0), ticket, appDescr);
     WorklogEntity worklogFromApp1 = worklogClient.saveWorklog(request1);
@@ -223,7 +223,7 @@ public class SyncApiTest {
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-            .withBody(SyncApiTestUtils.convertListToJSONString(worklogEntitiesFromJira))
+            .withBody(SyncJiraApiTestUtils.convertListToJSONString(worklogEntitiesFromJira))
         )
     );
 
@@ -248,7 +248,7 @@ public class SyncApiTest {
     final String ticket = Instancio.of(String.class).create();
     final String descr = "descr";
     final String newDescr = "newDescr";
-    final List<WorklogEntity> worklogEntitiesFromJira = SyncApiTestUtils.createWorklogsWithSameInfo(2, LocalDate.now(clock), ticket, descr);
+    final List<WorklogEntity> worklogEntitiesFromJira = SyncJiraApiTestUtils.createWorklogsWithSameInfo(2, LocalDate.now(clock), ticket, descr);
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, newDescr);
@@ -268,7 +268,7 @@ public class SyncApiTest {
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-            .withBody(SyncApiTestUtils.convertListToJSONString(worklogEntitiesFromJira))
+            .withBody(SyncJiraApiTestUtils.convertListToJSONString(worklogEntitiesFromJira))
         )
     );
     int sizeBeforeSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
@@ -377,7 +377,7 @@ public class SyncApiTest {
   void shouldShowCompletedProgress() throws Exception {
     String ticket = "TST-1";
     int count = 80;
-    List<WorklogEntity> worklogEntitiesFromJira = SyncApiTestUtils.createWorklogsWithSameInfo(count, LocalDate.now(clock), ticket, "descr");
+    List<WorklogEntity> worklogEntitiesFromJira = SyncJiraApiTestUtils.createWorklogsWithSameInfo(count, LocalDate.now(clock), ticket, "descr");
 
     wm.stubFor(WireMock.get(urlMatching(".*/myself"))
         .willReturn(ok()
@@ -411,7 +411,7 @@ public class SyncApiTest {
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(ok()
             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-            .withBody(SyncApiTestUtils.convertListToJSONString(worklogEntitiesFromJira))
+            .withBody(SyncJiraApiTestUtils.convertListToJSONString(worklogEntitiesFromJira))
         )
     );
 
