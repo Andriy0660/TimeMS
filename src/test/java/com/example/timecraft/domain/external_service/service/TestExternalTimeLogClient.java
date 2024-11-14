@@ -22,10 +22,11 @@ public class TestExternalTimeLogClient {
   private final TestExternalTimeLogMapper externalTimeLogMapper;
   private final MockMvc mvc;
 
-  public ExternalTimeLogEntity saveExternalTimeLog(final ExternalTimeLogCreateFromTimeLogRequest request) throws Exception {
+  public ExternalTimeLogEntity saveExternalTimeLog(final ExternalTimeLogCreateFromTimeLogRequest request, final String accessToken) throws Exception {
     final MvcResult result = mvc.perform(post("/external-time-logs")
             .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk()).andReturn();
 
     final String content = result.getResponse().getContentAsString();

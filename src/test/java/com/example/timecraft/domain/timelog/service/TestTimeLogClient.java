@@ -27,16 +27,17 @@ public class TestTimeLogClient {
   private final TestTimeLogMapper timeLogMapper;
   private final MockMvc mvc;
 
-  public TimeLogEntity saveTimeLog(final TimeLogCreateRequest request) throws Exception {
+  public TimeLogEntity saveTimeLog(final TimeLogCreateRequest request, final String accessToken) throws Exception {
     final LocalTime startTime = request.getStartTime();
-    return saveTimeLog(request, startTime != null ? startTime.plusHours(1) : null);
+    return saveTimeLog(request, startTime != null ? startTime.plusHours(1) : null, accessToken);
   }
 
-  public TimeLogEntity saveTimeLog(final TimeLogCreateRequest request, final LocalTime endTime) throws Exception {
+  public TimeLogEntity saveTimeLog(final TimeLogCreateRequest request, final LocalTime endTime, final String accessToken) throws Exception {
     final MvcResult result = mvc.perform(post("/time-logs")
             .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk()).andReturn();
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
+        .andReturn();
 
     final String content = result.getResponse().getContentAsString();
     final TimeLogCreateResponse response = objectMapper.readValue(content, TimeLogCreateResponse.class);
@@ -47,7 +48,8 @@ public class TestTimeLogClient {
       updateRequest.setEndTime(endTime);
       final MvcResult updateResult = mvc.perform(put("/time-logs/{id}", entity.getId())
               .content(objectMapper.writeValueAsString(updateRequest))
-              .contentType(MediaType.APPLICATION_JSON))
+              .contentType(MediaType.APPLICATION_JSON)
+              .header("Authorization", accessToken))
           .andExpect(status().isOk()).andReturn();
 
       final String updateContent = updateResult.getResponse().getContentAsString();

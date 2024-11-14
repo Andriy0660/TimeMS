@@ -28,7 +28,7 @@ public class TestWorklogClient {
   private final TestWorklogMapper worklogMapper;
   private final MockMvc mvc;
 
-  public WorklogEntity saveWorklog(final WorklogCreateFromTimeLogRequest request) throws Exception {
+  public WorklogEntity saveWorklog(final WorklogCreateFromTimeLogRequest request, final String accessToken) throws Exception {
     wm.stubFor(WireMock.post(WireMock.urlMatching(".*/issue/" + request.getTicket() + "/worklog"))
         .withHeader("Content-Type", equalTo(MediaType.APPLICATION_JSON_VALUE))
         .willReturn(created()
@@ -39,11 +39,14 @@ public class TestWorklogClient {
 
     final MvcResult result = mvc.perform(post("/work-logs")
             .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk()).andReturn();
 
     final String content = result.getResponse().getContentAsString();
     final WorklogCreateFromTimeLogResponse response = objectMapper.readValue(content, WorklogCreateFromTimeLogResponse.class);
     return worklogMapper.fromCreateResponse(response);
   }
+
+
 }
