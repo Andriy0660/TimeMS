@@ -8,4 +8,6 @@ public interface AuthService {
   void signUp(final AuthSignUpRequest request);
 
   AuthLogInResponse logIn(final AuthLogInRequest request);
+
+  void logOut();
 }

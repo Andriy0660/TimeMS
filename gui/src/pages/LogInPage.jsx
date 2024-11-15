@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import Button from '@mui/material/Button';
-import {Link, useNavigate} from "react-router-dom";
+import {Link} from "react-router-dom";
 import TextField from '@mui/material/TextField';
 import {useMutation} from "@tanstack/react-query";
 import authApi from "../api/authApi.js";
@@ -12,8 +12,6 @@ import GoogleIcon from '@mui/icons-material/Google';
 import Divider from '@mui/material/Divider';
 
 export default function LogInPage() {
-  const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState(false);
@@ -30,7 +28,7 @@ export default function LogInPage() {
         text: "Logged in successfully",
         type: "success"
       });
-      navigate("/app/timelog");
+      window.location.href = "/app/timelog";
     },
     onError: async (error) => {
       addAlert({

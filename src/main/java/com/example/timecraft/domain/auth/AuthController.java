@@ -18,13 +18,18 @@ public class AuthController {
   private final AuthService authService;
 
   @PostMapping("/signUp")
-  public void signUp(@RequestBody AuthSignUpRequest request) {
+  public void signUp(@RequestBody final AuthSignUpRequest request) {
     authService.signUp(request);
   }
 
   @PostMapping("/logIn")
-  public AuthLogInResponse signIn(@RequestBody AuthLogInRequest request) {
+  public AuthLogInResponse logIn(@RequestBody final AuthLogInRequest request) {
     return authService.logIn(request);
+  }
+
+  @PostMapping("/logOut")
+  public void logOut() {
+    authService.logOut();
   }
 
 }

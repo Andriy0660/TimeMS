@@ -1,4 +1,5 @@
 import axios from "axios";
+import authService from "../../service/authService.js";
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL
@@ -26,10 +27,7 @@ axiosInstance.interceptors.response.use(
       error.displayMessage = `${baseMsg}. ${detailMsg}`;
     }
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      if (!window.location.href.match("login")) {
-        window.location.href = "/app/login";
-      }
+      authService.handleUnauthorized();
     }
     return Promise.reject(error);
   }

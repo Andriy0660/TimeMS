@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -63,5 +64,12 @@ public class AuthServiceImpl implements AuthService {
     user.setAccessToken(UUID.randomUUID().toString());
     userService.save(user);
     return new AuthLogInResponse(user.getAccessToken());
+  }
+
+  @Override
+  public void logOut() {
+    final UserEntity user = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    user.setAccessToken(null);
+    userService.save(user);
   }
 }
