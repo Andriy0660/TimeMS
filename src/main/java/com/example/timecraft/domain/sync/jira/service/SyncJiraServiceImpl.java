@@ -5,10 +5,12 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +23,14 @@ import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
-import com.example.timecraft.domain.sync.jira.model.SyncJiraProgress;
+import com.example.timecraft.domain.sync.jira.model.SyncUserJiraProgress;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.util.DurationUtils;
 import com.example.timecraft.domain.timelog.util.TimeLogUtils;
+import com.example.timecraft.domain.user.persistence.UserEntity;
 import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
 import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
 import com.example.timecraft.domain.worklog.api.WorklogSyncService;
@@ -40,7 +43,7 @@ public class SyncJiraServiceImpl implements SyncJiraService {
   private final TimeLogSyncService timeLogSyncService;
   private final WorklogSyncService worklogSyncService;
   private final JiraWorklogService jiraWorklogService;
-  private final SyncJiraProgress syncJiraProgress;
+  private final SyncJiraProgressService syncJiraProgressService;
   private final TimeLogMapper timeLogMapper;
   private final WorklogMapper worklogMapper;
   private final Clock clock;
@@ -99,45 +102,56 @@ public class SyncJiraServiceImpl implements SyncJiraService {
 
   @Override
   public SyncJiraProgressResponse getProgress() {
+    final UserEntity user = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    SyncUserJiraProgress syncUserJiraProgress = Objects.requireNonNullElseGet(syncJiraProgressService.getUserProgress(user.getId()), SyncUserJiraProgress::new);
+
     Duration duration = Duration.ZERO;
-    if (syncJiraProgress.getStartTime() != null) {
-      if (syncJiraProgress.getEndTime() != null) {
-        duration = Duration.between(syncJiraProgress.getStartTime(), syncJiraProgress.getEndTime());
+    if (syncUserJiraProgress.getStartTime() != null) {
+      if (syncUserJiraProgress.getEndTime() != null) {
+        duration = Duration.between(syncUserJiraProgress.getStartTime(), syncUserJiraProgress.getEndTime());
       } else {
-        duration = Duration.between(syncJiraProgress.getStartTime(), LocalDateTime.now(clock));
+        duration = Duration.between(syncUserJiraProgress.getStartTime(), LocalDateTime.now(clock));
       }
     }
 
     return SyncJiraProgressResponse.builder()
-        .isInProgress(syncJiraProgress.isInProgress())
-        .progress(syncJiraProgress.getProgress())
-        .worklogInfos(syncJiraProgress.getWorklogInfos())
+        .isInProgress(syncUserJiraProgress.isInProgress())
+        .progress(syncUserJiraProgress.getProgress())
+        .worklogInfos(syncUserJiraProgress.getWorklogInfos())
         .duration(DurationUtils.formatDurationHMS(duration))
-        .lastSyncedAt(syncJiraProgress.getEndTime())
-        .totalIssues(syncJiraProgress.getTotalIssues())
-        .currentIssueNumber(syncJiraProgress.getCurrentIssueNumber())
-        .totalTimeSpent(DurationUtils.formatDurationDH(Duration.ofSeconds(syncJiraProgress.getTotalTimeSpent())))
-        .totalEstimate(DurationUtils.formatDurationDH(Duration.ofSeconds(syncJiraProgress.getTotalEstimate())))
+        .lastSyncedAt(syncUserJiraProgress.getEndTime())
+        .totalIssues(syncUserJiraProgress.getTotalIssues())
+        .currentIssueNumber(syncUserJiraProgress.getCurrentIssueNumber())
+        .totalTimeSpent(DurationUtils.formatDurationDH(Duration.ofSeconds(syncUserJiraProgress.getTotalTimeSpent())))
+        .totalEstimate(DurationUtils.formatDurationDH(Duration.ofSeconds(syncUserJiraProgress.getTotalEstimate())))
         .build();
   }
 
   @Override
   public void syncAllWorklogs() {
-    if (syncJiraProgress.isInProgress()) return;
-    syncJiraProgress.clearProgress();
+    final UserEntity user = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    SyncUserJiraProgress syncUserJiraProgress = syncJiraProgressService.createUserProgress(user.getId());
 
-    syncJiraProgress.setStartTime(LocalDateTime.now(clock));
-    syncJiraProgress.setIsInProgress(true);
+    if (syncUserJiraProgress.isInProgress()) return;
+
+    syncUserJiraProgress.setStartTime(LocalDateTime.now(clock));
+    syncUserJiraProgress.setIsInProgress(true);
 
     final List<WorklogEntity> currentWorklogs = worklogSyncService.getAll();
-    final List<WorklogEntity> worklogEntitiesFromJira = jiraWorklogService.listAll()
-        .stream()
-        .map(worklogMapper::toWorklogEntity)
-        .toList();
+    final List<WorklogEntity> worklogEntitiesFromJira;
+    try {
+      worklogEntitiesFromJira = jiraWorklogService.listAll(syncUserJiraProgress)
+          .stream()
+          .map(worklogMapper::toWorklogEntity)
+          .toList();
+    } catch (Exception e) {
+      syncJiraProgressService.removeUserProgress(user.getId());
+      throw new RuntimeException("Error fetching all worklogs", e);
+    }
 
     syncWorklogs(currentWorklogs, worklogEntitiesFromJira);
-    syncJiraProgress.setEndTime(LocalDateTime.now(clock));
-    syncJiraProgress.setIsInProgress(false);
+    syncUserJiraProgress.setEndTime(LocalDateTime.now(clock));
+    syncUserJiraProgress.setIsInProgress(false);
   }
 
   @Override
