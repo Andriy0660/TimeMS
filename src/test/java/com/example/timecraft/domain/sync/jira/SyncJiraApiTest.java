@@ -454,7 +454,8 @@ public class SyncJiraApiTest {
         .pollInterval(1, TimeUnit.SECONDS)
         .until(() -> {
           MockHttpServletResponse response = mvc.perform(get("/syncJira/progress")
-                  .contentType(MediaType.APPLICATION_JSON))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .header("Authorization", accessToken))
               .andReturn()
               .getResponse();
 
@@ -464,7 +465,8 @@ public class SyncJiraApiTest {
         });
 
     MockHttpServletResponse finalResponse = mvc.perform(get("/syncJira/progress")
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andReturn()
         .getResponse();
