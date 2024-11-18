@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +54,12 @@ public class SyncExternalServiceApiTestExcludingDescription {
 
   @BeforeEach
   void setUp() throws Exception {
-    final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("name", "surname", "nametest@gmail.com", "1111111111");
+    final String email = Instancio.of(String.class).create();
+    final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", email, "pass42243123");
     mvc.perform(post("/auth/signUp")
-        .content(objectMapper.writeValueAsString(signUpRequest))
-        .contentType(MediaType.APPLICATION_JSON));
+            .content(objectMapper.writeValueAsString(signUpRequest))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
 
     final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
     final MvcResult result = mvc.perform(post("/auth/logIn")
