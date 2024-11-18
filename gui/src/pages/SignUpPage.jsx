@@ -155,7 +155,7 @@ export default function SignUpPage() {
             Already have an account?{" "}
             <span>
                 <Link to="/app/login/">
-                  Sign in
+                  Log in
                 </Link>
               </span>
           </div>

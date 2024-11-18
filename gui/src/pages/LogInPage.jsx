@@ -78,7 +78,7 @@ export default function LogInPage() {
   return (
     <div className="min-h-screen flex">
       <Card>
-        <div className="text-center text-4xl">Sign in</div>
+        <div className="text-center text-4xl">Log in</div>
         <div className="flex flex-col">
           <TextField
             className="my-4"
@@ -114,7 +114,7 @@ export default function LogInPage() {
             variant="contained"
             onClick={handleLogIn}
           >
-            Sign in
+            Log in
           </Button>
           <div className="text-center">
             Don&apos;t have an account?{" "}
@@ -132,7 +132,7 @@ export default function LogInPage() {
           variant="outlined"
           startIcon={<GoogleIcon />}
         >
-          Sign in with Google
+          Log in with Google
         </Button>
       </Card>
     </div>
