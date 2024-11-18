@@ -23,9 +23,8 @@ public class TenantInterceptor implements WebRequestInterceptor {
   @Override
   @Transactional
   public void preHandle(WebRequest request) {
-    final String url = request.getDescription(false);
     final String accessToken = request.getHeader("Authorization");
-    if (accessToken != null || url.matches("auth")) {
+    if (accessToken != null) {
       final UserEntity currentUser = userService.findByAccessToken(accessToken);
       TenantIdentifierResolver.setCurrentTenant(currentUser.getTenants().getFirst().getSchemaName());
     } else {
