@@ -14,6 +14,7 @@ import com.example.timecraft.domain.auth.dto.AuthLogInResponse;
 import com.example.timecraft.domain.auth.dto.AuthSignUpRequest;
 import com.example.timecraft.domain.multitenant.persistence.TenantEntity;
 import com.example.timecraft.domain.multitenant.service.MultiTenantService;
+import com.example.timecraft.domain.multitenant.util.MultiTenantUtils;
 import com.example.timecraft.domain.user.api.UserService;
 import com.example.timecraft.domain.user.persistence.UserEntity;
 import jakarta.transaction.Transactional;
@@ -28,15 +29,6 @@ public class AuthServiceImpl implements AuthService {
   private final PasswordEncoder passwordEncoder;
   private final AuthenticationManager authenticationManager;
 
-  private static String generateSchemaNameFromEmail(String email) {
-    String schemaName = email.toLowerCase();
-    schemaName = schemaName.replaceAll("[^a-z0-9_]", "_");
-    if (schemaName.length() > 63) {
-      schemaName = schemaName.substring(0, 63);
-    }
-    return schemaName;
-  }
-
   @Override
   public void signUp(final AuthSignUpRequest request) {
     if (userService.existsByEmail(request.getEmail())) {
@@ -49,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
         .password(passwordEncoder.encode(request.getPassword()))
         .build();
 
-    final TenantEntity defaultTenantForUser = multiTenantService.createTenant(generateSchemaNameFromEmail(userEntity.getEmail()));
+    final TenantEntity defaultTenantForUser = multiTenantService.createTenant(MultiTenantUtils.generateSchemaNameFromEmail(userEntity.getEmail()));
     userEntity.getTenants().add(defaultTenantForUser);
     userService.save(userEntity);
   }
