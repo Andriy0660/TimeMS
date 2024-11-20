@@ -24,10 +24,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ExternalTimeLogsApiTestUtils {
-  public static int getSize(final MockMvc mvc, final LocalDate date) throws Exception {
+
+  public static int getSize(final MockMvc mvc, final LocalDate date, final String accessToken) throws Exception {
     MvcResult resultBefore = mvc.perform(get("/external-time-logs")
             .param("date", date.format(DateTimeFormatter.ISO_LOCAL_DATE))
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andReturn();
     return JsonPath.read(resultBefore.getResponse().getContentAsString(), "$.items.length()");

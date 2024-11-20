@@ -8,20 +8,24 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.instancio.Instancio;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import com.example.timecraft.config.ApiTest;
+import com.example.timecraft.domain.auth.dto.AuthLogInRequest;
+import com.example.timecraft.domain.auth.dto.AuthSignUpRequest;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
 import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
+import com.example.timecraft.domain.sync.jira.util.SyncJiraApiTestUtils;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.sync.model.SyncStatus;
-import com.example.timecraft.domain.sync.jira.util.SyncJiraApiTestUtils;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.service.TestTimeLogClient;
 import com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils;
@@ -32,6 +36,7 @@ import com.example.timecraft.domain.worklog.util.WorklogApiTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.jayway.jsonpath.JsonPath;
 
 import static com.example.timecraft.domain.sync.jira.util.SyncJiraApiTestUtils.accountIdForTesting;
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.createTimeLogCreateRequest;
@@ -49,23 +54,35 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ApiTest
 public class SyncJiraApiTest {
+  private static String accessToken;
   @Autowired
   private WireMockServer wm;
-
   @Autowired
   private MockMvc mvc;
-
   @Autowired
   private ObjectMapper objectMapper;
-
   @Autowired
   private Clock clock;
-
   @Autowired
   private TestWorklogClient worklogClient;
-
   @Autowired
   private TestTimeLogClient timeLogClient;
+
+  @BeforeEach
+  void setUp() throws Exception {
+    final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("name", null, "test@gmail.com", "pass42243123");
+    mvc.perform(post("/auth/signUp")
+        .content(objectMapper.writeValueAsString(signUpRequest))
+        .contentType(MediaType.APPLICATION_JSON));
+
+    final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
+    final MvcResult result = mvc.perform(post("/auth/logIn")
+            .content(objectMapper.writeValueAsString(logInRequest))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk()).andReturn();
+
+    accessToken = JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
+  }
 
   @Test
   void shouldSyncFromJira() throws Exception {
@@ -73,20 +90,21 @@ public class SyncJiraApiTest {
     final String descr = "syncfromjiradescr";
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
-    worklogClient.saveWorklog(request1);
+    worklogClient.saveWorklog(request1, accessToken);
     final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
-    worklogClient.saveWorklog(request2);
+    worklogClient.saveWorklog(request2, accessToken);
     final WorklogCreateFromTimeLogRequest request3 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
-    worklogClient.saveWorklog(request3);
+    worklogClient.saveWorklog(request3, accessToken);
 
-    int initialSize = TimeLogApiTestUtils.getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
+    int initialSize = TimeLogApiTestUtils.getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), accessToken);
 
     mvc.perform(post("/syncJira/from")
             .content(objectMapper.writeValueAsString(new SyncFromJiraRequest(ticket, LocalDate.now(clock), descr)))
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk());
 
-    int newSize = TimeLogApiTestUtils.getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1));
+    int newSize = TimeLogApiTestUtils.getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), accessToken);
     assertThat(initialSize + 3).isEqualTo(newSize);
   }
 
@@ -96,13 +114,13 @@ public class SyncJiraApiTest {
     final String descr = "syncintojiradescr";
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
-    timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
-    timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
+    timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr), accessToken);
+    timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr), accessToken);
 
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
-    WorklogEntity worklogEntity1 = worklogClient.saveWorklog(request1);
+    WorklogEntity worklogEntity1 = worklogClient.saveWorklog(request1, accessToken);
     final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
-    WorklogEntity worklogEntity2 = worklogClient.saveWorklog(request2);
+    WorklogEntity worklogEntity2 = worklogClient.saveWorklog(request2, accessToken);
 
     SyncIntoJiraRequest request = new SyncIntoJiraRequest(ticket, LocalDate.now(clock), descr);
     LocalDateTime startDateTime = LocalDateTime.of(request.getDate(), startTime);
@@ -138,12 +156,13 @@ public class SyncJiraApiTest {
     wm.stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/" + worklogEntity2.getId()))
         .willReturn(noContent()));
 
-    int initialSize = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
+    int initialSize = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock), accessToken);
     mvc.perform(post("/syncJira/to")
             .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk());
-    int sizeAfterSyncingIntoJira = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
+    int sizeAfterSyncingIntoJira = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock), accessToken);
     assertThat(initialSize).isEqualTo(sizeAfterSyncingIntoJira + 1);
   }
 
@@ -153,14 +172,14 @@ public class SyncJiraApiTest {
     final String descr = "descr";
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
-    timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
-    timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
+    timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr), accessToken);
+    timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr), accessToken);
 
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
-    worklogClient.saveWorklog(request1);
+    worklogClient.saveWorklog(request1, accessToken);
     final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
-    worklogClient.saveWorklog(request2);
-    worklogClient.saveWorklog(request2);
+    worklogClient.saveWorklog(request2, accessToken);
+    worklogClient.saveWorklog(request2, accessToken);
 
     SyncIntoJiraRequest request = new SyncIntoJiraRequest(ticket, LocalDate.now(clock), descr);
     wm.stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/.*"))
@@ -168,7 +187,8 @@ public class SyncJiraApiTest {
 
     mvc.perform(post("/syncJira/to")
             .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isBadRequest());
   }
 
@@ -183,13 +203,13 @@ public class SyncJiraApiTest {
     List<WorklogEntity> worklogEntitiesFromJira = SyncJiraApiTestUtils.createWorklogsWithSameInfo(count, LocalDate.now(clock), ticket, jiraDescr);
 
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), LocalTime.of(7, 0), LocalTime.of(10, 0), ticket, appDescr);
-    WorklogEntity worklogFromApp1 = worklogClient.saveWorklog(request1);
+    WorklogEntity worklogFromApp1 = worklogClient.saveWorklog(request1, accessToken);
     final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), LocalTime.of(7, 0), LocalTime.of(10, 0), ticket, appDescr);
-    WorklogEntity worklogFromApp2 = worklogClient.saveWorklog(request2);
+    WorklogEntity worklogFromApp2 = worklogClient.saveWorklog(request2, accessToken);
     final WorklogCreateFromTimeLogRequest request3 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, appDescr);
-    WorklogEntity worklogFromApp3 = worklogClient.saveWorklog(request3);
+    WorklogEntity worklogFromApp3 = worklogClient.saveWorklog(request3, accessToken);
     final WorklogCreateFromTimeLogRequest request4 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
-    WorklogEntity worklogFromApp4 = worklogClient.saveWorklog(request4);
+    WorklogEntity worklogFromApp4 = worklogClient.saveWorklog(request4, accessToken);
 
     worklogEntitiesFromJira.get(0).setId(worklogFromApp1.getId());
     worklogEntitiesFromJira.get(1).setId(worklogFromApp2.getId());
@@ -228,15 +248,17 @@ public class SyncJiraApiTest {
     );
 
     mvc.perform(post("/syncJira/syncAllWorklogs")
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk());
 
-    int sizeAfterSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
+    int sizeAfterSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock), accessToken);
     assertThat(count).isEqualTo(sizeAfterSyncing);
 
     mvc.perform(get("/work-logs")
             .param("date", LocalDate.now(clock).toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items[?(@.id == '" + worklogFromApp1.getId() + "')].comment").value(jiraDescr))
         .andExpect(jsonPath("$.items[?(@.id == '" + worklogFromApp2.getId() + "')].comment").value(jiraDescr))
@@ -252,7 +274,7 @@ public class SyncJiraApiTest {
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, newDescr);
-    WorklogEntity worklogFromApp1 = worklogClient.saveWorklog(request1);
+    WorklogEntity worklogFromApp1 = worklogClient.saveWorklog(request1, accessToken);
     worklogEntitiesFromJira.get(0).setId(worklogFromApp1.getId());
 
     wm.stubFor(WireMock.get(urlMatching(".*/myself"))
@@ -271,18 +293,20 @@ public class SyncJiraApiTest {
             .withBody(SyncJiraApiTestUtils.convertListToJSONString(worklogEntitiesFromJira))
         )
     );
-    int sizeBeforeSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
+    int sizeBeforeSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock), accessToken);
 
     mvc.perform(post("/syncJira/{ticket}", ticket)
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk());
 
-    int sizeAfterSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock));
+    int sizeAfterSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock), accessToken);
     assertThat(sizeBeforeSyncing + 1).isEqualTo(sizeAfterSyncing);
 
     mvc.perform(get("/work-logs")
             .param("date", LocalDate.now(clock).toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items[?(@.id == '" + worklogFromApp1.getId() + "')].comment").value(newDescr))
         .andExpect(jsonPath("$.items[?(@.id == '" + worklogEntitiesFromJira.get(1).getId() + "')]").exists());
@@ -293,15 +317,16 @@ public class SyncJiraApiTest {
   void shouldGetNotSyncedStatus() throws Exception {
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), "TST-1", "comment");
-    WorklogEntity worklog1 = worklogClient.saveWorklog(request1);
-    TimeLogEntity timeLog1 = timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, "TST-2", "comment2"));
+    WorklogEntity worklog1 = worklogClient.saveWorklog(request1, accessToken);
+    TimeLogEntity timeLog1 = timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, "TST-2", "comment2"), accessToken);
 
 
     LocalDate startDate = LocalDate.now(clock);
     LocalDate endDate = LocalDate.now(clock).plusDays(1);
     mvc.perform(get("/work-logs")
             .param("date", startDate.toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
         .andExpect(jsonPath("$.items[?(@.id == '" + worklog1.getId() + "')].jiraSyncInfo.status").value(SyncStatus.NOT_SYNCED.toString()));
@@ -309,7 +334,8 @@ public class SyncJiraApiTest {
     mvc.perform(get("/time-logs")
             .param("startDate", startDate.toString())
             .param("endDate", endDate.toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
         .andExpect(jsonPath("$.items[?(@.id == '" + timeLog1.getId() + "')].jiraSyncInfo.status").value(SyncStatus.NOT_SYNCED.toString()));
@@ -322,14 +348,15 @@ public class SyncJiraApiTest {
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
-    WorklogEntity worklog1 = worklogClient.saveWorklog(request1);
-    TimeLogEntity timeLog1 = timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
+    WorklogEntity worklog1 = worklogClient.saveWorklog(request1, accessToken);
+    TimeLogEntity timeLog1 = timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr), accessToken);
 
     LocalDate startDate = LocalDate.now(clock);
     LocalDate endDate = LocalDate.now(clock).plusDays(1);
     mvc.perform(get("/work-logs")
             .param("date", startDate.toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
         .andExpect(jsonPath("$.items[?(@.id == '" + worklog1.getId() + "')].jiraSyncInfo.status").value(SyncStatus.SYNCED.toString()));
@@ -337,7 +364,8 @@ public class SyncJiraApiTest {
     mvc.perform(get("/time-logs")
             .param("startDate", startDate.toString())
             .param("endDate", endDate.toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
         .andExpect(jsonPath("$.items[?(@.id == '" + timeLog1.getId() + "')].jiraSyncInfo.status").value(SyncStatus.SYNCED.toString()));
@@ -350,15 +378,16 @@ public class SyncJiraApiTest {
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
 
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1), ticket, descr);
-    WorklogEntity worklog1 = worklogClient.saveWorklog(request1);
-    TimeLogEntity timeLog1 = timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
-    TimeLogEntity timeLog2 = timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr));
+    WorklogEntity worklog1 = worklogClient.saveWorklog(request1, accessToken);
+    TimeLogEntity timeLog1 = timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr), accessToken);
+    TimeLogEntity timeLog2 = timeLogClient.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime, ticket, descr), accessToken);
 
     LocalDate startDate = LocalDate.now(clock);
     LocalDate endDate = LocalDate.now(clock).plusDays(1);
     mvc.perform(get("/work-logs")
             .param("date", startDate.toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
         .andExpect(jsonPath("$.items[?(@.id == '" + worklog1.getId() + "')].jiraSyncInfo.status").value(SyncStatus.PARTIAL_SYNCED.toString()));
@@ -366,7 +395,8 @@ public class SyncJiraApiTest {
     mvc.perform(get("/time-logs")
             .param("startDate", startDate.toString())
             .param("endDate", endDate.toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
         .andExpect(jsonPath("$.items[?(@.id == '" + timeLog1.getId() + "')].jiraSyncInfo.status").value(SyncStatus.PARTIAL_SYNCED.toString()))
@@ -416,14 +446,16 @@ public class SyncJiraApiTest {
     );
 
     mvc.perform(post("/syncJira/syncAllWorklogs")
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk());
     await()
         .atMost(30, TimeUnit.SECONDS)
         .pollInterval(1, TimeUnit.SECONDS)
         .until(() -> {
           MockHttpServletResponse response = mvc.perform(get("/syncJira/progress")
-                  .contentType(MediaType.APPLICATION_JSON))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .header("Authorization", accessToken))
               .andReturn()
               .getResponse();
 
@@ -433,7 +465,8 @@ public class SyncJiraApiTest {
         });
 
     MockHttpServletResponse finalResponse = mvc.perform(get("/syncJira/progress")
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andReturn()
         .getResponse();

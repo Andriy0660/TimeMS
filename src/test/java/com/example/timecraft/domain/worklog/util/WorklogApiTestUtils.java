@@ -60,10 +60,11 @@ public class WorklogApiTestUtils {
     return hasItem(allOf(matchers));
   }
 
-  public static int getSize(final MockMvc mvc, final LocalDate date) throws Exception {
+  public static int getSize(final MockMvc mvc, final LocalDate date, final String accessToken) throws Exception {
     MvcResult resultBefore = mvc.perform(get("/work-logs")
             .param("date", date.toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andReturn();
     return JsonPath.read(resultBefore.getResponse().getContentAsString(), "$.items.length()");

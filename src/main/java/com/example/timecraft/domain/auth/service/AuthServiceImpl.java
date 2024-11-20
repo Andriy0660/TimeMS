@@ -12,14 +12,20 @@ import com.example.timecraft.core.exception.BadRequestException;
 import com.example.timecraft.domain.auth.dto.AuthLogInRequest;
 import com.example.timecraft.domain.auth.dto.AuthLogInResponse;
 import com.example.timecraft.domain.auth.dto.AuthSignUpRequest;
+import com.example.timecraft.domain.multitenant.persistence.TenantEntity;
+import com.example.timecraft.domain.multitenant.service.MultiTenantService;
+import com.example.timecraft.domain.multitenant.util.MultiTenantUtils;
 import com.example.timecraft.domain.user.api.UserService;
 import com.example.timecraft.domain.user.persistence.UserEntity;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AuthServiceImpl implements AuthService {
   private final UserService userService;
+  private final MultiTenantService multiTenantService;
   private final PasswordEncoder passwordEncoder;
   private final AuthenticationManager authenticationManager;
 
@@ -28,13 +34,15 @@ public class AuthServiceImpl implements AuthService {
     if (userService.existsByEmail(request.getEmail())) {
       throw new BadRequestException("The email is already used");
     }
-    UserEntity userEntity = UserEntity.builder()
+    final UserEntity userEntity = UserEntity.builder()
         .firstName(request.getFirstName())
         .lastName(request.getLastName())
         .email(request.getEmail())
         .password(passwordEncoder.encode(request.getPassword()))
         .build();
 
+    final TenantEntity defaultTenantForUser = multiTenantService.createTenant(MultiTenantUtils.generateSchemaNameFromEmail(userEntity.getEmail()));
+    userEntity.getTenants().add(defaultTenantForUser);
     userService.save(userEntity);
   }
 

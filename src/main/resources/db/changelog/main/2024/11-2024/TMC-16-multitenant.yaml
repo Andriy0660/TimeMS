@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: task/TMC-16-multitenant
+      author: Andrii Snovyda
+      changes:
+        - createTable:
+            tableName: tenant
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: schema_name
+                  type: varchar(63)

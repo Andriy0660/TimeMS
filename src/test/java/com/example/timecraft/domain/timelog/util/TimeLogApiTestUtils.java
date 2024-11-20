@@ -96,21 +96,12 @@ public class TimeLogApiTestUtils {
         .build();
   }
 
-  public static TimeLogEntity clone(final TimeLogImportRequest.TimeLogDto toClone) {
-    return TimeLogEntity.builder()
-        .startTime(toClone.getStartTime())
-        .endTime(toClone.getEndTime())
-        .ticket(toClone.getTicket())
-        .description(toClone.getDescription())
-        .date(toClone.getDate())
-        .build();
-  }
-
-  public static int getSize(final MockMvc mvc, final LocalDate startDate, final LocalDate endDate) throws Exception {
+  public static int getSize(final MockMvc mvc, final LocalDate startDate, final LocalDate endDate, final String accessToken) throws Exception {
     MvcResult resultBefore = mvc.perform(get("/time-logs")
             .param("startDate", startDate.toString())
             .param("endDate", endDate.toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andReturn();
     return JsonPath.read(resultBefore.getResponse().getContentAsString(), "$.items.length()");

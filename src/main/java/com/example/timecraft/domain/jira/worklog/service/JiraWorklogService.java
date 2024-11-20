@@ -5,9 +5,10 @@ import java.util.List;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogCreateDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogUpdateDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogDto;
+import com.example.timecraft.domain.sync.jira.model.SyncUserJiraProgress;
 
 public interface JiraWorklogService {
-  List<JiraWorklogDto> listAll();
+  List<JiraWorklogDto> listAll(final SyncUserJiraProgress syncUserJiraProgress);
 
   List<JiraWorklogDto> listForIssue(final String issueKey);
 

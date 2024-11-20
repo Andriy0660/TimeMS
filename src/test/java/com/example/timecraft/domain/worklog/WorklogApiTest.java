@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -12,6 +13,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.example.timecraft.config.ApiTest;
+import com.example.timecraft.domain.auth.dto.AuthLogInRequest;
+import com.example.timecraft.domain.auth.dto.AuthSignUpRequest;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
@@ -21,6 +24,7 @@ import com.example.timecraft.domain.worklog.util.WorklogApiTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.jayway.jsonpath.JsonPath;
 
 import static com.example.timecraft.domain.worklog.util.WorklogApiTestUtils.createWorklogCreateRequest;
 import static com.example.timecraft.domain.worklog.util.WorklogApiTestUtils.getSize;
@@ -41,36 +45,50 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ApiTest
 public class WorklogApiTest {
 
+  private static String accessToken;
   @Autowired
   private WireMockServer wm;
-
   @Autowired
   private MockMvc mvc;
-
   @Autowired
   private ObjectMapper objectMapper;
-
   @Autowired
   private Clock clock;
-
   @Autowired
   private TestWorklogClient worklogClient;
+
+  @BeforeEach
+  void setUp() throws Exception {
+    final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", "test@gmail.com", "pass42243123");
+    mvc.perform(post("/auth/signUp")
+        .content(objectMapper.writeValueAsString(signUpRequest))
+        .contentType(MediaType.APPLICATION_JSON));
+
+    final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
+    final MvcResult result = mvc.perform(post("/auth/logIn")
+            .content(objectMapper.writeValueAsString(logInRequest))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk()).andReturn();
+
+    accessToken = JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
+  }
 
   @Test
   void shouldListWorklogsForDay() throws Exception {
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
     final WorklogCreateFromTimeLogRequest request1 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
-    WorklogEntity worklog1 = worklogClient.saveWorklog(request1);
+    WorklogEntity worklog1 = worklogClient.saveWorklog(request1, accessToken);
     final WorklogCreateFromTimeLogRequest request2 = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
-    WorklogEntity worklog2 = worklogClient.saveWorklog(request2);
+    WorklogEntity worklog2 = worklogClient.saveWorklog(request2, accessToken);
     final WorklogCreateFromTimeLogRequest request3 = createWorklogCreateRequest(LocalDate.now(clock).plusDays(1), startTime, startTime.plusHours(1));
-    WorklogEntity worklog3 = worklogClient.saveWorklog(request3);
+    WorklogEntity worklog3 = worklogClient.saveWorklog(request3, accessToken);
 
     LocalDate date = LocalDate.now(clock);
 
     mvc.perform(get("/work-logs")
             .param("date", date.toString())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").isArray())
         .andExpect(jsonPath("$.items", matchWorklog(worklog1)))
@@ -96,10 +114,11 @@ public class WorklogApiTest {
         )
     );
 
-    int initialSize = getSize(mvc, LocalDate.now(clock));
+    int initialSize = getSize(mvc, LocalDate.now(clock), accessToken);
     MvcResult result = mvc.perform(post("/work-logs")
             .content(objectMapper.writeValueAsString(request))
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.ticket").value(request.getTicket()))
         .andExpect(jsonPath("$.comment").value(request.getDescription()))
@@ -108,7 +127,7 @@ public class WorklogApiTest {
     String content = result.getResponse().getContentAsString();
     WorklogCreateFromTimeLogResponse response = objectMapper.readValue(content, WorklogCreateFromTimeLogResponse.class);
 
-    int sizeAfterAdding = getSize(mvc, LocalDate.now(clock));
+    int sizeAfterAdding = getSize(mvc, LocalDate.now(clock), accessToken);
     assertThat(initialSize + 1).isEqualTo(sizeAfterAdding);
   }
 
@@ -116,17 +135,18 @@ public class WorklogApiTest {
   void shouldDeleteWorklog() throws Exception {
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
     final WorklogCreateFromTimeLogRequest request = createWorklogCreateRequest(LocalDate.now(clock), startTime, startTime.plusHours(1));
-    WorklogEntity worklog = worklogClient.saveWorklog(request);
+    WorklogEntity worklog = worklogClient.saveWorklog(request, accessToken);
     wm.stubFor(WireMock.delete(urlMatching(".*/issue/" + worklog.getTicket() + "/worklog/" + worklog.getId()))
         .willReturn(noContent()));
 
-    int initialSize = getSize(mvc, LocalDate.now(clock));
+    int initialSize = getSize(mvc, LocalDate.now(clock), accessToken);
 
     mvc.perform(delete("/work-logs/{issueKey}/{worklogId}", worklog.getTicket(), worklog.getId())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isOk());
 
-    int sizeAfterDeleting = getSize(mvc, LocalDate.now(clock));
+    int sizeAfterDeleting = getSize(mvc, LocalDate.now(clock), accessToken);
     assertThat(initialSize).isEqualTo(sizeAfterDeleting + 1);
   }
 
@@ -137,7 +157,8 @@ public class WorklogApiTest {
         .willReturn(notFound()));
 
     mvc.perform(delete("/work-logs/{issueKey}/{worklogId}", worklog.getTicket(), worklog.getId())
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
         .andExpect(status().isBadRequest());
 
   }
