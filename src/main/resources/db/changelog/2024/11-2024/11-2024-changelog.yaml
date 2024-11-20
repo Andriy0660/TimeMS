@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/2024/11-2024/TMC-56-signup-login.yaml
+  - include:
+      file: db/changelog/2024/11-2024/TMC-56-add-token-updating.yaml

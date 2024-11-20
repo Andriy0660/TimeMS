@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: TMC-56-add-token-updating
+      author: Andrii Snovyda
+      changes:
+        - dropNotNullConstraint:
+            columnName: access_token
+            tableName: app_user
