@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,10 +77,12 @@ class TimeLogApiTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", "test@gmail.com", "pass42243123");
+    final String email = Instancio.of(String.class).create();
+    final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", email, "pass42243123");
     mvc.perform(post("/auth/signUp")
         .content(objectMapper.writeValueAsString(signUpRequest))
-        .contentType(MediaType.APPLICATION_JSON));
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
 
     final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
     final MvcResult result = mvc.perform(post("/auth/logIn")

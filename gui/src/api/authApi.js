@@ -14,6 +14,10 @@ const worklogApi = {
     return data;
   },
 
+  logOut: async (body) => {
+    await axios.post(`/${key}/logOut`, {...body}, {baseMsg: "Error during logout"});
+  },
+
 };
 
 export default worklogApi;

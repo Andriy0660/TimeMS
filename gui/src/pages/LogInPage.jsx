@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import Button from '@mui/material/Button';
-import {Link, useNavigate} from "react-router-dom";
+import {Link} from "react-router-dom";
 import TextField from '@mui/material/TextField';
 import {useMutation} from "@tanstack/react-query";
 import authApi from "../api/authApi.js";
@@ -12,8 +12,6 @@ import GoogleIcon from '@mui/icons-material/Google';
 import Divider from '@mui/material/Divider';
 
 export default function LogInPage() {
-  const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState(false);
@@ -30,7 +28,7 @@ export default function LogInPage() {
         text: "Logged in successfully",
         type: "success"
       });
-      navigate("/app/timelog");
+      window.location.href = "/app/timelog";
     },
     onError: async (error) => {
       addAlert({
@@ -80,7 +78,7 @@ export default function LogInPage() {
   return (
     <div className="min-h-screen flex">
       <Card>
-        <div className="text-center text-4xl">Sign in</div>
+        <div className="text-center text-4xl">Log in</div>
         <div className="flex flex-col">
           <TextField
             className="my-4"
@@ -116,7 +114,7 @@ export default function LogInPage() {
             variant="contained"
             onClick={handleLogIn}
           >
-            Sign in
+            Log in
           </Button>
           <div className="text-center">
             Don&apos;t have an account?{" "}
@@ -134,7 +132,7 @@ export default function LogInPage() {
           variant="outlined"
           startIcon={<GoogleIcon />}
         >
-          Sign in with Google
+          Log in with Google
         </Button>
       </Card>
     </div>

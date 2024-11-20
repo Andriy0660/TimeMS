@@ -3,6 +3,7 @@ package com.example.timecraft.domain.external_service;
 import java.time.Clock;
 import java.time.LocalDate;
 
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,10 +48,12 @@ public class ExternalServiceApiTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("name", null, "andrii@gmail.com", "123456");
+    final String email = Instancio.of(String.class).create();
+    final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", email, "pass42243123");
     mvc.perform(post("/auth/signUp")
-        .content(objectMapper.writeValueAsString(signUpRequest))
-        .contentType(MediaType.APPLICATION_JSON));
+            .content(objectMapper.writeValueAsString(signUpRequest))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
 
     final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
     final MvcResult result = mvc.perform(post("/auth/logIn")

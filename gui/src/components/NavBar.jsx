@@ -28,10 +28,12 @@ import SyncWorklogsButton from "./sync/SyncWorklogsButton.jsx";
 import {viewMode} from "../consts/viewMode.js";
 import {isJiraSyncingEnabled} from "../config/config.js";
 import ConfirmationModal from "./general/ConfirmationModal.jsx";
+import useAsyncCall from "../hooks/useAsyncCall.js";
+import authService from "../service/authService.js";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
-  const {date, setDate, mode} = useAppContext();
+  const {date, setDate, mode, addAlert} = useAppContext();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const navigate = useNavigate();
@@ -48,6 +50,18 @@ export default function NavBar() {
   const toggleMenu = (newOpen) => () => {
     setOpen(newOpen);
   };
+
+  const {execute: handleLogOut} = useAsyncCall({
+    fn: authService.logOut,
+    onSuccess: () => navigate("/app/login"),
+    onError: async (error) => {
+      addAlert({
+        text: error.displayMessage,
+        type: "error"
+      })
+      console.error("Logging out failed:", error);
+    }
+  })
 
   const DrawerList = (
     <Box sx={{width: 250}} onClick={toggleMenu(false)}>
@@ -136,13 +150,8 @@ export default function NavBar() {
         open={showLogoutModal}
         type="warning"
         actionText="Logout"
-        onConfirm={() => {
-          navigate("/app/login");
-          localStorage.removeItem("token");
-        }}
-        onClose={() => {
-          setShowLogoutModal(false);
-        }}
+        onConfirm={handleLogOut}
+        onClose={() => setShowLogoutModal(false)}
       >
         Are you sure you want to log out of your account?
       </ConfirmationModal>
