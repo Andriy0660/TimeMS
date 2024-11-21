@@ -14,6 +14,11 @@ const worklogApi = {
     return data;
   },
 
+  logInWithGoogle: async (body) => {
+    const {data} = await axios.post("auth/logInWithGoogle", {...body}, {baseMsg: "Error during login with google"});
+    return data;
+  },
+
   logOut: async (body) => {
     await axios.post(`/${key}/logOut`, {...body}, {baseMsg: "Error during logout"});
   },

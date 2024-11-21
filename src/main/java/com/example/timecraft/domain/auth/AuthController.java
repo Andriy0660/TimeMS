@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.timecraft.domain.auth.dto.AuthLogInRequest;
 import com.example.timecraft.domain.auth.dto.AuthLogInResponse;
+import com.example.timecraft.domain.auth.dto.AuthLogInWithGoogleRequest;
 import com.example.timecraft.domain.auth.dto.AuthSignUpRequest;
 import com.example.timecraft.domain.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,11 @@ public class AuthController {
   @PostMapping("/logIn")
   public AuthLogInResponse logIn(@RequestBody final AuthLogInRequest request) {
     return authService.logIn(request);
+  }
+
+  @PostMapping("/logInWithGoogle")
+  public AuthLogInResponse logInWithGoogle(@RequestBody final AuthLogInWithGoogleRequest request) {
+    return authService.logInWithGoogle(request);
   }
 
   @PostMapping("/logOut")

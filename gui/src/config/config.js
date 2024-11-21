@@ -19,6 +19,8 @@ const initialize = async () => {
   externalServiceIncludeDescription = res.externalServiceIncludeDescription
 };
 
+let googleClientId = "767173580299-fcnbh5h922avn99lktktjb9uq9f5itcc.apps.googleusercontent.com";
+
 initialize();
 export {
   startHourOfDay,
@@ -27,4 +29,6 @@ export {
   isJiraSyncingEnabled,
   isExternalServiceSyncingEnabled,
   externalTimeLogTimeCf,
-  externalServiceIncludeDescription};
+  externalServiceIncludeDescription,
+  googleClientId
+};

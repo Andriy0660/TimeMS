@@ -1,8 +1,8 @@
 databaseChangeLog:
   - changeSet:
-      id: TMC-56-add-token-updating
+      id: TMC-15-login-google
       author: Andrii Snovyda
       changes:
         - dropNotNullConstraint:
-            columnName: access_token
+            columnName: password
             tableName: app_user

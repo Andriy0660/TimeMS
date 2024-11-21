@@ -18,6 +18,7 @@ public class AppProperties {
 
   @Data
   public static class Config {
+    private String googleClientId;
     private Boolean isJiraSyncingEnabled;
     private Boolean isExternalServiceSyncingEnabled;
     private Boolean externalServiceIncludeDescription;
