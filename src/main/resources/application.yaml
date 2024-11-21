@@ -25,6 +25,7 @@ multitenancy:
 
 app:
   config:
+    google-client-id: 767173580299-fcnbh5h922avn99lktktjb9uq9f5itcc.apps.googleusercontent.com
     is-jira-syncing-enabled: true
     is-external-service-syncing-enabled: true
     external-service-include-description: true
