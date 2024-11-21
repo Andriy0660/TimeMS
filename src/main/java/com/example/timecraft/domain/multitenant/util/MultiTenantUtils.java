@@ -17,4 +17,13 @@ public class MultiTenantUtils {
     liquibase.setRollbackFile(liquibaseProperties.getRollbackFile());
     liquibase.setTestRollbackOnUpdate(liquibaseProperties.isTestRollbackOnUpdate());
   }
+
+  public static String generateSchemaNameFromEmail(String email) {
+    String schemaName = email.toLowerCase();
+    schemaName = schemaName.replaceAll("[^a-z0-9_]", "_");
+    if (schemaName.length() > 63) {
+      schemaName = schemaName.substring(0, 63);
+    }
+    return schemaName;
+  }
 }
