@@ -24,6 +24,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import static com.example.timecraft.domain.multitenant.util.MultiTenantUtils.generateSchemaNameFromEmail;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -46,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
         .password(passwordEncoder.encode(request.getPassword()))
         .build();
 
-    final TenantEntity defaultTenantForUser = multiTenantService.createTenant(MultiTenantUtils.generateSchemaNameFromEmail(userEntity.getEmail()));
+    final TenantEntity defaultTenantForUser = multiTenantService.createTenant(generateSchemaNameFromEmail(userEntity.getEmail()));
     userEntity.getTenants().add(defaultTenantForUser);
     userService.save(userEntity);
   }
