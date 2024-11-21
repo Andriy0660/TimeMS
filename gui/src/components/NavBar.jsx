@@ -92,6 +92,14 @@ export default function NavBar() {
         </ListItem>
 
         <ListItem disablePadding>
+          <Link to="/app/config" className="text-inherit no-underline w-full">
+            <ListItemButton>
+              <ListItemText primary="Configuration" />
+            </ListItemButton>
+          </Link>
+        </ListItem>
+
+        <ListItem disablePadding>
           <ListItemButton onClick={() => setShowLogoutModal(true)}>
             <ListItemText primary="Logout" />
           </ListItemButton>
