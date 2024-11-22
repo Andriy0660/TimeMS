@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.timecraft.domain.sync.external_service.api.SyncExternalServiceProcessingService;
 import com.example.timecraft.domain.sync.jira.api.SyncJiraProcessingService;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
-import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
@@ -72,11 +71,6 @@ public class TimeLogController {
   @GetMapping("/{timeLogId}")
   public TimeLogGetResponse get(@PathVariable final long timeLogId) {
     return timeLogService.get(timeLogId);
-  }
-
-  @GetMapping("/config")
-  public TimeLogConfigResponse getConfig() {
-    return timeLogService.getConfig();
   }
 
   @GetMapping("/hoursForWeek")

@@ -3,7 +3,6 @@ package com.example.timecraft.domain.timelog.service;
 import java.time.LocalDate;
 
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
-import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
@@ -30,8 +29,6 @@ public interface TimeLogService {
   void divide(final long timeLogId);
 
   TimeLogGetResponse get(final long timeLogId);
-
-  TimeLogConfigResponse getConfig();
 
   TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date);
 

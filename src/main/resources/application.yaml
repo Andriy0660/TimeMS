@@ -26,14 +26,6 @@ multitenancy:
 app:
   config:
     google-client-id: 767173580299-fcnbh5h922avn99lktktjb9uq9f5itcc.apps.googleusercontent.com
-    is-jira-syncing-enabled: true
-    is-external-service-syncing-enabled: true
-    external-service-include-description: true
-    external-time-log-time-cf: 2
-    offset: 3
-    start-hour-of-working-day: 7
-    end-hour-of-working-day: 17
-    working-day-duration-in-hours: 8
   cors:
     allowed-origins:
       - http://localhost:*

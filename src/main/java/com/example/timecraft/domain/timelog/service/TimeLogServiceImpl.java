@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.config.api.UserConfigService;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
-import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateRequest;
@@ -196,19 +195,6 @@ public class TimeLogServiceImpl implements TimeLogService {
     final TimeLogGetResponse response = mapper.toGetResponse(timeLogEntity);
     response.setTotalTime(mapTotalTime(timeLogEntity.getStartTime(), timeLogEntity.getEndTime()));
     return response;
-  }
-
-  @Override
-  public TimeLogConfigResponse getConfig() {
-    return new TimeLogConfigResponse(
-        props.getConfig().getIsJiraSyncingEnabled(),
-        props.getConfig().getIsExternalServiceSyncingEnabled(),
-        props.getConfig().getExternalServiceIncludeDescription(),
-        props.getConfig().getExternalTimeLogTimeCf(),
-        props.getConfig().getOffset(),
-        props.getConfig().getStartHourOfWorkingDay(),
-        props.getConfig().getEndHourOfWorkingDay()
-    );
   }
 
   @Override

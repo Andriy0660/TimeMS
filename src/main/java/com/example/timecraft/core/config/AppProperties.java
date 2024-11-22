@@ -19,14 +19,6 @@ public class AppProperties {
   @Data
   public static class Config {
     private String googleClientId;
-    private Boolean isJiraSyncingEnabled;
-    private Boolean isExternalServiceSyncingEnabled;
-    private Boolean externalServiceIncludeDescription;
-    private Double externalTimeLogTimeCf;
-    private Integer offset;
-    private Integer startHourOfWorkingDay;
-    private Integer endHourOfWorkingDay;
-    private Integer workingDayDurationInHours;
   }
 
   @Data
