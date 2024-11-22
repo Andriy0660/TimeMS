@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.NotFoundException;
+import com.example.timecraft.domain.config.api.UserConfigService;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogConfigResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
@@ -50,11 +50,11 @@ public class TimeLogServiceImpl implements TimeLogService {
   private final TimeLogRepository repository;
   private final TimeLogMapper mapper;
   private final Clock clock;
-  private final AppProperties props;
+  private final UserConfigService userConfigService;
 
   @Override
   public TimeLogListResponse list(final LocalDate startDate, final LocalDate endDate) {
-    final int offset = props.getConfig().getOffset();
+    final int offset = userConfigService.getOffsetHour();
     final LocalTime startTime = LocalTime.of(offset, 0);
 
     final List<TimeLogEntity> timeLogEntityList = repository.findAllInRange(startDate, endDate, startTime);
@@ -124,7 +124,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public void divide(final long timeLogId) {
-    final int offset = props.getConfig().getOffset();
+    final int offset = userConfigService.getOffsetHour();
     final LocalTime startOfDay = LocalTime.of(offset, 0);
     final TimeLogEntity timeLogEntity = getRaw(timeLogId);
     final TimeLogEntity secondEntity = TimeLogEntity.builder()
@@ -213,7 +213,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogHoursForWeekResponse getHoursForWeek(final LocalDate date) {
-    final int offset = props.getConfig().getOffset();
+    final int offset = userConfigService.getOffsetHour();
 
     final LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     final LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
@@ -239,7 +239,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogHoursForWeekWithTicketsResponse getHoursForWeekWithTickets(final LocalDate date) {
-    final int offset = props.getConfig().getOffset();
+    final int offset = userConfigService.getOffsetHour();
     final LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     final LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
@@ -251,7 +251,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   private List<TimeLogHoursForWeekWithTicketsResponse.DayInfo> getDayInfoList(final List<TimeLogEntity> entities, final LocalDate startOfWeek,
                                                                               final LocalDate endOfWeek) {
-    final int offset = props.getConfig().getOffset();
+    final int offset = userConfigService.getOffsetHour();
     final LocalTime startTime = LocalTime.of(offset, 0);
     final Set<String> tickets = getTicketsForWeek(entities);
 
@@ -321,7 +321,7 @@ public class TimeLogServiceImpl implements TimeLogService {
 
   @Override
   public TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date) {
-    final int offset = props.getConfig().getOffset();
+    final int offset = userConfigService.getOffsetHour();
     final LocalTime startTime = LocalTime.of(offset, 0);
     final LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
     final LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());

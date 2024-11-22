@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.BadRequestException;
+import com.example.timecraft.domain.config.api.UserConfigService;
 import com.example.timecraft.domain.external_timelog.api.ExternalTimeLogSyncService;
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogEntity;
 import com.example.timecraft.domain.sync.external_service.dto.SyncIntoExternalServiceRequest;
@@ -22,11 +22,11 @@ import lombok.RequiredArgsConstructor;
 public class SyncExternalTimeLogServiceImpl implements SyncExternalTimeLogService {
   private final TimeLogSyncService timeLogSyncService;
   private final ExternalTimeLogSyncService externalTimeLogSyncService;
-  private final AppProperties props;
+  private final UserConfigService userConfigService;
 
   @Override
   public void syncIntoExternalService(final SyncIntoExternalServiceRequest request) {
-    Boolean externalServiceIncludeDescription = props.getConfig().getExternalServiceIncludeDescription();
+    final boolean externalServiceIncludeDescription = userConfigService.getIsExternalServiceIncludeDescription();
     final LocalDate date = request.getDate();
     final String description = request.getDescription();
     final List<TimeLogEntity> timeLogEntityList;

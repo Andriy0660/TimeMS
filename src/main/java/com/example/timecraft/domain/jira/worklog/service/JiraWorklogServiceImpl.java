@@ -64,7 +64,7 @@ public class JiraWorklogServiceImpl implements JiraWorklogService {
   }
 
   private void updateProgressStatus(final SyncUserJiraProgress syncUserJiraProgress, final IssueDto issue, final double step, final List<JiraWorklogDto> worklogsForKey) {
-    final int workingDayDurationInHours = props.getConfig().getWorkingDayDurationInHours();
+    final int workingDayDurationInHours = 8;
 
     syncUserJiraProgress.setProgress(syncUserJiraProgress.getProgress() + step);
     syncUserJiraProgress.setCurrentIssueNumber(syncUserJiraProgress.getCurrentIssueNumber() + 1);
