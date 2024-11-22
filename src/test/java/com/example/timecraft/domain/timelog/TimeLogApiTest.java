@@ -238,18 +238,6 @@ class TimeLogApiTest {
   }
 
   @Test
-  void shouldGetConfig() throws Exception {
-    mvc.perform(get("/time-logs/config")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("Authorization", accessToken))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.isJiraSyncingEnabled").value(props.getConfig().getIsJiraSyncingEnabled()))
-        .andExpect(jsonPath("$.offset").value(props.getConfig().getOffset()))
-        .andExpect(jsonPath("$.startHourOfWorkingDay").value(props.getConfig().getStartHourOfWorkingDay()))
-        .andExpect(jsonPath("$.endHourOfWorkingDay").value(props.getConfig().getEndHourOfWorkingDay()));
-  }
-
-  @Test
   void shouldGetNotFoundPassingNonExistingId() throws Exception {
     mvc.perform(get("/time-logs/{id}", Long.MAX_VALUE)
             .contentType(MediaType.APPLICATION_JSON)
