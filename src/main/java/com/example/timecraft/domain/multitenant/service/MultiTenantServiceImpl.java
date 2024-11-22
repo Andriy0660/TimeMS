@@ -65,17 +65,6 @@ public class MultiTenantServiceImpl implements MultiTenantService {
   }
 
   private SpringLiquibase getSpringLiquibase(DataSource dataSource, String schema) {
-    final SpringLiquibase liquibase = new SpringLiquibase();
-    liquibase.setResourceLoader(resourceLoader);
-    liquibase.setDataSource(dataSource);
-    liquibase.setDefaultSchema(schema);
-    if (liquibaseProperties.getParameters() != null) {
-      liquibaseProperties.getParameters().put("schema", schema);
-      liquibase.setChangeLogParameters(liquibaseProperties.getParameters());
-    } else {
-      liquibase.setChangeLogParameters(Collections.singletonMap("schema", schema));
-    }
-    MultiTenantUtils.setLiquibaseProperties(liquibase, liquibaseProperties);
-    return liquibase;
+    return MultiTenantUtils.getSpringLiquibase(dataSource, schema, resourceLoader, liquibaseProperties);
   }
 }
