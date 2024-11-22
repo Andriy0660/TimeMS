@@ -48,6 +48,9 @@ public class SyncExternalTimeLogServiceImpl implements SyncExternalTimeLogServic
     deleteExternalTimeLogs(externalTimeLogEntities.stream().skip(1).toList());
     final ExternalTimeLogEntity first = externalTimeLogEntities.getFirst();
     first.setEndTime(first.getStartTime().plusSeconds(totalSpentSeconds));
+    if (!externalServiceIncludeDescription) {
+      first.setDescription(null);
+    }
     externalTimeLogSyncService.save(first);
   }
 
