@@ -25,7 +25,8 @@ export default function ConfigTimeTab({
           value={dayOffsetHour}
           onChange={(e) => {
             const newDayOffsetHour = e.target.value;
-            if (newDayOffsetHour < 0 || newDayOffsetHour > 12 || newDayOffsetHour > workingDayEndHour) {
+            const isInteger = /^\d+$/.test(newDayOffsetHour);
+            if (!isInteger || newDayOffsetHour < 0 || newDayOffsetHour > 12 || newDayOffsetHour > workingDayEndHour) {
               setDayOffsetHourError(true);
             } else {
               setDayOffsetHourError(false);
@@ -42,7 +43,8 @@ export default function ConfigTimeTab({
           value={workingDayStartHour}
           onChange={(e) => {
             const newWorkingDayStartHour = e.target.value;
-            if (newWorkingDayStartHour < 0 || newWorkingDayStartHour > 12) {
+            const isInteger = /^\d+$/.test(newWorkingDayStartHour);
+            if (!isInteger || newWorkingDayStartHour < 0 || newWorkingDayStartHour > 12) {
               setWorkingDayStartHourError(true);
             } else {
               setWorkingDayStartHourError(false);
@@ -59,7 +61,8 @@ export default function ConfigTimeTab({
           value={workingDayEndHour}
           onChange={(e) => {
             const newWorkingDayEndHour = e.target.value;
-            if (newWorkingDayEndHour < 12 || newWorkingDayEndHour > 23 || newWorkingDayEndHour < workingDayStartHour) {
+            const isInteger = /^\d+$/.test(newWorkingDayEndHour);
+            if (!isInteger || newWorkingDayEndHour < 12 || newWorkingDayEndHour > 23 || newWorkingDayEndHour < workingDayStartHour) {
               setWorkingDayEndHourError(true);
             } else {
               setWorkingDayEndHourError(false);
