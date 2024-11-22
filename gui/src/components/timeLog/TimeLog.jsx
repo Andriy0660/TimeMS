@@ -21,7 +21,7 @@ import {timeLogStatus} from "../../consts/timeLogStatus.js";
 import timeLogService from "../../service/timeLogService.js";
 import {
   externalServiceIncludeDescription,
-  externalTimeLogTimeCf,
+  externalServiceTimeCf,
   isExternalServiceSyncingEnabled,
   isJiraSyncingEnabled
 } from "../../config/config.js";
@@ -274,7 +274,7 @@ export default function TimeLog({
               <span>
                 <Duration color="green"
                         duration={dateTimeService.formatMinutesToHM(
-                          Math.round(timeLog.endTime.diff(timeLog.startTime, "minute") / externalTimeLogTimeCf))} />
+                          Math.round(timeLog.endTime?.diff(timeLog.startTime, "minute") / externalServiceTimeCf))} />
               </span>
             </Tooltip>
             }

@@ -17,9 +17,11 @@ import configApi from "../api/configApi.js";
 import useAppContext from "../context/useAppContext.js";
 import useConfigMutations from "../hooks/useConfigMutations.js";
 import useAsyncCall from "../hooks/useAsyncCall.js";
+import {initializeConfig} from "../config/config.js";
 
 export default function ConfigPage() {
-  const {addAlert} = useAppContext();
+  const {addAlert, forceRender} = useAppContext();
+
   const {onTimeConfigUpdate, onJiraConfigUpdate, onExternalServiceConfigUpdate} = useConfigMutations();
 
   const {execute: updateTimeConfig, isExecuting: isTimeConfigUpdating} = useAsyncCall({
@@ -62,7 +64,7 @@ export default function ConfigPage() {
   const [isJiraEnabled, setIsJiraEnabled] = useState(false);
 
   const [isExternalServiceEnabled, setIsExternalServiceEnabled] = useState(false);
-  const [externalServiceTimeCF, setExternalServiceTimeCF] = useState(1);
+  const [externalServiceTimeCf, setExternalServiceTimeCf] = useState(1);
   const [isExternalServiceIncludeDescription, setIsExternalServiceIncludeDescription] = useState(true);
 
   useEffect(() => {
@@ -72,7 +74,8 @@ export default function ConfigPage() {
     setWorkingDayEndHour(config.workingDayEndHour);
     setIsJiraEnabled(config.isJiraEnabled);
     setIsExternalServiceEnabled(config.isExternalServiceEnabled);
-    setExternalServiceTimeCF(config.externalServiceTimeCf);
+    setExternalServiceTimeCf(config.externalServiceTimeCf);
+    setIsExternalServiceIncludeDescription(config.isExternalServiceIncludeDescription)
   }, [config])
 
   if (isConfigFetching) {
@@ -135,8 +138,13 @@ export default function ConfigPage() {
             />
           </CardContent>
           <CardActions className="ml-2">
-            <Button variant="contained" color="primary"
-              onClick={() => updateTimeConfig({dayOffsetHour, workingDayStartHour, workingDayEndHour})}
+            <Button
+              variant="contained" color="primary"
+              onClick={async () => {
+                await updateTimeConfig({dayOffsetHour, workingDayStartHour, workingDayEndHour});
+                await initializeConfig();
+                forceRender();
+              }}
             >Save</Button>
           </CardActions>
         </Card>
@@ -156,7 +164,11 @@ export default function ConfigPage() {
           </CardContent>
           <CardActions className="ml-2">
             <Button variant="contained" color="primary"
-              onClick={() => updateJiraConfig({isJiraEnabled})}
+              onClick={async () => {
+                await updateJiraConfig({isJiraEnabled});
+                await initializeConfig();
+                forceRender();
+              }}
             >Save</Button>
           </CardActions>
         </Card>
@@ -181,15 +193,19 @@ export default function ConfigPage() {
             <TextField
               label="External Service Time Configuration Factor"
               type="number"
-              value={externalServiceTimeCF}
-              onChange={(e) => setExternalServiceTimeCF(Number(e.target.value))}
+              value={externalServiceTimeCf}
+              onChange={(e) => setExternalServiceTimeCf(Number(e.target.value))}
               fullWidth
               className="mt-4"
             />
           </CardContent>
           <CardActions className="ml-2">
             <Button variant="contained" color="primary"
-              onClick={() => updateExternalServiceConfig({isExternalServiceEnabled, externalServiceTimeCF, isExternalServiceIncludeDescription})}
+              onClick={async () => {
+                await updateExternalServiceConfig({isExternalServiceEnabled, externalServiceTimeCf, isExternalServiceIncludeDescription});
+                await initializeConfig();
+                forceRender();
+              }}
             >Save</Button>
           </CardActions>
         </Card>

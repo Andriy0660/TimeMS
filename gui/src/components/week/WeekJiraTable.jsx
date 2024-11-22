@@ -4,7 +4,7 @@ import CustomTableCell from "./CustomTableCell.jsx";
 import TableBody from "@mui/material/TableBody";
 import Table from "@mui/material/Table";
 import dateTimeService from "../../service/dateTimeService.js";
-import {isExternalServiceSyncingEnabled, externalTimeLogTimeCf} from "../../config/config.js";
+import {isExternalServiceSyncingEnabled, externalServiceTimeCf} from "../../config/config.js";
 import SyncExternalTimeLogDuration from "../sync/SyncExternalTimeLogDuration.jsx";
 
 export default function WeekJiraTable({dayInfos, handleClickDate}) {
@@ -47,7 +47,7 @@ export default function WeekJiraTable({dayInfos, handleClickDate}) {
             {dayInfos.map(dayInfo => {
               const ticketDuration = dayInfo.ticketDurations.find(td => td.ticket === ticket);
               const externalTimeLogDuration = dateTimeService.formatMinutesToHM(Math.round(
-                dateTimeService.getMinutesFromHMFormat(ticketDuration.duration) / externalTimeLogTimeCf));
+                dateTimeService.getMinutesFromHMFormat(ticketDuration.duration) / externalServiceTimeCf));
               return (
                 <CustomTableCell
                   key={`${dayInfo.date}-${ticket}`}

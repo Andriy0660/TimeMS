@@ -8,7 +8,7 @@ import useAppContext from "../context/useAppContext.js";
 import dateTimeService from "../service/dateTimeService.js";
 import {useQuery} from "@tanstack/react-query";
 import timeLogApi from "../api/timeLogApi.js";
-import {isJiraSyncingEnabled, isExternalServiceSyncingEnabled, startHourOfDay, externalTimeLogTimeCf} from "../config/config.js";
+import {isJiraSyncingEnabled, isExternalServiceSyncingEnabled, startHourOfDay, externalServiceTimeCf} from "../config/config.js";
 import MonthPageDuration from "../components/month/MonthPageDuration.jsx";
 import useViewChanger from "../hooks/useViewChanger.js";
 import TimeLogStatusIcons from "../components/timeLog/TimeLogStatusIcons.jsx";
@@ -139,7 +139,7 @@ export default function MonthPage() {
   const getEventContent = (eventInfo) => {
     const {duration} = eventInfo.event.extendedProps;
     const externalTimeLogDuration = dateTimeService.formatMinutesToHM(Math.round(
-      dateTimeService.getMinutesFromHMFormat(duration) / externalTimeLogTimeCf));
+      dateTimeService.getMinutesFromHMFormat(duration) / externalServiceTimeCf));
 
     return (
       <>

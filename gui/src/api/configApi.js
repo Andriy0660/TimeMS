@@ -5,6 +5,9 @@ const configApi = {
   key,
 
   getConfig: async () => {
+    if (!localStorage.getItem("token")) {
+      return;
+    }
     const {data} = await axios.get(`/${key}`, {baseMsg: "Error while fetching user configuration"});
     return data;
   },

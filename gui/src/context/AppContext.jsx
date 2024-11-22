@@ -11,6 +11,9 @@ export const AppProvider = ({children}) => {
   const [mode, setMode] = useState(queryParams.get("mode") || viewMode.DAY);
   const [date, setDate] = useState(queryParams.get("date") ? dayjs(queryParams.get("date")) : dayjs())
 
+  const [counter, setCounter] = useState(0);
+  const forceRender = () => setCounter((prev) => prev + 1);
+
   const [timeLogRefs, setTimeLogRefs] = useState([]);
   const [externalTimeLogRefs, setExternalTimeLogRefs] = useState([]);
 
@@ -41,6 +44,7 @@ export const AppProvider = ({children}) => {
         transition: Bounce
       />
       <AppContext.Provider value={{
+        forceRender,
         date,
         setDate,
         addAlert,
@@ -51,7 +55,7 @@ export const AppProvider = ({children}) => {
         externalTimeLogRefs,
         setExternalTimeLogRefs
       }}>
-        {children}
+        <div key={counter}>{children}</div>
       </AppContext.Provider>
     </>
   );
