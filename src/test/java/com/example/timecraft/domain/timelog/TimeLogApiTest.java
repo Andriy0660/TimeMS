@@ -21,6 +21,7 @@ import com.example.timecraft.config.ApiTest;
 import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.domain.auth.dto.AuthLogInRequest;
 import com.example.timecraft.domain.auth.dto.AuthSignUpRequest;
+import com.example.timecraft.domain.config.dto.ConfigUpdateTimeRequest;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
@@ -80,8 +81,8 @@ class TimeLogApiTest {
     final String email = Instancio.of(String.class).create();
     final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", email, "pass42243123");
     mvc.perform(post("/auth/signUp")
-        .content(objectMapper.writeValueAsString(signUpRequest))
-        .contentType(MediaType.APPLICATION_JSON))
+            .content(objectMapper.writeValueAsString(signUpRequest))
+            .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
@@ -91,6 +92,13 @@ class TimeLogApiTest {
         .andExpect(status().isOk()).andReturn();
 
     accessToken = JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
+
+    final ConfigUpdateTimeRequest configRequest = new ConfigUpdateTimeRequest(3, 9, 18);
+    mvc.perform(patch("/config/time")
+            .content(objectMapper.writeValueAsString(configRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
+        .andExpect(status().isOk());
   }
 
   @Test
