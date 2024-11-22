@@ -9,13 +9,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.example.timecraft.config.ApiTest;
 import com.example.timecraft.domain.auth.dto.AuthLogInRequest;
 import com.example.timecraft.domain.auth.dto.AuthSignUpRequest;
+import com.example.timecraft.domain.config.dto.ConfigUpdateExternalServiceRequest;
 import com.example.timecraft.domain.external_service.service.TestExternalTimeLogClient;
 import com.example.timecraft.domain.external_service.util.ExternalTimeLogsApiTestUtils;
 import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogCreateFromTimeLogRequest;
@@ -32,13 +32,13 @@ import static com.example.timecraft.domain.external_service.util.ExternalTimeLog
 import static com.example.timecraft.domain.timelog.util.TimeLogApiTestUtils.createTimeLogCreateRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @ApiTest
-@TestPropertySource(properties = "app.config.external-service-include-description=false")
 public class SyncExternalServiceApiTestExcludingDescription {
   private static String accessToken;
   @Autowired
@@ -68,6 +68,14 @@ public class SyncExternalServiceApiTestExcludingDescription {
         .andExpect(status().isOk()).andReturn();
 
     accessToken = JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
+
+    final ConfigUpdateExternalServiceRequest configRequest = new ConfigUpdateExternalServiceRequest(true, 2., false);
+    mvc.perform(patch("/config/externalService")
+            .content(objectMapper.writeValueAsString(configRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
+        .andExpect(status().isOk());
+
   }
 
   @Test
