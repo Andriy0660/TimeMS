@@ -1,4 +1,4 @@
-import timeLogApi from "../api/timeLogApi.js";
+import configApi from "../api/configApi.js";
 
 let startHourOfDay = 0;
 let startHourOfWorkingDay = 9;
@@ -9,14 +9,14 @@ let externalTimeLogTimeCf = 1;
 let externalServiceIncludeDescription = false;
 
 const initialize = async () => {
-  const res = await timeLogApi.getConfig();
-  startHourOfDay = res.offset;
-  startHourOfWorkingDay = res.startHourOfWorkingDay;
-  endHourOfWorkingDay = res.endHourOfWorkingDay;
-  isJiraSyncingEnabled = res.isJiraSyncingEnabled;
-  isExternalServiceSyncingEnabled = res.isExternalServiceSyncingEnabled;
+  const res = await configApi.getConfig();
+  startHourOfDay = res.dayOffsetHour;
+  startHourOfWorkingDay = res.workingDayStartHour;
+  endHourOfWorkingDay = res.workingDayEndHour;
+  isJiraSyncingEnabled = res.isJiraEnabled;
+  isExternalServiceSyncingEnabled = res.isExternalServiceEnabled;
   externalTimeLogTimeCf = res.externalTimeLogTimeCf;
-  externalServiceIncludeDescription = res.externalServiceIncludeDescription
+  externalServiceIncludeDescription = res.isExternalServiceIncludeDescription
 };
 
 let googleClientId = "767173580299-fcnbh5h922avn99lktktjb9uq9f5itcc.apps.googleusercontent.com";

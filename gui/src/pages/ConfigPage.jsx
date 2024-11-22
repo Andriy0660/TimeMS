@@ -1,31 +1,90 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {
-  TextField,
   Button,
-  Switch,
-  Typography,
   Card,
+  CardActions,
   CardContent,
-  FormControlLabel,
+  CircularProgress,
+  FormControlLabel, LinearProgress,
+  Switch,
+  Tab,
   Tabs,
-  Tab, CardActions,
+  TextField,
+  Typography,
 } from "@mui/material";
+import {useQuery} from "@tanstack/react-query";
+import configApi from "../api/configApi.js";
+import useAppContext from "../context/useAppContext.js";
+import useConfigMutations from "../hooks/useConfigMutations.js";
+import useAsyncCall from "../hooks/useAsyncCall.js";
 
-export default function ConfigPage(){
+export default function ConfigPage() {
+  const {addAlert} = useAppContext();
+  const {onTimeConfigUpdate, onJiraConfigUpdate, onExternalServiceConfigUpdate} = useConfigMutations();
+
+  const {execute: updateTimeConfig, isExecuting: isTimeConfigUpdating} = useAsyncCall({
+    fn: onTimeConfigUpdate,
+  })
+
+  const {execute: updateJiraConfig, isExecuting: isJiraConfigUpdating} = useAsyncCall({
+    fn: onJiraConfigUpdate,
+  })
+
+  const {execute: updateExternalServiceConfig, isExecuting: isExternalServiceConfigUpdating} = useAsyncCall({
+    fn: onExternalServiceConfigUpdate,
+  })
+
+  const {
+    data: config,
+    isPending: isConfigFetching,
+    error: configFetchingError
+  } = useQuery({
+    queryKey: [configApi.key],
+    queryFn: () => configApi.getConfig(),
+    retryDelay: 300,
+  });
+
+  useEffect(() => {
+    if (configFetchingError) {
+      addAlert({
+        text: `${configFetchingError.displayMessage} Try agail later`,
+        type: "error"
+      });
+    }
+  }, [configFetchingError]);
+
   const [tabIndex, setTabIndex] = useState(0);
 
   const [dayOffsetHour, setDayOffsetHour] = useState(0);
   const [workingDayStartHour, setWorkingDayStartHour] = useState(9);
   const [workingDayEndHour, setWorkingDayEndHour] = useState(18);
 
-  const [jiraEnabled, setJiraEnabled] = useState(false);
+  const [isJiraEnabled, setIsJiraEnabled] = useState(false);
 
-  const [externalServiceEnabled, setExternalServiceEnabled] = useState(false);
+  const [isExternalServiceEnabled, setIsExternalServiceEnabled] = useState(false);
   const [externalServiceTimeCF, setExternalServiceTimeCF] = useState(1);
+  const [isExternalServiceIncludeDescription, setIsExternalServiceIncludeDescription] = useState(true);
+
+  useEffect(() => {
+    if (!config) return;
+    setDayOffsetHour(config.dayOffsetHour);
+    setWorkingDayStartHour(config.workingDayStartHour);
+    setWorkingDayEndHour(config.workingDayEndHour);
+    setIsJiraEnabled(config.isJiraEnabled);
+    setIsExternalServiceEnabled(config.isExternalServiceEnabled);
+    setExternalServiceTimeCF(config.externalServiceTimeCf);
+  }, [config])
+
+  if (isConfigFetching) {
+    return <div className="text-center">
+      <CircularProgress />
+    </div>
+  }
 
   return (
     <div className="mx-auto p-4 w-3/4">
       <Typography variant="h4" className="mb-4 text-center font-bold text-blue-500">Configuration</Typography>
+      {isTimeConfigUpdating || isJiraConfigUpdating || isExternalServiceConfigUpdating && <LinearProgress /> }
       <Tabs
         value={tabIndex}
         onChange={(event, newValue) => setTabIndex(newValue)}
@@ -40,7 +99,7 @@ export default function ConfigPage(){
       {tabIndex === 0 && (
         <Card className="mb-4">
           <CardContent>
-            <Typography variant="h6" >Time Configuration</Typography>
+            <Typography variant="h6">Time Configuration</Typography>
             <TextField
               label="Day Offset Hour (0-12)"
               type="number"
@@ -76,7 +135,9 @@ export default function ConfigPage(){
             />
           </CardContent>
           <CardActions className="ml-2">
-            <Button variant="contained" color="primary">Save</Button>
+            <Button variant="contained" color="primary"
+              onClick={() => updateTimeConfig({dayOffsetHour, workingDayStartHour, workingDayEndHour})}
+            >Save</Button>
           </CardActions>
         </Card>
       )}
@@ -87,13 +148,17 @@ export default function ConfigPage(){
             <Typography variant="h6">Jira Integration</Typography>
             <FormControlLabel
               className="mt-2"
-              control={<Switch checked={jiraEnabled} onChange={() => {
-                setJiraEnabled(!jiraEnabled);
+              control={<Switch checked={isJiraEnabled} onChange={() => {
+                setIsJiraEnabled(!isJiraEnabled);
               }} />}
               label="Enable Jira Synchronization"
             />
-
           </CardContent>
+          <CardActions className="ml-2">
+            <Button variant="contained" color="primary"
+              onClick={() => updateJiraConfig({isJiraEnabled})}
+            >Save</Button>
+          </CardActions>
         </Card>
       )}
 
@@ -103,8 +168,14 @@ export default function ConfigPage(){
             <Typography variant="h6">External Service Integration</Typography>
             <FormControlLabel
               className="mt-2"
-              control={<Switch checked={externalServiceEnabled} onChange={() => setExternalServiceEnabled(!externalServiceEnabled)} />}
+              control={<Switch checked={isExternalServiceEnabled} onChange={() => setIsExternalServiceEnabled(!isExternalServiceEnabled)} />}
               label="Enable External Service Synchronization"
+            />
+
+            <FormControlLabel
+              className="mt-2"
+              control={<Switch checked={isExternalServiceIncludeDescription} onChange={() => setIsExternalServiceIncludeDescription(!isExternalServiceIncludeDescription)} />}
+              label="Include description"
             />
 
             <TextField
@@ -117,7 +188,9 @@ export default function ConfigPage(){
             />
           </CardContent>
           <CardActions className="ml-2">
-            <Button variant="contained" color="primary">Save</Button>
+            <Button variant="contained" color="primary"
+              onClick={() => updateExternalServiceConfig({isExternalServiceEnabled, externalServiceTimeCF, isExternalServiceIncludeDescription})}
+            >Save</Button>
           </CardActions>
         </Card>
       )}
