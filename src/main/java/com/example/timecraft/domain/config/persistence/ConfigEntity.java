@@ -50,7 +50,7 @@ public class ConfigEntity {
 
   @Column(name = "external_service_time_cf")
   @ToString.Include
-  private Integer externalServiceTimeCf;
+  private Double externalServiceTimeCf;
 
   @Column(name = "is_external_service_include_description")
   @ToString.Include

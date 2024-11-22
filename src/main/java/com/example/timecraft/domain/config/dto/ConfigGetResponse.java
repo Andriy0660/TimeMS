@@ -13,6 +13,6 @@ public class ConfigGetResponse {
   private Integer workingDayEndHour;
   private Boolean isJiraEnabled;
   private Boolean isExternalServiceEnabled;
-  private Integer externalServiceTimeCf;
+  private Double externalServiceTimeCf;
   private Boolean isExternalServiceIncludeDescription;
 }

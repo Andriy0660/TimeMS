@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ConfigUpdateExternalServiceRequest {
   private Boolean isExternalServiceEnabled;
-  private Integer externalServiceTimeCf;
+  private Double externalServiceTimeCf;
   private Boolean isExternalServiceIncludeDescription;
 }
