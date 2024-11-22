@@ -3,6 +3,7 @@ package com.example.timecraft.core.exception.handler;
 import java.util.Optional;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -59,6 +60,11 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
   public ResponseStatusException handleInvalidArgumentType(final MethodArgumentTypeMismatchException e) {
     return new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid argument type of parameter: " + e.getName());
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseStatusException handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
+    return new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error while validating data");
   }
 }
 

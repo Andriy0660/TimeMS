@@ -1,26 +1,16 @@
 import {useEffect, useState} from "react";
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CircularProgress,
-  FormControlLabel, LinearProgress,
-  Switch,
-  Tab,
-  Tabs,
-  TextField,
-  Typography,
-} from "@mui/material";
+import {CircularProgress, LinearProgress, Tab, Tabs, Typography,} from "@mui/material";
 import {useQuery} from "@tanstack/react-query";
 import configApi from "../api/configApi.js";
 import useAppContext from "../context/useAppContext.js";
 import useConfigMutations from "../hooks/useConfigMutations.js";
 import useAsyncCall from "../hooks/useAsyncCall.js";
-import {initializeConfig} from "../config/config.js";
+import ConfigTimeTab from "../components/config/ConfigTimeTab.jsx";
+import ConfigJiraTab from "../components/config/ConfigJiraTab.jsx";
+import ConfigExternalServiceTab from "../components/config/ConfigExternalServiceTab.jsx";
 
 export default function ConfigPage() {
-  const {addAlert, forceRender} = useAppContext();
+  const {addAlert} = useAppContext();
 
   const {onTimeConfigUpdate, onJiraConfigUpdate, onExternalServiceConfigUpdate} = useConfigMutations();
 
@@ -84,10 +74,11 @@ export default function ConfigPage() {
     </div>
   }
 
+
   return (
     <div className="mx-auto p-4 w-3/4">
       <Typography variant="h4" className="mb-4 text-center font-bold text-blue-500">Configuration</Typography>
-      {isTimeConfigUpdating || isJiraConfigUpdating || isExternalServiceConfigUpdating && <LinearProgress /> }
+      {isTimeConfigUpdating || isJiraConfigUpdating || isExternalServiceConfigUpdating && <LinearProgress />}
       <Tabs
         value={tabIndex}
         onChange={(event, newValue) => setTabIndex(newValue)}
@@ -100,115 +91,23 @@ export default function ConfigPage() {
       </Tabs>
 
       {tabIndex === 0 && (
-        <Card className="mb-4">
-          <CardContent>
-            <Typography variant="h6">Time Configuration</Typography>
-            <TextField
-              label="Day Offset Hour (0-12)"
-              type="number"
-              value={dayOffsetHour}
-              onChange={(e) => {
-                const value = Math.max(0, Math.min(12, Number(e.target.value)));
-                setDayOffsetHour(value);
-              }}
-              fullWidth
-              className="my-2"
-            />
-            <TextField
-              label="Working Day Start Hour (0-23)"
-              type="number"
-              value={workingDayStartHour}
-              onChange={(e) => {
-                const value = Math.max(0, Math.min(23, Number(e.target.value)));
-                setWorkingDayStartHour(value);
-              }}
-              fullWidth
-              className="my-2"
-            />
-            <TextField
-              label="Working Day End Hour (0-23)"
-              type="number"
-              value={workingDayEndHour}
-              onChange={(e) => {
-                const value = Math.max(0, Math.min(23, Number(e.target.value)));
-                setWorkingDayEndHour(value);
-              }}
-              fullWidth
-              className="mt-2"
-            />
-          </CardContent>
-          <CardActions className="ml-2">
-            <Button
-              variant="contained" color="primary"
-              onClick={async () => {
-                await updateTimeConfig({dayOffsetHour, workingDayStartHour, workingDayEndHour});
-                await initializeConfig();
-                forceRender();
-              }}
-            >Save</Button>
-          </CardActions>
-        </Card>
+        <ConfigTimeTab dayOffsetHour={dayOffsetHour} setDayOffsetHour={setDayOffsetHour}
+                       workingDayStartHour={workingDayStartHour} setWorkingDayStartHour={setWorkingDayStartHour}
+                       workingDayEndHour={workingDayEndHour} setWorkingDayEndHour={setWorkingDayEndHour}
+                       updateTimeConfig={updateTimeConfig} />
       )}
 
       {tabIndex === 1 && (
-        <Card className="mb-4">
-          <CardContent>
-            <Typography variant="h6">Jira Integration</Typography>
-            <FormControlLabel
-              className="mt-2"
-              control={<Switch checked={isJiraEnabled} onChange={() => {
-                setIsJiraEnabled(!isJiraEnabled);
-              }} />}
-              label="Enable Jira Synchronization"
-            />
-          </CardContent>
-          <CardActions className="ml-2">
-            <Button variant="contained" color="primary"
-              onClick={async () => {
-                await updateJiraConfig({isJiraEnabled});
-                await initializeConfig();
-                forceRender();
-              }}
-            >Save</Button>
-          </CardActions>
-        </Card>
+        <ConfigJiraTab isJiraEnabled={isJiraEnabled} setIsJiraEnabled={setIsJiraEnabled} updateJiraConfig={updateJiraConfig} />
       )}
 
       {tabIndex === 2 && (
-        <Card className="mb-4">
-          <CardContent>
-            <Typography variant="h6">External Service Integration</Typography>
-            <FormControlLabel
-              className="mt-2"
-              control={<Switch checked={isExternalServiceEnabled} onChange={() => setIsExternalServiceEnabled(!isExternalServiceEnabled)} />}
-              label="Enable External Service Synchronization"
-            />
-
-            <FormControlLabel
-              className="mt-2"
-              control={<Switch checked={isExternalServiceIncludeDescription} onChange={() => setIsExternalServiceIncludeDescription(!isExternalServiceIncludeDescription)} />}
-              label="Include description"
-            />
-
-            <TextField
-              label="External Service Time Configuration Factor"
-              type="number"
-              value={externalServiceTimeCf}
-              onChange={(e) => setExternalServiceTimeCf(Number(e.target.value))}
-              fullWidth
-              className="mt-4"
-            />
-          </CardContent>
-          <CardActions className="ml-2">
-            <Button variant="contained" color="primary"
-              onClick={async () => {
-                await updateExternalServiceConfig({isExternalServiceEnabled, externalServiceTimeCf, isExternalServiceIncludeDescription});
-                await initializeConfig();
-                forceRender();
-              }}
-            >Save</Button>
-          </CardActions>
-        </Card>
+        <ConfigExternalServiceTab isExternalServiceEnabled={isExternalServiceEnabled} setIsExternalServiceEnabled={setIsExternalServiceEnabled}
+                                  isExternalServiceIncludeDescription={isExternalServiceIncludeDescription}
+                                  setIsExternalServiceIncludeDescription={setIsExternalServiceIncludeDescription}
+                                  externalServiceTimeCf={externalServiceTimeCf} setExternalServiceTimeCf={setExternalServiceTimeCf}
+                                  updateExternalServiceConfig={updateExternalServiceConfig}
+        />
       )}
     </div>
   );
