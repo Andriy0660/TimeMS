@@ -11,6 +11,7 @@ import com.example.timecraft.domain.config.dto.ConfigUpdateTimeRequest;
 import com.example.timecraft.domain.config.mapper.ConfigMapper;
 import com.example.timecraft.domain.config.persistence.ConfigEntity;
 import com.example.timecraft.domain.config.persistence.ConfigRepository;
+import com.example.timecraft.domain.jira_instance.api.UserJiraInstanceService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class ConfigServiceImpl implements ConfigService {
   private final ConfigRepository configRepository;
   private final ConfigMapper mapper;
+  private final UserJiraInstanceService userJiraInstanceService;
 
   @Override
   public ConfigGetResponse getConfig() {
@@ -50,6 +52,10 @@ public class ConfigServiceImpl implements ConfigService {
 
   @Override
   public void updateJiraConfig(final ConfigUpdateJiraRequest request) {
+    if (request.getIsJiraEnabled() && userJiraInstanceService.getJiraInstance() == null) {
+      throw new BadRequestException("Set up Jira Instance firstly");
+    }
+
     final ConfigEntity config = configRepository.findAll().getFirst();
     config.setIsJiraEnabled(request.getIsJiraEnabled());
     configRepository.save(config);
