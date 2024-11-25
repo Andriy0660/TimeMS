@@ -25,11 +25,42 @@ export default function ConfigJiraTab({isJiraEnabled, onSave, onDelete, setIsJir
   const [baseUrl, setBaseUrl] = useState("");
   const [token, setToken] = useState("");
 
+  const [emailError, setEmailError] = useState("");
+  const [baseUrlError, setBaseUrlError] = useState("");
+
   useEffect(() => {
     setEmail(jiraInstance.email || "");
     setBaseUrl(jiraInstance.baseUrl || "");
     setToken(jiraInstance.token || "");
   }, [jiraInstance]);
+
+  const validateEmail = (value) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      setEmailError("Invalid email");
+    } else {
+      setEmailError("");
+    }
+  };
+
+  const validateBaseUrl = (value) => {
+    const urlRegex = /^https:\/\/.*\.atlassian\.net$/;
+    if (!urlRegex.test(value)) {
+      setBaseUrlError("URL must be in this format: https://**.atlassian.net");
+    } else {
+      setBaseUrlError("");
+    }
+  };
+
+  useEffect(() => {
+    validateEmail(email)
+  }, [email])
+
+  useEffect(() => {
+    validateBaseUrl(baseUrl)
+  }, [baseUrl])
+
+  const apiTokenError = token.length === 0;
 
   return (
     <>
@@ -89,6 +120,7 @@ export default function ConfigJiraTab({isJiraEnabled, onSave, onDelete, setIsJir
         </DialogTitle>
         <DialogContent>
           <TextField
+            error={!!emailError}
             fullWidth
             margin="dense"
             label="Jira Email"
@@ -96,6 +128,8 @@ export default function ConfigJiraTab({isJiraEnabled, onSave, onDelete, setIsJir
             onChange={(e) => setEmail(e.target.value)}
           />
           <TextField
+            error={!!baseUrlError}
+            helperText={baseUrlError}
             fullWidth
             margin="dense"
             label="Base URL"
@@ -103,6 +137,7 @@ export default function ConfigJiraTab({isJiraEnabled, onSave, onDelete, setIsJir
             onChange={(e) => setBaseUrl(e.target.value)}
           />
           <TextField
+            error={apiTokenError}
             fullWidth
             margin="dense"
             label="API Token"
@@ -117,6 +152,7 @@ export default function ConfigJiraTab({isJiraEnabled, onSave, onDelete, setIsJir
             Cancel
           </Button>
           <Button
+            disabled={!!emailError || !!baseUrlError || apiTokenError}
             onClick={() => {
               onSave({id: jiraInstance.id, email, baseUrl, token});
               setIsConfigDialogOpen(false);
