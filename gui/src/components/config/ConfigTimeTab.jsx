@@ -62,7 +62,7 @@ export default function ConfigTimeTab({
         <TextField
           error={!!dayOffsetHourError}
           helperText={dayOffsetHourError}
-          label="Day Offset Hour (0-12)"
+          label="Day Offset Hour"
           type="number"
           value={dayOffsetHour}
           onChange={(e) => setDayOffsetHour(e.target.value)}
@@ -72,7 +72,7 @@ export default function ConfigTimeTab({
         <TextField
           error={!!workingDayStartHourError}
           helperText={workingDayStartHourError}
-          label="Working Day Start Hour (0-12)"
+          label="Working Day Start Hour"
           type="number"
           value={workingDayStartHour}
           onChange={(e) => setWorkingDayStartHour(e.target.value)}
@@ -82,7 +82,7 @@ export default function ConfigTimeTab({
         <TextField
           error={!!workingDayEndHourError}
           helperText={workingDayEndHourError}
-          label="Working Day End Hour (12-23)"
+          label="Working Day End Hour"
           type="number"
           value={workingDayEndHour}
           onChange={(e) => setWorkingDayEndHour(e.target.value)}
