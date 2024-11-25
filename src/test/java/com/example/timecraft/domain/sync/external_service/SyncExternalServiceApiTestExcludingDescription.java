@@ -56,13 +56,13 @@ public class SyncExternalServiceApiTestExcludingDescription {
   void setUp() throws Exception {
     final String email = Instancio.of(String.class).create();
     final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", email, "pass42243123");
-    mvc.perform(post("/auth/signUp")
+    mvc.perform(post("/auth/signup")
             .content(objectMapper.writeValueAsString(signUpRequest))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
-    final MvcResult result = mvc.perform(post("/auth/logIn")
+    final MvcResult result = mvc.perform(post("/auth/login")
             .content(objectMapper.writeValueAsString(logInRequest))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk()).andReturn();
@@ -70,7 +70,7 @@ public class SyncExternalServiceApiTestExcludingDescription {
     accessToken = JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
 
     final ConfigUpdateExternalServiceRequest configRequest = new ConfigUpdateExternalServiceRequest(true, 2., false);
-    mvc.perform(patch("/config/externalService")
+    mvc.perform(patch("/config/external-service")
             .content(objectMapper.writeValueAsString(configRequest))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -92,7 +92,7 @@ public class SyncExternalServiceApiTestExcludingDescription {
 
     SyncIntoExternalServiceRequest request = new SyncIntoExternalServiceRequest(LocalDate.now(clock), null);
 
-    mvc.perform(post("/syncExternalService/to")
+    mvc.perform(post("/sync/external-service/to")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))

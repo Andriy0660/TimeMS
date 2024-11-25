@@ -41,24 +41,24 @@ public class ConfigController {
     configService.updateJiraConfig(request);
   }
 
-  @GetMapping("/jira/jiraInstance")
+  @GetMapping("/jira/instance")
   public JiraInstanceGetResponse get() {
     return jiraInstanceService.get();
   }
 
-  @PostMapping("/jira/jiraInstance")
+  @PostMapping("/jira/instance")
   public void save(@RequestBody final JiraInstanceSaveRequest request) {
     jiraInstanceService.save(request);
   }
 
-  @DeleteMapping("/jira/jiraInstance/{id}")
+  @DeleteMapping("/jira/instance/{id}")
   public void delete(@PathVariable final Long id) {
     final boolean enableSyncWithJira = false;
     configService.updateJiraConfig(new ConfigUpdateJiraRequest(enableSyncWithJira));
     jiraInstanceService.delete(id);
   }
 
-  @PatchMapping("/externalService")
+  @PatchMapping("/external-service")
   public void updateExternalServiceConfig(@RequestBody final ConfigUpdateExternalServiceRequest request) {
     configService.updateExternalServiceConfig(request);
   }

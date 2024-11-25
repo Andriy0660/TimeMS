@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/syncJira")
+@RequestMapping("/sync/jira")
 @RequireJiraAccount
 public class SyncJiraController {
   private final SyncJiraService syncJiraService;
@@ -31,12 +31,12 @@ public class SyncJiraController {
     syncJiraService.syncIntoJira(request);
   }
 
-  @PostMapping("/syncAllWorklogs")
+  @PostMapping("/worklogs")
   public void syncWorklogs() {
     syncJiraService.syncAllWorklogs();
   }
 
-  @PostMapping("/{ticket}")
+  @PostMapping("/worklogs/{ticket}")
   public void syncWorklogsForIssue(@PathVariable final String ticket) {
     syncJiraService.syncWorklogsForTicket(ticket);
   }

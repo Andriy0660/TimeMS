@@ -11,13 +11,13 @@ const timeLogApi = {
 
   getHoursForWeek: async (body) => {
     const params = new URLSearchParams({...body});
-    const {data} = await axios.get(`/${key}/hoursForWeek`, {params, baseMsg: "Error while getting hours for week"});
+    const {data} = await axios.get(`/${key}/week/hours`, {params, baseMsg: "Error while getting hours for week"});
     return data.items;
   },
 
   getHoursForMonth: async (body) => {
     const params = new URLSearchParams({...body});
-    const {data} = await axios.get(`/${key}/hoursForMonth`, {params, baseMsg: "Error while getting hours for month"});
+    const {data} = await axios.get(`/${key}/month/hours`, {params, baseMsg: "Error while getting hours for month"});
     return data;
   },
 
@@ -27,7 +27,7 @@ const timeLogApi = {
   },
 
   createFromWorklog: async (body) => {
-    const {data} = await axios.post(`/${key}/fromWorklog`, {...body}, {baseMsg: "Error while creating time log from worklog"});
+    const {data} = await axios.post(`/${key}/from-worklog`, {...body}, {baseMsg: "Error while creating time log from worklog"});
     return data;
   },
 
@@ -36,7 +36,7 @@ const timeLogApi = {
   },
 
   importTimeLogs: async (body) => {
-    await axios.post(`/${key}/importTimeLogs`, {...body}, {baseMsg: "Error while importing time logs"});
+    await axios.post(`/${key}/import-time-logs`, {...body}, {baseMsg: "Error while importing time logs"});
   },
 
   update: async ({id, ...body}) => {
@@ -49,11 +49,11 @@ const timeLogApi = {
   },
 
   setGroupDescription: async (body) => {
-    await axios.patch(`/${key}/setGroupDescription`, {...body}, {baseMsg: "Error while setting description"});
+    await axios.patch(`/${key}/set-group-description`, {...body}, {baseMsg: "Error while setting description"});
   },
 
   changeDate: async ({id, ...body}) => {
-    await axios.patch(`/${key}/${id}/changeDate`, {...body}, {baseMsg: "Error while changing date"});
+    await axios.patch(`/${key}/${id}/change-date`, {...body}, {baseMsg: "Error while changing date"});
   }
 };
 

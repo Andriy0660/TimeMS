@@ -18,22 +18,22 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
   private final AuthService authService;
 
-  @PostMapping("/signUp")
+  @PostMapping("/signup")
   public void signUp(@RequestBody final AuthSignUpRequest request) {
     authService.signUp(request);
   }
 
-  @PostMapping("/logIn")
+  @PostMapping("/login")
   public AuthLogInResponse logIn(@RequestBody final AuthLogInRequest request) {
     return authService.logIn(request);
   }
 
-  @PostMapping("/logInWithGoogle")
+  @PostMapping("/google/login")
   public AuthLogInResponse logInWithGoogle(@RequestBody final AuthLogInWithGoogleRequest request) {
     return authService.logInWithGoogle(request);
   }
 
-  @PostMapping("/logOut")
+  @PostMapping("/logout")
   public void logOut() {
     authService.logOut();
   }

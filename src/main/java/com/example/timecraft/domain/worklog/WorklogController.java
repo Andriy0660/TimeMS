@@ -37,9 +37,9 @@ public class WorklogController {
     return worklogService.createFromTimeLog(request);
   }
 
-  @DeleteMapping("/{issueKey}/{worklogId}")
-  public void delete(@PathVariable final String issueKey, @PathVariable final Long worklogId) {
-    worklogService.delete(issueKey, worklogId);
+  @DeleteMapping("/{issueKey}/{id}")
+  public void delete(@PathVariable final String issueKey, @PathVariable final Long id) {
+    worklogService.delete(issueKey, id);
   }
 
 }

@@ -36,9 +36,9 @@ public class ExternalTimeLogController {
     return externalTimeLogService.createFromTimeLog(request);
   }
 
-  @DeleteMapping("/{externalTimeLogId}")
-  public void delete(@PathVariable final Long externalTimeLogId) {
-    externalTimeLogService.delete(externalTimeLogId);
+  @DeleteMapping("/{id}")
+  public void delete(@PathVariable final Long id) {
+    externalTimeLogService.delete(id);
   }
 
 }
