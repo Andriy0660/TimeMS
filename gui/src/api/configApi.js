@@ -22,6 +22,20 @@ const configApi = {
     return data;
   },
 
+  getJiraInstance: async () => {
+    const {data} = await axios.get(`/${key}/jira/jiraInstance`, {baseMsg: "Error while fetching jira instance"});
+    return data;
+  },
+
+  saveJiraInstance: async (body) => {
+    const {data} = await axios.post(`/${key}/jira/jiraInstance`, {...body}, {baseMsg: "Error while saving jira instance"});
+    return data;
+  },
+
+  deleteJiraInstance: async (id) => {
+    await axios.delete(`/${key}/jira/jiraInstance/${id}`, {baseMsg: "Error while deleting jira instance"});
+  },
+
   updateExternalServiceConfig: async (body) => {
     const {data} = await axios.patch(`/${key}/externalService`, {...body}, {baseMsg: "Error while updating External Service configuration"});
     return data;
