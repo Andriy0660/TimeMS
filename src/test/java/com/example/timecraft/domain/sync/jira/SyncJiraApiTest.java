@@ -20,6 +20,7 @@ import com.example.timecraft.config.ApiTest;
 import com.example.timecraft.domain.auth.dto.AuthLogInRequest;
 import com.example.timecraft.domain.auth.dto.AuthSignUpRequest;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
+import com.example.timecraft.domain.jira_instance.dto.JiraInstanceSaveRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
@@ -84,6 +85,17 @@ public class SyncJiraApiTest {
         .andExpect(status().isOk()).andReturn();
 
     accessToken = JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
+    final JiraInstanceSaveRequest jiraInstanceSaveRequest = new JiraInstanceSaveRequest(null, "http://localhost:" + wm.port(), "email@gmail.com", "token");
+
+    wm.stubFor(WireMock.get(WireMock.urlMatching(".*/myself"))
+        .willReturn(ok())
+    );
+
+    mvc.perform(post("/config/jira/jiraInstance")
+            .content(objectMapper.writeValueAsString(jiraInstanceSaveRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
+        .andExpect(status().isOk());
   }
 
   @Test

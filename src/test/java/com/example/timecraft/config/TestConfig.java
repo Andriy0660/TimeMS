@@ -34,8 +34,6 @@ public class TestConfig {
   public WireMockServer wireMockServer(final AppProperties properties) {
     final WireMockServer wireMockServer = new WireMockServer(0);
     wireMockServer.start();
-    int port = wireMockServer.port();
-    properties.getJira().setUrl("http://localhost:" + port);
     return wireMockServer;
   }
 
