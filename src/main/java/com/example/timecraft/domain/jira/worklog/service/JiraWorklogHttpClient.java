@@ -1,32 +1,29 @@
 package com.example.timecraft.domain.jira.worklog.service;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.timecraft.core.config.AppProperties;
 import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.core.exception.UnauthorizedException;
 import com.example.timecraft.domain.jira.worklog.dto.JiraSearchResponse;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogCreateDto;
 import com.example.timecraft.domain.jira.worklog.dto.JiraWorklogUpdateDto;
+import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
+import com.example.timecraft.domain.jira_instance.api.UserJiraInstanceService;
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
 public class JiraWorklogHttpClient {
   private final RestTemplate restTemplate;
-  private final AppProperties props;
+  private final UserJiraInstanceService userJiraInstanceService;
 
   public String getWorklogsForIssue(final String issueKey) {
     final String url = buildUrl("/issue/" + issueKey + "/worklog");
@@ -108,7 +105,8 @@ public class JiraWorklogHttpClient {
   }
 
   private String buildUrl(final String path) {
-    return props.getJira().getUrl() + "/rest/api/3" + path;
+    final String baseUrl = userJiraInstanceService.getJiraInstance().getBaseUrl();
+    return baseUrl + "/rest/api/3" + path;
   }
 
   private HttpEntity<String> getHttpEntity() {
@@ -121,11 +119,11 @@ public class JiraWorklogHttpClient {
     return new HttpEntity<>(dto, headers);
   }
 
-  private HttpHeaders getHeaders() {
+  public HttpHeaders getHeaders() {
     final HttpHeaders headers = new HttpHeaders();
-    final String auth = props.getJira().getEmail() + ":" + props.getJira().getToken();
-    final String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
-    headers.set("Authorization", "Basic " + encodedAuth);
+    final String email = userJiraInstanceService.getJiraInstance().getEmail();
+    final String token = userJiraInstanceService.getJiraInstance().getToken();
+    headers.set("Authorization", "Basic " + JiraWorklogUtils.getAuthorizationHeader(email, token));
     headers.setContentType(MediaType.APPLICATION_JSON);
     return headers;
   }
