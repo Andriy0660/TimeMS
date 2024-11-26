@@ -9,12 +9,6 @@ const timeLogApi = {
     return data.items;
   },
 
-  getConfig: async () => {
-    if (!localStorage.getItem("token")) { return; }
-    const {data} = await axios.get(`/${key}/config`, {baseMsg: "Error while getting config"});
-    return data;
-  },
-
   getHoursForWeek: async (body) => {
     const params = new URLSearchParams({...body});
     const {data} = await axios.get(`/${key}/hoursForWeek`, {params, baseMsg: "Error while getting hours for week"});

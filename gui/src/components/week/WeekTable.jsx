@@ -3,7 +3,7 @@ import TableRow from "@mui/material/TableRow";
 import CustomTableCell from "./CustomTableCell.jsx";
 import TableBody from "@mui/material/TableBody";
 import Table from "@mui/material/Table";
-import {isExternalServiceSyncingEnabled, externalTimeLogTimeCf} from "../../config/config.js";
+import {isExternalServiceSyncingEnabled, externalServiceTimeCf} from "../../config/config.js";
 import SyncExternalTimeLogDuration from "../sync/SyncExternalTimeLogDuration.jsx";
 import dateTimeService from "../../service/dateTimeService.js";
 
@@ -28,7 +28,7 @@ export default function WeekTable({dayInfos, handleClickDate}) {
         <TableRow>
           {dayInfos.map(dayInfo => {
             const externalTimeLogDuration = dateTimeService.formatMinutesToHM(Math.round(
-              dateTimeService.getMinutesFromHMFormat(dayInfo.duration) / externalTimeLogTimeCf));
+              dateTimeService.getMinutesFromHMFormat(dayInfo.duration) / externalServiceTimeCf));
             return (
               <CustomTableCell isBold key={dayInfo.date}>
                 {dayInfo.duration}

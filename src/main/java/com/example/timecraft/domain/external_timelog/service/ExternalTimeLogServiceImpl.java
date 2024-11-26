@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.example.timecraft.domain.config.api.UserConfigService;
 import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogCreateFromTimeLogResponse;
 import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogListResponse;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class ExternalTimeLogServiceImpl implements ExternalTimeLogService {
   private final ExternalTimeLogRepository repository;
   private final ExternalTimeLogMapper mapper;
+  private final UserConfigService userConfigService;
 
   @Override
   public ExternalTimeLogListResponse list(final LocalDate date) {
@@ -32,7 +34,11 @@ public class ExternalTimeLogServiceImpl implements ExternalTimeLogService {
 
   @Override
   public ExternalTimeLogCreateFromTimeLogResponse createFromTimeLog(final ExternalTimeLogCreateFromTimeLogRequest request) {
+    final boolean externalServiceIncludeDescription = userConfigService.getIsExternalServiceIncludeDescription();
     ExternalTimeLogEntity entity = mapper.fromCreateFromTimeLogRequest(request);
+    if (!externalServiceIncludeDescription) {
+      entity.setDescription(null);
+    }
     entity = repository.save(entity);
     return mapper.toCreateResponse(entity);
   }

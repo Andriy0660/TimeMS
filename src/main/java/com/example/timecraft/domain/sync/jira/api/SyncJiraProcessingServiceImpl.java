@@ -5,11 +5,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.example.timecraft.core.config.AppProperties;
+import com.example.timecraft.domain.config.api.UserConfigService;
 import com.example.timecraft.domain.sync.jira.model.JiraSyncInfo;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
-import com.example.timecraft.domain.sync.model.SyncStatus;
 import com.example.timecraft.domain.sync.jira.util.SyncUtils;
+import com.example.timecraft.domain.sync.model.SyncStatus;
 import com.example.timecraft.domain.timelog.api.TimeLogSyncService;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekWithTicketsResponse;
@@ -24,13 +24,13 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService {
-  private final AppProperties props;
+  private final UserConfigService userConfigService;
   private final TimeLogSyncService timeLogSyncService;
   private final WorklogSyncService worklogSyncService;
 
   @Override
   public TimeLogListResponse processTimeLogDtos(final TimeLogListResponse response) {
-    final int offset = props.getConfig().getOffset();
+    final int offset = userConfigService.getOffsetHour();
     final List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
     return new TimeLogListResponse(
         timeLogDtos.stream().peek(timeLogDto ->
@@ -78,7 +78,6 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
 
   @Override
   public WorklogListResponse processWorklogDtos(final WorklogListResponse response) {
-    final int offset = props.getConfig().getOffset();
     final List<WorklogListResponse.WorklogDto> worklogDtos = response.getItems();
     return new WorklogListResponse(
         worklogDtos.stream().peek(worklogDto -> worklogDto.setJiraSyncInfo(JiraSyncInfo.builder()
@@ -109,7 +108,7 @@ public class SyncJiraProcessingServiceImpl implements SyncJiraProcessingService 
   }
 
   private boolean hasTimeLogsSyncStatusForDay(final LocalDate date, final SyncStatus syncStatus) {
-    final int offset = props.getConfig().getOffset();
+    final int offset = userConfigService.getOffsetHour();
     return timeLogSyncService.getAllByDate(date).stream().anyMatch(
         timeLogEntity -> getSyncStatus(
             TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),

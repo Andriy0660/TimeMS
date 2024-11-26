@@ -17,7 +17,7 @@ import LoadingPage from "../components/general/LoadingPage.jsx";
 import useProcessedTimeLogs from "../hooks/useProcessedTimeLogs.js";
 import useJiraSync from "../hooks/useJiraSync.js";
 import useWorklogMutations from "../hooks/useWorklogMutations.js";
-import {externalTimeLogTimeCf, isExternalServiceSyncingEnabled, isJiraSyncingEnabled} from "../config/config.js";
+import {externalServiceTimeCf, isExternalServiceSyncingEnabled, isJiraSyncingEnabled} from "../config/config.js";
 import dateTimeService from "../service/dateTimeService.js";
 import SyncInfoLabel from "../components/sync/SyncInfoLabel.jsx";
 import ExternalTimeLogList from "../components/externalTimeLog/ExternalTimeLogList.jsx";
@@ -131,7 +131,7 @@ export default function TimeLogPage() {
             <Tooltip title="External Service Time">
               <span>{isExternalServiceSyncingEnabled && isExternalServiceEditMode && <BigLabel className="mt-4" color="green">
                 {dateTimeService.formatMinutesToHM(
-                  timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, externalTimeLogTimeCf)
+                  timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, externalServiceTimeCf)
                 )}
               </BigLabel>
               }

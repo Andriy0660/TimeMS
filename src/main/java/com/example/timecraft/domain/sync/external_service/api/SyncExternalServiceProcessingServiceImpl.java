@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.example.timecraft.core.config.AppProperties;
+import com.example.timecraft.domain.config.api.UserConfigService;
 import com.example.timecraft.domain.external_timelog.api.ExternalTimeLogSyncService;
 import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogListResponse;
 import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogEntity;
@@ -28,11 +28,11 @@ import lombok.RequiredArgsConstructor;
 public class SyncExternalServiceProcessingServiceImpl implements SyncExternalServiceProcessingService {
   private final TimeLogSyncService timeLogSyncService;
   private final ExternalTimeLogSyncService externalTimeLogSyncService;
-  private final AppProperties props;
+  private final UserConfigService userConfigService;
 
   @Override
   public TimeLogListResponse processTimeLogDtos(final TimeLogListResponse response) {
-    final int offset = props.getConfig().getOffset();
+    final int offset = userConfigService.getOffsetHour();
     final List<TimeLogListResponse.TimeLogDto> timeLogDtos = response.getItems();
     return new TimeLogListResponse(
         timeLogDtos.stream().peek(timeLogDto ->
@@ -66,7 +66,7 @@ public class SyncExternalServiceProcessingServiceImpl implements SyncExternalSer
   }
 
   private boolean hasTimeLogsSyncStatusForDay(final LocalDate date, final SyncStatus syncStatus) {
-    final int offset = props.getConfig().getOffset();
+    final int offset = userConfigService.getOffsetHour();
     return timeLogSyncService.getAllByDate(date).stream().anyMatch(
         timeLogEntity -> getSyncStatus(
             TimeLogUtils.getProcessedDate(timeLogEntity.getDate(), timeLogEntity.getStartTime(), offset),
@@ -121,8 +121,7 @@ public class SyncExternalServiceProcessingServiceImpl implements SyncExternalSer
   }
 
   private SyncStatus getSyncStatus(final LocalDate date, final String description) {
-    final Boolean externalServiceIncludeDescription = props.getConfig().getExternalServiceIncludeDescription();
-
+    final boolean externalServiceIncludeDescription = userConfigService.getIsExternalServiceIncludeDescription();
     final List<TimeLogEntity> timeLogEntityList;
     final List<ExternalTimeLogEntity> externalTimeLogEntityList;
     if (externalServiceIncludeDescription) {
