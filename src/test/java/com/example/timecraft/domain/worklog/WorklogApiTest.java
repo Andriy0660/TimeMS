@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.example.timecraft.config.ApiTest;
 import com.example.timecraft.domain.auth.dto.AuthLogInRequest;
 import com.example.timecraft.domain.auth.dto.AuthSignUpRequest;
+import com.example.timecraft.domain.jira_instance.dto.JiraInstanceSaveRequest;
 import com.example.timecraft.domain.sync.jira.util.SyncJiraUtils;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogRequest;
 import com.example.timecraft.domain.worklog.dto.WorklogCreateFromTimeLogResponse;
@@ -34,6 +35,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.created;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
 import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.not;
@@ -62,18 +64,30 @@ public class WorklogApiTest {
   void setUp() throws Exception {
     final String email = Instancio.of(String.class).create();
     final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", email, "pass42243123");
-    mvc.perform(post("/auth/signUp")
+    mvc.perform(post("/auth/signup")
             .content(objectMapper.writeValueAsString(signUpRequest))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
-    final MvcResult result = mvc.perform(post("/auth/logIn")
+    final MvcResult result = mvc.perform(post("/auth/login")
             .content(objectMapper.writeValueAsString(logInRequest))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk()).andReturn();
 
     accessToken = JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
+
+    final JiraInstanceSaveRequest jiraInstanceSaveRequest = new JiraInstanceSaveRequest(null, "http://localhost:" + wm.port(), "email@gmail.com", "token");
+
+    wm.stubFor(WireMock.get(WireMock.urlMatching(".*/myself"))
+        .willReturn(ok())
+    );
+
+    mvc.perform(post("/config/jira/instance")
+            .content(objectMapper.writeValueAsString(jiraInstanceSaveRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
+        .andExpect(status().isOk());
   }
 
   @Test

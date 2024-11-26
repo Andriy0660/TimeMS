@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/tenant/2024/11-2024/TMC-57-user-config.yaml
   - include:
       file: db/changelog/tenant/2024/11-2024/TMC-57-user-config-2.yaml
+  - include:
+      file: db/changelog/tenant/2024/11-2024/TMC-57-custom-jira-instance.yaml

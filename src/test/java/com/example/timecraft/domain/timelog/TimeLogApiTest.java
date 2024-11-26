@@ -80,13 +80,13 @@ class TimeLogApiTest {
   void setUp() throws Exception {
     final String email = Instancio.of(String.class).create();
     final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", email, "pass42243123");
-    mvc.perform(post("/auth/signUp")
+    mvc.perform(post("/auth/signup")
             .content(objectMapper.writeValueAsString(signUpRequest))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
-    final MvcResult result = mvc.perform(post("/auth/logIn")
+    final MvcResult result = mvc.perform(post("/auth/login")
             .content(objectMapper.writeValueAsString(logInRequest))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk()).andReturn();
@@ -213,7 +213,7 @@ class TimeLogApiTest {
 
     TimeLogCreateFromWorklogRequest request = new TimeLogCreateFromWorklogRequest("TST-2", LocalDate.now(clock), startTime, "some descr", 3600);
 
-    mvc.perform(post("/time-logs/fromWorklog")
+    mvc.perform(post("/time-logs/from-worklog")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -283,7 +283,7 @@ class TimeLogApiTest {
     LocalDate endDate = LocalDate.now(clock).with(TemporalAdjusters.lastDayOfMonth()).plusDays(1);
     int initialSize = getSize(mvc, startDate, endDate, accessToken);
 
-    mvc.perform(post("/time-logs/importTimeLogs")
+    mvc.perform(post("/time-logs/import-time-logs")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -328,7 +328,7 @@ class TimeLogApiTest {
     final LocalDate monday = LocalDate.now(clock).with(DayOfWeek.MONDAY);
     final LocalDate sunday = LocalDate.now().with(DayOfWeek.SUNDAY);
 
-    MvcResult initialResult = mvc.perform(get("/time-logs/hoursForWeek")
+    MvcResult initialResult = mvc.perform(get("/time-logs/week/hours")
             .param("date", LocalDate.now(clock).toString())
             .param("includeTickets", "false")
             .contentType(MediaType.APPLICATION_JSON)
@@ -360,7 +360,7 @@ class TimeLogApiTest {
     String expectedMondayDuration = getDurationSum(initialMondayDuration, "2h 0m");
     String expectedSundayDuration = getDurationSum(initialSundayDuration, "1h 0m");
 
-    mvc.perform(get("/time-logs/hoursForWeek")
+    mvc.perform(get("/time-logs/week/hours")
             .param("date", LocalDate.now(clock).toString())
             .param("includeTickets", "false")
             .contentType(MediaType.APPLICATION_JSON)
@@ -379,7 +379,7 @@ class TimeLogApiTest {
     TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now().with(DayOfWeek.MONDAY), startTime), accessToken);
     TimeLogEntity timeLog3 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now().with(DayOfWeek.SUNDAY), startTime), accessToken);
 
-    mvc.perform(get("/time-logs/hoursForWeek")
+    mvc.perform(get("/time-logs/week/hours")
             .param("date", LocalDate.now(clock).toString())
             .param("includeTickets", "true")
             .contentType(MediaType.APPLICATION_JSON)
@@ -395,7 +395,7 @@ class TimeLogApiTest {
     final LocalTime startTime = SyncJiraUtils.DEFAULT_WORKLOG_START_TIME;
     final LocalDate firstDate = LocalDate.now().with(firstDayOfMonth());
 
-    MvcResult initialResult = mvc.perform(get("/time-logs/hoursForMonth")
+    MvcResult initialResult = mvc.perform(get("/time-logs/month/hours")
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -417,7 +417,7 @@ class TimeLogApiTest {
     TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(firstDate, startTime), accessToken);
     TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now().with(lastDayOfMonth()), startTime), accessToken);
 
-    mvc.perform(get("/time-logs/hoursForMonth")
+    mvc.perform(get("/time-logs/month/hours")
             .param("date", LocalDate.now(clock).toString())
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -472,7 +472,7 @@ class TimeLogApiTest {
     TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime), accessToken);
     TimeLogSetGroupDescrRequest request = new TimeLogSetGroupDescrRequest(List.of(timeLog1.getId()), "New description");
 
-    mvc.perform(patch("/time-logs/setGroupDescription")
+    mvc.perform(patch("/time-logs/set-group-description")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -493,7 +493,7 @@ class TimeLogApiTest {
     TimeLogEntity timeLog2 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime.plusHours(2)), accessToken);
     TimeLogSetGroupDescrRequest request = new TimeLogSetGroupDescrRequest(List.of(timeLog1.getId(), timeLog2.getId()), "New description");
 
-    mvc.perform(patch("/time-logs/setGroupDescription")
+    mvc.perform(patch("/time-logs/set-group-description")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -547,7 +547,7 @@ class TimeLogApiTest {
     TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime), accessToken);
     TimeLogChangeDateRequest request = new TimeLogChangeDateRequest(true);
 
-    mvc.perform(patch("/time-logs/{timeLogId}/changeDate", timeLog1.getId())
+    mvc.perform(patch("/time-logs/{timeLogId}/change-date", timeLog1.getId())
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -567,7 +567,7 @@ class TimeLogApiTest {
     TimeLogEntity timeLog1 = timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), startTime), accessToken);
     TimeLogChangeDateRequest request = new TimeLogChangeDateRequest(false);
 
-    mvc.perform(patch("/time-logs/{timeLogId}/changeDate", timeLog1.getId())
+    mvc.perform(patch("/time-logs/{timeLogId}/change-date", timeLog1.getId())
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))

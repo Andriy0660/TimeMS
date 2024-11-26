@@ -54,7 +54,7 @@ public class MultiTenantApiTest {
     assertThat(schemaExists).isFalse();
 
     final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", email, "pass42243123");
-    mvc.perform(post("/auth/signUp")
+    mvc.perform(post("/auth/signup")
         .content(objectMapper.writeValueAsString(signUpRequest))
         .contentType(MediaType.APPLICATION_JSON));
 
@@ -74,16 +74,16 @@ public class MultiTenantApiTest {
     final AuthSignUpRequest signUpRequestUser1 = new AuthSignUpRequest("user", "1", "user1@gmail.com", "user1");
     final AuthSignUpRequest signUpRequestUser2 = new AuthSignUpRequest("user", "2", "user2@gmail.com", "user2");
 
-    mvc.perform(post("/auth/signUp")
+    mvc.perform(post("/auth/signup")
         .content(objectMapper.writeValueAsString(signUpRequestUser1))
         .contentType(MediaType.APPLICATION_JSON));
 
-    mvc.perform(post("/auth/signUp")
+    mvc.perform(post("/auth/signup")
         .content(objectMapper.writeValueAsString(signUpRequestUser2))
         .contentType(MediaType.APPLICATION_JSON));
 
     final AuthLogInRequest logInRequest1 = new AuthLogInRequest(signUpRequestUser1.getEmail(), signUpRequestUser1.getPassword());
-    final MvcResult result1 = mvc.perform(post("/auth/logIn")
+    final MvcResult result1 = mvc.perform(post("/auth/login")
             .content(objectMapper.writeValueAsString(logInRequest1))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk()).andReturn();
@@ -93,7 +93,7 @@ public class MultiTenantApiTest {
     timeLogService.saveTimeLog(createTimeLogCreateRequest(LocalDate.now(clock), LocalTime.of(11, 0)), accessTokenUser1);
 
     final AuthLogInRequest logInRequest2 = new AuthLogInRequest(signUpRequestUser2.getEmail(), signUpRequestUser2.getPassword());
-    final MvcResult result2 = mvc.perform(post("/auth/logIn")
+    final MvcResult result2 = mvc.perform(post("/auth/login")
             .content(objectMapper.writeValueAsString(logInRequest2))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk()).andReturn();

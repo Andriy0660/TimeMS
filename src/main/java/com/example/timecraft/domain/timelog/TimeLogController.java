@@ -53,27 +53,27 @@ public class TimeLogController {
     return timeLogService.create(request);
   }
 
-  @PostMapping("/fromWorklog")
+  @PostMapping("/from-worklog")
   public TimeLogCreateFormWorklogResponse createFromWorklog(@RequestBody final TimeLogCreateFromWorklogRequest request) {
     return timeLogService.createFromWorklog(request);
   }
 
-  @PostMapping("/importTimeLogs")
+  @PostMapping("/import-time-logs")
   public void importTimeLogs(@RequestBody final TimeLogImportRequest request) {
     timeLogService.importTimeLogs(request);
   }
 
-  @PostMapping("/divide/{timeLogId}")
-  public void divide(@PathVariable final long timeLogId) {
-    timeLogService.divide(timeLogId);
+  @PostMapping("/divide/{id}")
+  public void divide(@PathVariable final long id) {
+    timeLogService.divide(id);
   }
 
-  @GetMapping("/{timeLogId}")
-  public TimeLogGetResponse get(@PathVariable final long timeLogId) {
-    return timeLogService.get(timeLogId);
+  @GetMapping("/{id}")
+  public TimeLogGetResponse get(@PathVariable final long id) {
+    return timeLogService.get(id);
   }
 
-  @GetMapping("/hoursForWeek")
+  @GetMapping("/week/hours")
   public TimeLogWeekResponse getHoursForWeek(@RequestParam final LocalDate date, @RequestParam final Boolean includeTickets) {
     if (includeTickets) {
       return syncExternalServiceProcessingService.processWeekDayInfos(
@@ -86,7 +86,7 @@ public class TimeLogController {
     }
   }
 
-  @GetMapping("/hoursForMonth")
+  @GetMapping("/month/hours")
   public TimeLogHoursForMonthResponse getHoursForMonth(@RequestParam final LocalDate date) {
     return syncExternalServiceProcessingService.processMonthDayInfos(
         syncJiraProcessingService.processMonthDayInfos(
@@ -95,24 +95,24 @@ public class TimeLogController {
     );
   }
 
-  @PutMapping("/{timeLogId}")
-  public TimeLogUpdateResponse update(@PathVariable final long timeLogId, @RequestBody final TimeLogUpdateRequest request) {
-    return timeLogService.update(timeLogId, request);
+  @PutMapping("/{id}")
+  public TimeLogUpdateResponse update(@PathVariable final long id, @RequestBody final TimeLogUpdateRequest request) {
+    return timeLogService.update(id, request);
   }
 
-  @DeleteMapping("/{timeLogId}")
-  public void delete(@PathVariable final long timeLogId) {
-    timeLogService.delete(timeLogId);
+  @DeleteMapping("/{id}")
+  public void delete(@PathVariable final long id) {
+    timeLogService.delete(id);
   }
 
-  @PatchMapping("/setGroupDescription")
+  @PatchMapping("/set-group-description")
   public void setGroupDescription(@RequestBody final TimeLogSetGroupDescrRequest request) {
     timeLogService.setGroupDescription(request);
   }
 
-  @PatchMapping("/{timeLogId}/changeDate")
-  public void changeDate(@PathVariable final long timeLogId, @RequestBody final TimeLogChangeDateRequest request) {
-    timeLogService.changeDate(timeLogId, request);
+  @PatchMapping("/{id}/change-date")
+  public void changeDate(@PathVariable final long id, @RequestBody final TimeLogChangeDateRequest request) {
+    timeLogService.changeDate(id, request);
   }
 
 }

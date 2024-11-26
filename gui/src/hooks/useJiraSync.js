@@ -3,6 +3,7 @@ import timeLogApi from "../api/timeLogApi.js";
 import worklogApi from "../api/worklogApi.js";
 import useAppContext from "../context/useAppContext.js";
 import syncJiraApi from "../api/syncJiraApi.js";
+import {isJiraSyncingEnabled} from "../config/config.js";
 
 export default function useJiraSync() {
   const queryClient = useQueryClient();
@@ -35,6 +36,7 @@ export default function useJiraSync() {
     queryFn: () => syncJiraApi.getProgress(),
     initialData: () => 0,
     refetchInterval: (data) => isSyncingLaunched || data.state.data.inProgress ? 300 : false,
+    enabled: isJiraSyncingEnabled,
     refetchOnWindowFocus: false,
     retryDelay: 300
   });

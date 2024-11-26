@@ -30,7 +30,3 @@ app:
     allowed-origins:
       - http://localhost:*
       - http://127.0.0.1:*
-  jira:
-    url: https://craftcodelab.atlassian.net
-    email: <EMAIL>
-    token: <JIRA_TOKEN>

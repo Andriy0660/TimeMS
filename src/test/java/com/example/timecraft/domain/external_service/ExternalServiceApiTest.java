@@ -50,13 +50,13 @@ public class ExternalServiceApiTest {
   void setUp() throws Exception {
     final String email = Instancio.of(String.class).create();
     final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", email, "pass42243123");
-    mvc.perform(post("/auth/signUp")
+    mvc.perform(post("/auth/signup")
             .content(objectMapper.writeValueAsString(signUpRequest))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
-    final MvcResult result = mvc.perform(post("/auth/logIn")
+    final MvcResult result = mvc.perform(post("/auth/login")
             .content(objectMapper.writeValueAsString(logInRequest))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk()).andReturn();

@@ -14,7 +14,6 @@ import lombok.Data;
 public class AppProperties {
   private Config config;
   private Cors cors;
-  private Jira jira;
 
   @Data
   public static class Config {

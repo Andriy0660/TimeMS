@@ -20,6 +20,7 @@ import com.example.timecraft.config.ApiTest;
 import com.example.timecraft.domain.auth.dto.AuthLogInRequest;
 import com.example.timecraft.domain.auth.dto.AuthSignUpRequest;
 import com.example.timecraft.domain.jira.worklog.util.JiraWorklogUtils;
+import com.example.timecraft.domain.jira_instance.dto.JiraInstanceSaveRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncFromJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncIntoJiraRequest;
 import com.example.timecraft.domain.sync.jira.dto.SyncJiraProgressResponse;
@@ -72,18 +73,29 @@ public class SyncJiraApiTest {
   void setUp() throws Exception {
     final String email = Instancio.of(String.class).create();
     final AuthSignUpRequest signUpRequest = new AuthSignUpRequest("someName", "lastNAme", email, "pass42243123");
-    mvc.perform(post("/auth/signUp")
+    mvc.perform(post("/auth/signup")
             .content(objectMapper.writeValueAsString(signUpRequest))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
 
     final AuthLogInRequest logInRequest = new AuthLogInRequest(signUpRequest.getEmail(), signUpRequest.getPassword());
-    final MvcResult result = mvc.perform(post("/auth/logIn")
+    final MvcResult result = mvc.perform(post("/auth/login")
             .content(objectMapper.writeValueAsString(logInRequest))
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk()).andReturn();
 
     accessToken = JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
+    final JiraInstanceSaveRequest jiraInstanceSaveRequest = new JiraInstanceSaveRequest(null, "http://localhost:" + wm.port(), "email@gmail.com", "token");
+
+    wm.stubFor(WireMock.get(WireMock.urlMatching(".*/myself"))
+        .willReturn(ok())
+    );
+
+    mvc.perform(post("/config/jira/instance")
+            .content(objectMapper.writeValueAsString(jiraInstanceSaveRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", accessToken))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -100,7 +112,7 @@ public class SyncJiraApiTest {
 
     int initialSize = TimeLogApiTestUtils.getSize(mvc, LocalDate.now(clock), LocalDate.now(clock).plusDays(1), accessToken);
 
-    mvc.perform(post("/syncJira/from")
+    mvc.perform(post("/sync/jira/from")
             .content(objectMapper.writeValueAsString(new SyncFromJiraRequest(ticket, LocalDate.now(clock), descr)))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -159,7 +171,7 @@ public class SyncJiraApiTest {
         .willReturn(noContent()));
 
     int initialSize = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock), accessToken);
-    mvc.perform(post("/syncJira/to")
+    mvc.perform(post("/sync/jira/to")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -187,7 +199,7 @@ public class SyncJiraApiTest {
     wm.stubFor(WireMock.delete(urlMatching(".*/issue/" + ticket + "/worklog/.*"))
         .willReturn(WireMock.status(404)));
 
-    mvc.perform(post("/syncJira/to")
+    mvc.perform(post("/sync/jira/to")
             .content(objectMapper.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
@@ -249,7 +261,7 @@ public class SyncJiraApiTest {
         )
     );
 
-    mvc.perform(post("/syncJira/syncAllWorklogs")
+    mvc.perform(post("/sync/jira/worklogs")
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
         .andExpect(status().isOk());
@@ -297,7 +309,7 @@ public class SyncJiraApiTest {
     );
     int sizeBeforeSyncing = WorklogApiTestUtils.getSize(mvc, LocalDate.now(clock), accessToken);
 
-    mvc.perform(post("/syncJira/{ticket}", ticket)
+    mvc.perform(post("/sync/jira/worklogs/{ticket}", ticket)
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
         .andExpect(status().isOk());
@@ -447,7 +459,7 @@ public class SyncJiraApiTest {
         )
     );
 
-    mvc.perform(post("/syncJira/syncAllWorklogs")
+    mvc.perform(post("/sync/jira/worklogs")
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
         .andExpect(status().isOk());
@@ -455,7 +467,7 @@ public class SyncJiraApiTest {
         .atMost(30, TimeUnit.SECONDS)
         .pollInterval(1, TimeUnit.SECONDS)
         .until(() -> {
-          MockHttpServletResponse response = mvc.perform(get("/syncJira/progress")
+          MockHttpServletResponse response = mvc.perform(get("/sync/jira/progress")
                   .contentType(MediaType.APPLICATION_JSON)
                   .header("Authorization", accessToken))
               .andReturn()
@@ -466,7 +478,7 @@ public class SyncJiraApiTest {
           return !progress.isInProgress() && progress.getProgress() == 100.0;
         });
 
-    MockHttpServletResponse finalResponse = mvc.perform(get("/syncJira/progress")
+    MockHttpServletResponse finalResponse = mvc.perform(get("/sync/jira/progress")
             .contentType(MediaType.APPLICATION_JSON)
             .header("Authorization", accessToken))
         .andExpect(status().isOk())

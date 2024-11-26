@@ -1,9 +1,11 @@
 package com.example.timecraft.domain.jira.worklog.util;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,11 @@ import static com.atlassian.adf.model.node.Paragraph.p;
 
 public class JiraWorklogUtils {
   public static final DateTimeFormatter JIRA_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+
+  public static String getAuthorizationHeader(final String email, final String token) {
+    final String auth = email + ":" + token;
+    return Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+  }
 
   public static String getTextFromAdf(final JsonNode node) {
     final StringBuilder text = new StringBuilder();

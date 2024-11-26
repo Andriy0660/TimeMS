@@ -8,11 +8,13 @@ import useAsyncCall from "../hooks/useAsyncCall.js";
 import ConfigTimeTab from "../components/config/ConfigTimeTab.jsx";
 import ConfigJiraTab from "../components/config/ConfigJiraTab.jsx";
 import ConfigExternalServiceTab from "../components/config/ConfigExternalServiceTab.jsx";
+import useJiraInstanceMutations from "../hooks/useJiraInstanceMutations.js";
 
 export default function ConfigPage() {
   const {addAlert} = useAppContext();
 
   const {onTimeConfigUpdate, onJiraConfigUpdate, onExternalServiceConfigUpdate} = useConfigMutations();
+  const {onSave: onJiraInstanceSave, onDelete: onJiraInstanceDelete} = useJiraInstanceMutations();
 
   const {execute: updateTimeConfig, isExecuting: isTimeConfigUpdating} = useAsyncCall({
     fn: onTimeConfigUpdate,
@@ -26,6 +28,14 @@ export default function ConfigPage() {
     fn: onExternalServiceConfigUpdate,
   })
 
+  const {execute: saveJiraInstance, isExecuting: isJiraInstanceCreating} = useAsyncCall({
+    fn: onJiraInstanceSave,
+  })
+
+  const {execute: deleteJiraInstance, isExecuting: isJiraInstanceDeleting} = useAsyncCall({
+    fn: onJiraInstanceDelete,
+  })
+
   const {
     data: config,
     isPending: isConfigFetching,
@@ -36,6 +46,16 @@ export default function ConfigPage() {
     retryDelay: 300,
   });
 
+  const {
+    data: jiraInstance,
+    isPending: isJiraInstanceFetching,
+    error: jiraInstanceFetchingError
+  } = useQuery({
+    queryKey: [configApi.key, "jiraInstance"],
+    queryFn: () => configApi.getJiraInstance(),
+    retryDelay: 300,
+  });
+
   useEffect(() => {
     if (configFetchingError) {
       addAlert({
@@ -43,7 +63,13 @@ export default function ConfigPage() {
         type: "error"
       });
     }
-  }, [configFetchingError]);
+    if (jiraInstanceFetchingError) {
+      addAlert({
+        text: `${jiraInstanceFetchingError.displayMessage} Try agail later`,
+        type: "error"
+      });
+    }
+  }, [configFetchingError, jiraInstanceFetchingError]);
 
   const [tabIndex, setTabIndex] = useState(0);
 
@@ -68,17 +94,18 @@ export default function ConfigPage() {
     setIsExternalServiceIncludeDescription(config.isExternalServiceIncludeDescription)
   }, [config])
 
-  if (isConfigFetching) {
+  if (isConfigFetching || isJiraInstanceFetching) {
     return <div className="text-center">
       <CircularProgress />
     </div>
   }
 
-
   return (
     <div className="mx-auto p-4 w-3/4">
       <Typography variant="h4" className="mb-4 text-center font-bold text-blue-500">Configuration</Typography>
-      {isTimeConfigUpdating || isJiraConfigUpdating || isExternalServiceConfigUpdating && <LinearProgress />}
+      {isTimeConfigUpdating || isJiraConfigUpdating || isExternalServiceConfigUpdating || isJiraInstanceCreating || isJiraInstanceDeleting
+        && <LinearProgress />
+      }
       <Tabs
         value={tabIndex}
         onChange={(event, newValue) => setTabIndex(newValue)}
@@ -98,11 +125,14 @@ export default function ConfigPage() {
       )}
 
       {tabIndex === 1 && (
-        <ConfigJiraTab isJiraEnabled={isJiraEnabled} setIsJiraEnabled={setIsJiraEnabled} updateJiraConfig={updateJiraConfig} />
+        <ConfigJiraTab jiraInstance={jiraInstance} onSave={saveJiraInstance} onDelete={deleteJiraInstance}
+                       isJiraEnabled={isJiraEnabled} setIsJiraEnabled={setIsJiraEnabled}
+                       updateJiraConfig={updateJiraConfig} />
       )}
 
       {tabIndex === 2 && (
-        <ConfigExternalServiceTab isExternalServiceEnabled={isExternalServiceEnabled} setIsExternalServiceEnabled={setIsExternalServiceEnabled}
+        <ConfigExternalServiceTab isExternalServiceEnabled={isExternalServiceEnabled}
+                                  setIsExternalServiceEnabled={setIsExternalServiceEnabled}
                                   isExternalServiceIncludeDescription={isExternalServiceIncludeDescription}
                                   setIsExternalServiceIncludeDescription={setIsExternalServiceIncludeDescription}
                                   externalServiceTimeCf={externalServiceTimeCf} setExternalServiceTimeCf={setExternalServiceTimeCf}

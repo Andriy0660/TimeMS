@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/syncExternalService")
+@RequestMapping("/sync/external-service")
 public class SyncExternalServiceController {
   private final SyncExternalTimeLogService syncExternalTimeLogService;
 
