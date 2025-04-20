@@ -3,12 +3,12 @@ server:
 
 spring:
   application:
-    name: time-craft
+    name: time-ms
   datasource:
     driver-class-name: org.postgresql.Driver
-    username: time-craft
-    password: time-craft
-    url: jdbc:postgresql://localhost:5441/time-craft
+    username: time-ms
+    password: time-ms
+    url: jdbc:postgresql://localhost:5442/time-ms
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     database: postgresql
