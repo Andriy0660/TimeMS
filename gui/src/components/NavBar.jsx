@@ -83,13 +83,13 @@ export default function NavBar() {
         </ListItem>
         }
 
-        <ListItem disablePadding>
-          <Link to="/app/info" className="text-inherit no-underline w-full">
-            <ListItemButton>
-              <ListItemText primary="Info" />
-            </ListItemButton>
-          </Link>
-        </ListItem>
+        {/*<ListItem disablePadding>*/}
+        {/*  <Link to="/app/info" className="text-inherit no-underline w-full">*/}
+        {/*    <ListItemButton>*/}
+        {/*      <ListItemText primary="Info" />*/}
+        {/*    </ListItemButton>*/}
+        {/*  </Link>*/}
+        {/*</ListItem>*/}
 
         <ListItem disablePadding>
           <Link to="/app/config" className="text-inherit no-underline w-full">

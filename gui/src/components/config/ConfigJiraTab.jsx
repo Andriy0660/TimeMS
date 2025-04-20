@@ -67,25 +67,25 @@ export default function ConfigJiraTab({isJiraEnabled, onSave, onDelete, setIsJir
     <Card className="mb-4">
       <CardContent>
         <Typography variant="h6">Jira Integration</Typography>
-        <FormControlLabel
-          className="mt-2"
-          control={<Switch checked={isJiraEnabled} onChange={() => {
-            setIsJiraEnabled(!isJiraEnabled);
-          }} />}
-          label="Enable Jira Synchronization"
-        />
+        {/*<FormControlLabel*/}
+        {/*  className="mt-2"*/}
+        {/*  control={<Switch checked={isJiraEnabled} onChange={() => {*/}
+        {/*    setIsJiraEnabled(!isJiraEnabled);*/}
+        {/*  }} />}*/}
+        {/*  label="Enable Jira Synchronization"*/}
+        {/*/>*/}
       </CardContent>
       <CardActions className="ml-2">
         <div className="flex flex-col">
-          <div className="mb-4">
-            <Button variant="contained" color="primary"
-                    onClick={async () => {
-                      await updateJiraConfig({isJiraEnabled});
-                      await initializeConfig();
-                      forceRender();
-                    }}
-            >Save</Button>
-          </div>
+          {/*<div className="mb-4">*/}
+          {/*  <Button variant="contained" color="primary"*/}
+          {/*          onClick={async () => {*/}
+          {/*            await updateJiraConfig({isJiraEnabled});*/}
+          {/*            await initializeConfig();*/}
+          {/*            forceRender();*/}
+          {/*          }}*/}
+          {/*  >Save</Button>*/}
+          {/*</div>*/}
           <div>
             <Button
               variant="contained"

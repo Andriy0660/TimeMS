@@ -10,7 +10,7 @@ const worklogService = {
     if (tickets.length === 0) {
       return worklogs;
     } else {
-      return worklogs.filter(worklog => tickets.some(ticket => worklog.ticket?.startsWith(ticket)));
+      return worklogs.filter(worklog => tickets.some(ticket => worklog.ticket === (ticket)));
     }
   },
 

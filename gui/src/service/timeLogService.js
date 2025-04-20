@@ -65,7 +65,7 @@ const timeLogService = {
     if (tickets.length === 0) {
       return timeLogs;
     } else {
-      let filtered = timeLogs.filter(timeLog => tickets.some(ticket => timeLog.ticket?.startsWith(ticket)));
+      let filtered = timeLogs.filter(timeLog => tickets.some(ticket => timeLog.ticket === (ticket)));
       if (tickets.includes("Without ticket")) {
         filtered = filtered.concat(this.getAllWithoutTicket(timeLogs))
       }
@@ -129,7 +129,7 @@ const timeLogService = {
   },
 
   extractTickets(timeLogs) {
-    const prefixes = timeLogs?.filter(timeLog => timeLog.ticket).map(timeLog => timeLog.ticket.split('-')[0]);
+    const prefixes = timeLogs?.filter(timeLog => timeLog.ticket).map(timeLog => timeLog.ticket);
     if (timeLogs?.some(timeLog => timeLog.ticket === null)) {
       prefixes.push("Without ticket");
     }

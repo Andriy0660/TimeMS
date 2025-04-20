@@ -20,30 +20,30 @@ export default function ConfigExternalServiceTab({isExternalServiceEnabled, setI
           label="Enable External Service Synchronization"
         />
 
-        <FormControlLabel
-          className="mt-2"
-          control={<Switch checked={isExternalServiceIncludeDescription}
-                           onChange={() => setIsExternalServiceIncludeDescription(!isExternalServiceIncludeDescription)} />}
-          label="Include description"
-        />
+        {/*<FormControlLabel*/}
+        {/*  className="mt-2"*/}
+        {/*  control={<Switch checked={isExternalServiceIncludeDescription}*/}
+        {/*                   onChange={() => setIsExternalServiceIncludeDescription(!isExternalServiceIncludeDescription)} />}*/}
+        {/*  label="Include description"*/}
+        {/*/>*/}
 
-        <TextField
-          error={externalServiceTimeCfError}
-          label="External Service Time Configuration Factor"
-          value={externalServiceTimeCf}
-          onChange={(e) => {
-            const newExternalServiceTimeCf = e.target.value;
-            const isValidNumber = /^\d+(\.\d+)?$/.test(newExternalServiceTimeCf);
-            if (!isValidNumber || newExternalServiceTimeCf <= 0) {
-              setExternalServiceTimeCfError(true);
-            } else {
-              setExternalServiceTimeCfError(false);
-            }
-            setExternalServiceTimeCf(newExternalServiceTimeCf);
-          }}
-          fullWidth
-          className="mt-4"
-        />
+        {/*<TextField*/}
+        {/*  error={externalServiceTimeCfError}*/}
+        {/*  label="External Service Time Configuration Factor"*/}
+        {/*  value={externalServiceTimeCf}*/}
+        {/*  onChange={(e) => {*/}
+        {/*    const newExternalServiceTimeCf = e.target.value;*/}
+        {/*    const isValidNumber = /^\d+(\.\d+)?$/.test(newExternalServiceTimeCf);*/}
+        {/*    if (!isValidNumber || newExternalServiceTimeCf <= 0) {*/}
+        {/*      setExternalServiceTimeCfError(true);*/}
+        {/*    } else {*/}
+        {/*      setExternalServiceTimeCfError(false);*/}
+        {/*    }*/}
+        {/*    setExternalServiceTimeCf(newExternalServiceTimeCf);*/}
+        {/*  }}*/}
+        {/*  fullWidth*/}
+        {/*  className="mt-4"*/}
+        {/*/>*/}
       </CardContent>
       <CardActions className="ml-2">
         <Button

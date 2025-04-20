@@ -37,7 +37,7 @@ databaseChangeLog:
               - column:
                   name: is_jira_enabled
                   type: boolean
-                  defaultValue: false
+                  defaultValue: true
                   constraints:
                     nullable: false
               - column:
@@ -73,7 +73,7 @@ databaseChangeLog:
                   value: 18
               - column:
                   name: is_jira_enabled
-                  value: false
+                  value: true
               - column:
                   name: is_external_service_enabled
                   value: false

@@ -38,10 +38,10 @@ function App() {
           path: "/app/syncWorklogs",
           element: <SyncPage />,
         },
-        {
-          path: "/app/info",
-          element: <InfoPage />,
-        },
+        // {
+        //   path: "/app/info",
+        //   element: <InfoPage />,
+        // },
         {
           path: "/app/login",
           element: <LogInPage />,

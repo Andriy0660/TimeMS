@@ -33,4 +33,4 @@ databaseChangeLog:
             columns:
               - column:
                   name: is_jira_enabled
-                  value: false
+                  value: true
