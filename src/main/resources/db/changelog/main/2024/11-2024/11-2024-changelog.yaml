@@ -1,9 +1,0 @@
-databaseChangeLog:
-  - include:
-      file: db/changelog/main/2024/11-2024/TMC-16-multitenant.yaml
-  - include:
-      file: db/changelog/main/2024/11-2024/TMC-16-multitenant-2.yaml
-  - include:
-      file: db/changelog/main/2024/11-2024/TMC-16-multitenant-3.yaml
-  - include:
-      file: db/changelog/main/2024/11-2024/TMC-15-login-google.yaml

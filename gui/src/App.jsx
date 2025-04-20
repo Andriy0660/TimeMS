@@ -1,3 +1,4 @@
+// gui/src/App.jsx
 import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom";
 import InfoPage from "./pages/InfoPage.jsx";
 import TimeLogPage from "./pages/TimeLogPage.jsx";
@@ -8,6 +9,31 @@ import SyncPage from "./pages/SyncPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import LogInPage from "./pages/LogInPage.jsx";
 import ConfigPage from "./pages/ConfigPage.jsx";
+import NotAuthorizedPage from "./pages/NotAuthorizedPage.jsx";
+import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
+import ManagerPage from "./pages/ManagerPage.jsx";
+import AdminPage from "./pages/AdminPage.jsx";
+import useAuthInfo from "./hooks/useAuthInfo.js";
+import LoadingPage from "./pages/LoadingPage.jsx";
+
+function RoleBasedRedirect() {
+  const { user, isLoading } = useAuthInfo(); // Отримуємо дані користувача через ваш хук
+  // Повертаємо завантажувальний стан, якщо дані ще не отримані
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  // Перевіряємо роль користувача і перенаправляємо відповідно
+  if (user?.roles?.includes("ROLE_ADMIN")) {
+    return <Navigate replace to="/app/admin" />;
+  } else if (user?.roles?.includes("ROLE_MANAGER")) {
+    return <Navigate replace to="/app/manager" />;
+  } else {
+    // Для звичайних користувачів або якщо роль не визначена
+    return <Navigate replace to="/app/timelog" />;
+  }
+}
+
 function App() {
   const router = createBrowserRouter([
     {
@@ -20,28 +46,24 @@ function App() {
       children: [
         {
           path: "/app",
-          element: <Navigate replace to="/app/timelog" />,
+          element: <RoleBasedRedirect />, // Використовуємо наш новий компонент
         },
         {
           path: "/app/timelog",
-          element: <TimeLogPage />,
+          element: <ProtectedRoute role="ROLE_USER"><TimeLogPage /></ProtectedRoute>, // Захищаємо для звичайних користувачів
         },
         {
           path: "/app/weekview",
-          element: <WeekPage />,
+          element: <ProtectedRoute role="ROLE_USER"><WeekPage /></ProtectedRoute>,
         },
         {
           path: "/app/monthview",
-          element: <MonthPage />,
+          element: <ProtectedRoute role="ROLE_USER"><MonthPage /></ProtectedRoute>,
         },
         {
           path: "/app/syncWorklogs",
-          element: <SyncPage />,
+          element: <ProtectedRoute role="ROLE_USER"><SyncPage /></ProtectedRoute>,
         },
-        // {
-        //   path: "/app/info",
-        //   element: <InfoPage />,
-        // },
         {
           path: "/app/login",
           element: <LogInPage />,
@@ -52,7 +74,19 @@ function App() {
         },
         {
           path: "/app/config",
-          element: <ConfigPage />,
+          element: <ProtectedRoute><ConfigPage /></ProtectedRoute>, // Загальний доступ для авторизованих
+        },
+        {
+          path: "/app/admin",
+          element: <ProtectedRoute role="ROLE_ADMIN"><AdminPage /></ProtectedRoute>,
+        },
+        {
+          path: "/app/manager",
+          element: <ProtectedRoute role="ROLE_MANAGER"><ManagerPage /></ProtectedRoute>,
+        },
+        {
+          path: "/app/not-authorized",
+          element: <NotAuthorizedPage />,
         },
       ],
     },

@@ -1,0 +1,85 @@
+databaseChangeLog:
+  - changeSet:
+      id: user-config
+      author: Andrii Snovyda
+      changes:
+        - createTable:
+            tableName: config
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: day_offset_hour
+                  type: int
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+                    checkConstraint: "day_offset_hour >= 0 AND day_offset_hour <= 12"
+              - column:
+                  name: working_day_start_hour
+                  type: int
+                  defaultValue: 9
+                  constraints:
+                    nullable: false
+                    checkConstraint: "working_day_start_hour >= 0 AND working_day_start_hour <= 12"
+              - column:
+                  name: working_day_end_hour
+                  type: int
+                  defaultValue: 18
+                  constraints:
+                    nullable: false
+                    checkConstraint: "working_day_end_hour >= 12 AND working_day_end_hour <= 23"
+              - column:
+                  name: is_jira_enabled
+                  type: boolean
+                  defaultValue: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_external_service_enabled
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: external_service_time_cf
+                  type: int
+                  defaultValue: 1
+                  constraints:
+                    nullable: false
+                    checkConstraint: "external_service_time_cf > 0"
+              - column:
+                  name: is_external_service_include_description
+                  type: boolean
+                  defaultValue: true
+                  constraints:
+                    nullable: false
+        - insert:
+            tableName: config
+            columns:
+              - column:
+                  name: day_offset_hour
+                  value: 0
+              - column:
+                  name: working_day_start_hour
+                  value: 9
+              - column:
+                  name: working_day_end_hour
+                  value: 18
+              - column:
+                  name: is_jira_enabled
+                  value: true
+              - column:
+                  name: is_external_service_enabled
+                  value: false
+              - column:
+                  name: external_service_time_cf
+                  value: 1
+              - column:
+                  name: is_external_service_include_description
+                  value: true

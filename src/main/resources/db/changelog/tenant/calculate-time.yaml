@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: calculate-time
+      author: Andrii Snovyda
+      changes:
+        - dropColumn:
+            columnName: time_spent_seconds
+            tableName: timelogs

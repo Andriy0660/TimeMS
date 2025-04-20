@@ -1,0 +1,122 @@
+databaseChangeLog:
+  - changeSet:
+      id: roles-and-audit
+      author: Andrii Snovyda
+      changes:
+        - createTable:
+            tableName: role
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+        - createTable:
+            tableName: user_role
+            columns:
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_role_user
+                    references: app_user(id)
+              - column:
+                  name: role_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_role_role
+                    references: role(id)
+
+        - addPrimaryKey:
+            tableName: user_role
+            columnNames: user_id, role_id
+            constraintName: pk_user_role
+
+        - createTable:
+            tableName: audit_log
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_audit_user
+                    references: app_user(id)
+              - column:
+                  name: action
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: entity_type
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: entity_id
+                  type: varchar(100)
+              - column:
+                  name: details
+                  type: text
+              - column:
+                  name: tenant_id
+                  type: bigint
+              - column:
+                  name: ip_address
+                  type: varchar(50)
+              - column:
+                  name: timestamp
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addColumn:
+            tableName: app_user
+            columns:
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: name
+                  value: "ROLE_USER"
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: name
+                  value: "ROLE_MANAGER"
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: name
+                  value: "ROLE_ADMIN"
+
+        - sql:
+            sql: INSERT INTO user_role (user_id, role_id) SELECT id, (SELECT id FROM role WHERE name = 'ROLE_USER') FROM app_user

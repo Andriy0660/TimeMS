@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: app-skeleton
+      author: Andrii Snovyda
+      changes:
+        - createTable:
+            tableName: log_entries
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: ticket_number
+                  type: varchar
+              - column:
+                  name: description
+                  type: varchar
+              - column:
+                  name: date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_time
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_time
+                  type: datetime
+              - column:
+                  name: time_spent_seconds
+                  type: int

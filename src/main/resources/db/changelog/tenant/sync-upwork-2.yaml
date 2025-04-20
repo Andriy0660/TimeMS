@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: sync-upwork-2
+      author: Andrii Snovyda
+      changes:
+        - renameTable:
+              oldTableName: upwork_sync_info
+              newTableName: external_timelog
+
+        - addColumn:
+            tableName: external_timelog
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_time
+                  type: time
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_time
+                  type: time
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar
+
+        - dropPrimaryKey:
+            tableName: external_timelog
+
+        - addPrimaryKey:
+            tableName: external_timelog
+            columnNames: id
+
+        - dropColumn:
+            tableName: external_timelog
+            columnName: time_spent_seconds

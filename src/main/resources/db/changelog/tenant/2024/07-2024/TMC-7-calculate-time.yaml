@@ -1,8 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: TMC-7-calculate-time
-      author: Andrii Snovyda
-      changes:
-        - dropColumn:
-            columnName: time_spent_seconds
-            tableName: timelogs

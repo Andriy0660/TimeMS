@@ -15,6 +15,10 @@ public class TenantIdentifierResolver implements CurrentTenantIdentifierResolver
     currentTenant.set(tenant);
   }
 
+  public static String getCurrentTenant() {
+    return currentTenant.get();
+  }
+
   public static void clear() {
     currentTenant.remove();
   }

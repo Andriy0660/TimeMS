@@ -24,6 +24,15 @@ public class TenantInterceptor implements WebRequestInterceptor {
   @Transactional
   public void preHandle(WebRequest request) {
     final String accessToken = request.getHeader("Authorization");
+    String requestURI = null;
+    if (request.getAttribute("org.springframework.web.servlet.HandlerMapping.pathWithinHandlerMapping", 0) != null) {
+      requestURI = request.getAttribute("org.springframework.web.servlet.HandlerMapping.pathWithinHandlerMapping", 0).toString();
+    }
+
+    if (requestURI != null && (requestURI.contains("/admin") || requestURI.contains("/manager"))) {
+      TenantIdentifierResolver.setCurrentTenant(defaultTenant);
+      return;
+    }
     if (accessToken != null) {
       final UserEntity currentUser = userService.findByAccessToken(accessToken);
       TenantIdentifierResolver.setCurrentTenant(currentUser.getTenants().getFirst().getSchemaName());

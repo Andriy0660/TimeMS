@@ -11,6 +11,19 @@ const authService = {
   logOut: async () => {
     await authApi.logOut();
     localStorage.removeItem("token");
+  },
+
+  getCurrentUser: async () => {
+    return await authApi.getCurrentUser();
+  },
+
+  hasRole: (user, role) => {
+    if (!user || !user.roles) return false;
+
+    return user.roles.some(userRole =>
+      userRole === role ||
+      (role === "ROLE_MANAGER" && userRole === "ROLE_ADMIN")
+    );
   }
 }
 

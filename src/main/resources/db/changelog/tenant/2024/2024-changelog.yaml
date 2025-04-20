@@ -1,9 +1,0 @@
-databaseChangeLog:
-  - include:
-      file: db/changelog/tenant/2024/07-2024/07-2024-changelog.yaml
-  - include:
-      file: db/changelog/tenant/2024/09-2024/09-2024-changelog.yaml
-  - include:
-      file: db/changelog/tenant/2024/10-2024/10-2024-changelog.yaml
-  - include:
-      file: db/changelog/tenant/2024/11-2024/11-2024-changelog.yaml

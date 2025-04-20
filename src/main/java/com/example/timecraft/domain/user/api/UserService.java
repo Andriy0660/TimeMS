@@ -7,7 +7,7 @@ public interface UserService {
 
   UserEntity findByEmail(final String email);
 
-  void save(final UserEntity user);
+  UserEntity save(final UserEntity user);
 
   boolean existsByEmail(final String email);
 }

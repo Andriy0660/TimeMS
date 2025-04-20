@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: multitenant-drop-users
+      author: Andrii Snovyda
+      changes:
+        - dropTable:
+            tableName: app_user

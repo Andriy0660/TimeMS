@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: login-google
+      author: Andrii Snovyda
+      changes:
+        - dropNotNullConstraint:
+            columnName: password
+            tableName: app_user

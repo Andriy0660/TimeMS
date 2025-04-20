@@ -1,45 +1,70 @@
+// gui/src/components/general/Navbar.jsx
+import { useEffect, useState } from "react";
 import {
   AppBar,
   Box,
-  Drawer,
+  Toolbar,
   IconButton,
+  Typography,
+  Menu,
+  Container,
+  Avatar,
+  Button,
+  Tooltip,
+  MenuItem,
+  Drawer,
   List,
   ListItem,
   ListItemButton,
+  ListItemIcon,
   ListItemText,
-  MenuItem,
-  Select,
-  Toolbar,
-  Tooltip,
-  Typography
+  Divider, Select,
 } from "@mui/material";
-import MenuIcon from '@mui/icons-material/Menu';
-import {useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
-import MonthPicker from "./month/MonthPicker..jsx";
-import WeekPicker from "./week/WeekPicker.jsx";
-import DayPicker from "./day/DayPicker.jsx";
-import useAppContext from "../context/useAppContext.js";
-import useDateInUrl from "../hooks/useDateInUrl.js";
-import dayjs from "dayjs";
-import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore.js";
-import useViewChanger from "../hooks/useViewChanger.js";
-import SyncWorklogsButton from "./sync/SyncWorklogsButton.jsx";
-import {viewMode} from "../consts/viewMode.js";
-import {isJiraSyncingEnabled} from "../config/config.js";
-import ConfirmationModal from "./general/ConfirmationModal.jsx";
-import useAsyncCall from "../hooks/useAsyncCall.js";
+import MenuIcon from "@mui/icons-material/Menu";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import ViewWeekIcon from "@mui/icons-material/ViewWeek";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import PublishIcon from "@mui/icons-material/Publish";
+import InfoIcon from "@mui/icons-material/Info";
+import LogoutIcon from "@mui/icons-material/Logout";
+import SettingsIcon from "@mui/icons-material/Settings";
+import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import { useNavigate } from "react-router-dom";
 import authService from "../service/authService.js";
+import useAppContext from "../context/useAppContext.js";
+import useAuthInfo from "../hooks/useAuthInfo.js";
+import SyncWorklogsButton from "./sync/SyncWorklogsButton.jsx";
+import DayPicker from "./day/DayPicker.jsx";
+import WeekPicker from "./week/WeekPicker.jsx";
+import MonthPicker from "./month/MonthPicker..jsx";
+import {viewMode} from "../consts/viewMode.js";
+import dayjs from "dayjs";
+import useViewChanger from "../hooks/useViewChanger.js";
+import {isJiraSyncingEnabled} from "../config/config.js";
+import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore.js";
 
-export default function NavBar() {
-  const [open, setOpen] = useState(false);
-  const {date, setDate, mode, addAlert} = useAppContext();
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+function Navbar() {
   const navigate = useNavigate();
-
-  useDateInUrl(date);
+  const {date, setDate, mode, addAlert} = useAppContext();
   const {changeView} = useViewChanger();
+
+  const { user } = useAuthInfo();
+  const [anchorElUser, setAnchorElUser] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  
+  const isAdmin = user && authService.hasRole(user, "ROLE_ADMIN");
+  const isManager = user && (authService.hasRole(user, "ROLE_MANAGER") || authService.hasRole(user, "ROLE_ADMIN"));
+  const isRegularUser = user && !isAdmin && !isManager;
+
+  const handleOpenUserMenu = (event) => {
+    setAnchorElUser(event.currentTarget);
+  };
+
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
 
   const modeDatePickerConfig = {
     DAY: <DayPicker buttonColor="white" />,
@@ -47,122 +72,194 @@ export default function NavBar() {
     MONTH: <MonthPicker buttonColor="white" />,
   };
 
-  const toggleMenu = (newOpen) => () => {
-    setOpen(newOpen);
+  const logOut = async () => {
+    handleCloseUserMenu();
+    try {
+      await authService.logOut();
+      navigate("/app/login");
+      addAlert({
+        text: "You have successfully logged out",
+        type: "success",
+      });
+    } catch (error) {
+      addAlert({
+        text: error.displayMessage || "Failed to log out",
+        type: "error",
+      });
+    }
   };
 
-  const {execute: handleLogOut} = useAsyncCall({
-    fn: authService.logOut,
-    onSuccess: () => navigate("/app/login"),
-    onError: async (error) => {
-      addAlert({
-        text: error.displayMessage,
-        type: "error"
-      })
-      console.error("Logging out failed:", error);
-    }
-  })
+  // Базові пункти меню для звичайних користувачів
+  const regularUserItems = [
+    { name: "Time Log", icon: <AccessTimeIcon />, path: "/app/timelog" },
+    // { name: "Week View", icon: <ViewWeekIcon />, path: "/app/weekview" },
+    // { name: "Month View", icon: <CalendarMonthIcon />, path: "/app/monthview" },
+    { name: "Sync Worklogs", icon: <PublishIcon />, path: "/app/syncWorklogs" },
+    { name: "Setting", icon: <SettingsIcon />, path: "/app/config" },
+  ];
 
-  const DrawerList = (
-    <Box sx={{width: 250}} onClick={toggleMenu(false)}>
-      <List>
-        <ListItem disablePadding>
-          <Link to="/app/timelog" onClick={() => changeView(viewMode.DAY)} className="text-inherit no-underline w-full">
-            <ListItemButton>
-              <ListItemText primary="TimeLog" />
-            </ListItemButton>
-          </Link>
-        </ListItem>
+  // Пункти меню для менеджерів
+  const managerItems = [
+    { name: "Manager Dashboard", icon: <SupervisorAccountIcon />, path: "/app/manager" }
+  ];
 
-        {isJiraSyncingEnabled && <ListItem disablePadding>
-          <Link to="/app/syncWorklogs" className="text-inherit no-underline w-full">
-            <ListItemButton>
-              <ListItemText primary="Sync Worklogs" />
-            </ListItemButton>
-          </Link>
-        </ListItem>
-        }
+  // Пункти меню для адміністраторів
+  const adminItems = [
+    { name: "Admin Panel", icon: <AdminPanelSettingsIcon />, path: "/app/admin" }
+  ];
 
-        {/*<ListItem disablePadding>*/}
-        {/*  <Link to="/app/info" className="text-inherit no-underline w-full">*/}
-        {/*    <ListItemButton>*/}
-        {/*      <ListItemText primary="Info" />*/}
-        {/*    </ListItemButton>*/}
-        {/*  </Link>*/}
-        {/*</ListItem>*/}
+  // Визначаємо, які пункти меню відображати залежно від ролі
+  let navItems = [];
 
-        <ListItem disablePadding>
-          <Link to="/app/config" className="text-inherit no-underline w-full">
-            <ListItemButton>
-              <ListItemText primary="Configuration" />
-            </ListItemButton>
-          </Link>
-        </ListItem>
+  if (isAdmin) {
+    navItems = [...adminItems, ...managerItems];
+  } else if (isManager) {
+    navItems = [...managerItems];
+  } else {
+    navItems = [...regularUserItems];
+  }
 
-        <ListItem disablePadding>
-          <ListItemButton onClick={() => setShowLogoutModal(true)}>
-            <ListItemText primary="Logout" />
-          </ListItemButton>
-        </ListItem>
-
-      </List>
-
-    </Box>
-  );
+  // Показуємо дані про День/Тиждень/Місяць та елементи навігації тільки для звичайних користувачів
+  const showDateControls = isRegularUser;
 
   return (
-    <AppBar position="static">
-      <Toolbar>
-        <IconButton
-          onClick={toggleMenu(true)}
-          size="large"
-          edge="start"
-          sx={{mr: 2}}
-          color="inherit"
-        >
-          <MenuIcon />
-        </IconButton>
-        <Typography variant="h6">
-          Time Craft
-        </Typography>
-        <Select
-          className="mx-8 bg-white"
-          size="small"
-          inputProps={{"aria-label": "Without label"}}
-          value={mode}
-          onChange={(event) => {
-            changeView(event.target.value);
-          }}
-          autoWidth
-        >
-          <MenuItem value={viewMode.DAY}>Day</MenuItem>
-          <MenuItem value={viewMode.WEEK}>Week</MenuItem>
-          <MenuItem value={viewMode.MONTH}>Month</MenuItem>
-        </Select>
-        {modeDatePickerConfig[mode]}
-        <Tooltip title="Reset">
+    <AppBar position="sticky" sx={{ zIndex: 100 }}>
+      <Container maxWidth="xl">
+        <Toolbar disableGutters>
           <IconButton
-            onClick={() => setDate(dayjs())}
-            variant="outlined"
-            className="text-white"
+            size="large"
+            onClick={() => setDrawerOpen(!drawerOpen)}
+            color="inherit"
           >
-            <SettingsBackupRestoreIcon />
+            <MenuIcon />
           </IconButton>
-        </Tooltip>
-        {isJiraSyncingEnabled && <SyncWorklogsButton className="mx-4">Sync Worklogs</SyncWorklogsButton>}
+          <Typography
+            variant="h6"
+            noWrap
+            component="a"
+            href="/"
+            sx={{
+              ml: 1,
+              display: { md: "flex" },
+              fontWeight: 800,
+              color: "inherit",
+              textDecoration: "none",
+            }}
+          >
+            TimeCraft
+          </Typography>
+
+          <Box sx={{ flexGrow: 1 }} />
+
+          {showDateControls && (
+            <>
+              <Select
+                className="mx-8 bg-white"
+                size="small"
+                inputProps={{"aria-label": "Without label"}}
+                value={mode}
+                onChange={(event) => {
+                  changeView(event.target.value);
+                }}
+                autoWidth
+              >
+                <MenuItem value={viewMode.DAY}>Day</MenuItem>
+                <MenuItem value={viewMode.WEEK}>Week</MenuItem>
+                <MenuItem value={viewMode.MONTH}>Month</MenuItem>
+              </Select>
+              {modeDatePickerConfig[mode]}
+              <Tooltip title="Reset">
+                <IconButton
+                  onClick={() => setDate(dayjs())}
+                  variant="outlined"
+                  className="text-white"
+                >
+                  <SettingsBackupRestoreIcon />
+                </IconButton>
+              </Tooltip>
+              {isJiraSyncingEnabled && <SyncWorklogsButton className="mx-4">Sync Worklogs</SyncWorklogsButton>}
+            </>
+          )}
+
+          <Box sx={{ flexGrow: 0 }}>
+            <Tooltip title="Open settings">
+              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                <Avatar alt={user?.firstName || "User"} src="/static/images/avatar/2.jpg" />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              sx={{ mt: "45px" }}
+              id="menu-appbar"
+              anchorEl={anchorElUser}
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              open={Boolean(anchorElUser)}
+              onClose={handleCloseUserMenu}
+            >
+              {/*<MenuItem*/}
+              {/*  onClick={() => {*/}
+              {/*    navigate("/app/config");*/}
+              {/*    handleCloseUserMenu();*/}
+              {/*  }}*/}
+              {/*>*/}
+              {/*  <ListItemIcon>*/}
+              {/*    <SettingsIcon fontSize="small" />*/}
+              {/*  </ListItemIcon>*/}
+              {/*  <Typography textAlign="center">Settings</Typography>*/}
+              {/*</MenuItem>*/}
+              <MenuItem onClick={logOut}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                <Typography textAlign="center">Logout</Typography>
+              </MenuItem>
+            </Menu>
+          </Box>
       </Toolbar>
-      <Drawer open={open} onClose={toggleMenu(false)}>
-        {DrawerList}
-      </Drawer>
-      <ConfirmationModal
-        open={showLogoutModal}
-        type="warning"
-        actionText="Logout"
-        onConfirm={handleLogOut}
-        onClose={() => setShowLogoutModal(false)}
+      </Container>
+
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
       >
-        Are you sure you want to log out of your account?
-      </ConfirmationModal>
+        <Box
+          sx={{ width: 250 }}
+          role="presentation"
+          onClick={() => setDrawerOpen(false)}
+        >
+          <List>
+            {navItems.map((item) => (
+              <ListItem key={item.name} disablePadding>
+                <ListItemButton onClick={() => navigate(item.path)}>
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText primary={item.name} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+          <Divider />
+          {/*<List>*/}
+          {/*  <ListItem disablePadding>*/}
+          {/*    <ListItemButton onClick={() => navigate("/app/config")}>*/}
+          {/*      <ListItemIcon>*/}
+          {/*        <SettingsIcon />*/}
+          {/*      </ListItemIcon>*/}
+          {/*      <ListItemText primary="Settings" />*/}
+          {/*    </ListItemButton>*/}
+          {/*  </ListItem>*/}
+          {/*</List>*/}
+        </Box>
+      </Drawer>
     </AppBar>
   );
 }
+
+export default Navbar;

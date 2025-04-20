@@ -1,3 +1,31 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/tenant/2024/2024-changelog.yaml
+      file: db/changelog/tenant/app-skeleton.yaml
+  - include:
+      file: db/changelog/tenant/make-start-time-nullable.yaml
+  - include:
+      file: db/changelog/tenant/rename-log-entry-to-time-log.yaml
+  - include:
+      file: db/changelog/tenant/calculate-time.yaml
+  - include:
+      file: db/changelog/tenant/remove-date-from-time.yaml
+  - include:
+      file: db/changelog/tenant/fetching-worklogs.yaml
+  - include:
+      file: db/changelog/tenant/fetching-worklogs-add-updated.yaml
+  - include:
+      file: db/changelog/tenant/add-labels.yaml
+  - include:
+      file: db/changelog/tenant/sync-upwork.yaml
+  - include:
+      file: db/changelog/tenant/sync-upwork-2.yaml
+  - include:
+      file: db/changelog/tenant/signup-login.yaml
+  - include:
+      file: db/changelog/tenant/multitenant.yaml
+  - include:
+      file: db/changelog/tenant/user-config.yaml
+  - include:
+      file: db/changelog/tenant/user-config-2.yaml
+  - include:
+      file: db/changelog/tenant/custom-jira-instance.yaml

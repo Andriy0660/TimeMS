@@ -53,7 +53,7 @@ export default function LogInPage() {
         text: "Logged in successfully",
         type: "success"
       });
-      window.location.href = "/app/timelog";
+      window.location.href = "/";
     },
     onError: async (error) => {
       addAlert({
