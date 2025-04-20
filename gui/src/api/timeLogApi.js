@@ -54,6 +54,15 @@ const timeLogApi = {
 
   changeDate: async ({id, ...body}) => {
     await axios.patch(`/${key}/${id}/change-date`, {...body}, {baseMsg: "Error while changing date"});
+  },
+
+  exportAll: async () => {
+    const {data} = await axios.get(`/${key}/export`, {baseMsg: "Error while exporting all data"})
+    return data;
+  },
+
+  importAll: async (body) => {
+    await axios.post(`/${key}/import`, body, {baseMsg: "Error while importing all data"})
   }
 };
 

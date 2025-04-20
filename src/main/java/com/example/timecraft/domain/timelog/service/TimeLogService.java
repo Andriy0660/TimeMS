@@ -1,6 +1,7 @@
 package com.example.timecraft.domain.timelog.service;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
@@ -11,6 +12,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekWithTicketsResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogImportAllRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
@@ -43,4 +45,9 @@ public interface TimeLogService {
   void changeDate(final long timeLogId, final TimeLogChangeDateRequest isNext);
 
   TimeLogHoursForMonthResponse getHoursForMonth(final LocalDate date);
+
+  Map<String, Object> exportAllLogs();
+
+  void importAllLogs(final TimeLogImportAllRequest request);
+
 }

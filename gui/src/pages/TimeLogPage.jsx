@@ -26,6 +26,8 @@ import useExternalTimeLogMutations from "../hooks/useExternalTimeLogMutations.js
 import timeLogService from "../service/timeLogService.js";
 import externalTimeLogService from "../service/externalTimeLogService.js";
 import EditModeSwitcher from "../components/sync/EditModeSwitcher.jsx";
+import ExportAllButton from "../components/timeLog/ExportAllButton.jsx";
+import ImportAllButton from "../components/timeLog/ImportAllButton.jsx";
 
 export default function TimeLogPage() {
   const {date, mode, setExternalTimeLogRefs} = useAppContext();
@@ -128,18 +130,21 @@ export default function TimeLogPage() {
           <div className="flex justify-between items-center">
             <BigLabel className="ml-4 mt-4">{date.format("dddd")}</BigLabel>
             <BigLabel className="ml-4 mt-4">{totalTimeLabel}</BigLabel>
-            <Tooltip title="External Service Time">
-              <span>{isExternalServiceSyncingEnabled && isExternalServiceEditMode && <BigLabel className="mt-4" color="green">
-                {dateTimeService.formatMinutesToHM(
-                  timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, externalServiceTimeCf)
-                )}
-              </BigLabel>
-              }
-              </span>
-            </Tooltip>
+            {/*<Tooltip title="External Service Time">*/}
+            {/*  <span>{isExternalServiceSyncingEnabled && isExternalServiceEditMode && <BigLabel className="mt-4" color="green">*/}
+            {/*    {dateTimeService.formatMinutesToHM(*/}
+            {/*      timeLogService.getTotalMinutesForTimeLogsArray(processedTimeLogsArray, externalServiceTimeCf)*/}
+            {/*    )}*/}
+            {/*  </BigLabel>*/}
+            {/*  }*/}
+            {/*  </span>*/}
+            {/*</Tooltip>*/}
             <div className="flex items-center mt-8">
               <ImportButton className="mr-4" onImport={timeLogMutations.onImport} />
               <ExportButton className="mr-4" processedTimeLogsArray={processedTimeLogsArray} />
+              <ExportAllButton className="mr-4" />
+              <ImportAllButton className="mr-4" />
+
             </div>
 
           </div>

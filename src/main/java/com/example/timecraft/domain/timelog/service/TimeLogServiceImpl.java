@@ -9,8 +9,10 @@ import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,6 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.timecraft.core.exception.NotFoundException;
 import com.example.timecraft.domain.config.api.UserConfigService;
+import com.example.timecraft.domain.external_timelog.dto.ExternalTimeLogListResponse;
+import com.example.timecraft.domain.external_timelog.mapper.ExternalTimeLogMapper;
+import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogEntity;
+import com.example.timecraft.domain.external_timelog.persistence.ExternalTimeLogRepository;
 import com.example.timecraft.domain.timelog.dto.TimeLogChangeDateRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFormWorklogResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogCreateFromWorklogRequest;
@@ -29,6 +35,7 @@ import com.example.timecraft.domain.timelog.dto.TimeLogGetResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForMonthResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogHoursForWeekWithTicketsResponse;
+import com.example.timecraft.domain.timelog.dto.TimeLogImportAllRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogImportRequest;
 import com.example.timecraft.domain.timelog.dto.TimeLogListResponse;
 import com.example.timecraft.domain.timelog.dto.TimeLogSetGroupDescrRequest;
@@ -38,18 +45,28 @@ import com.example.timecraft.domain.timelog.mapper.TimeLogMapper;
 import com.example.timecraft.domain.timelog.persistence.TimeLogEntity;
 import com.example.timecraft.domain.timelog.persistence.TimeLogRepository;
 import com.example.timecraft.domain.timelog.util.DurationUtils;
+import com.example.timecraft.domain.worklog.dto.WorklogListResponse;
+import com.example.timecraft.domain.worklog.mapper.WorklogMapper;
+import com.example.timecraft.domain.worklog.persistence.WorklogEntity;
+import com.example.timecraft.domain.worklog.persistence.WorklogRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.example.timecraft.domain.timelog.util.DurationUtils.formatDurationHM;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class TimeLogServiceImpl implements TimeLogService {
-  private final TimeLogRepository repository;
-  private final TimeLogMapper mapper;
-  private final Clock clock;
-  private final UserConfigService userConfigService;
+    private final TimeLogRepository repository;
+    private final TimeLogMapper mapper;
+    private final Clock clock;
+    private final UserConfigService userConfigService;
+    private final WorklogRepository worklogRepository;
+    private final WorklogMapper worklogMapper;
+    private final ExternalTimeLogRepository externalTimeLogRepository;
+    private final ExternalTimeLogMapper externalTimeLogMapper;
 
   @Override
   public TimeLogListResponse list(final LocalDate startDate, final LocalDate endDate) {
@@ -384,4 +401,120 @@ public class TimeLogServiceImpl implements TimeLogService {
     timeLogEntity.setDate(newDate);
     repository.save(timeLogEntity);
   }
+
+  @Override
+  public Map<String, Object> exportAllLogs() {
+      Map<String, Object> result = new HashMap<>();
+
+      // Get all time logs
+      List<TimeLogEntity> timeLogEntities = repository.findAll();
+      List<TimeLogListResponse.TimeLogDto> timeLogs = timeLogEntities.stream()
+          .map(entity -> {
+              TimeLogListResponse.TimeLogDto dto = mapper.toListItem(entity);
+              dto.setTotalTime(mapTotalTime(dto.getStartTime(), dto.getEndTime()));
+              return dto;
+          })
+          .collect(Collectors.toList());
+
+      // Add time logs to result
+      result.put("timeLogs", timeLogs);
+
+      // Get worklogs if available
+      try {
+          List<WorklogEntity> worklogEntities = worklogRepository.findAll();
+          List<WorklogListResponse.WorklogDto> worklogs = worklogEntities.stream()
+              .map(worklogMapper::toListItem)
+              .collect(Collectors.toList());
+
+          result.put("worklogs", worklogs);
+      } catch (Exception e) {
+          // If repository is not available, just skip it
+      }
+
+      // Get external time logs if available
+      try {
+          List<ExternalTimeLogEntity> externalTimeLogEntities = externalTimeLogRepository.findAll();
+          List<ExternalTimeLogListResponse.ExternalTimeLogDto> externalTimeLogs = externalTimeLogEntities.stream()
+              .map(externalTimeLogMapper::toListItem)
+              .collect(Collectors.toList());
+
+          result.put("externalTimeLogs", externalTimeLogs);
+      } catch (Exception e) {
+          // If repository is not available, just skip it
+      }
+
+      return result;
+  }
+
+    @Override
+    public void importAllLogs(final TimeLogImportAllRequest request) {
+        // Import time logs
+        if (request.getTimeLogs() != null && !request.getTimeLogs().isEmpty()) {
+            List<TimeLogEntity> timeLogEntities = request.getTimeLogs().stream()
+                .map(dto -> {
+                    TimeLogEntity entity = new TimeLogEntity();
+                    entity.setId(dto.getId());
+                    entity.setTicket(dto.getTicket());
+                    entity.setDate(dto.getDate());
+                    entity.setStartTime(dto.getStartTime());
+                    entity.setEndTime(dto.getEndTime());
+                    entity.setDescription(dto.getDescription());
+                    entity.setLabels(dto.getLabels());
+                    return entity;
+                })
+                .filter(entity -> repository.findById(entity.getId()).isEmpty()) // Skip if already exists
+                .collect(Collectors.toList());
+
+            repository.saveAll(timeLogEntities);
+        }
+
+        // Import worklogs if worklog repository is available
+        if (request.getWorklogs() != null && !request.getWorklogs().isEmpty()) {
+            try {
+                List<WorklogEntity> worklogEntities = request.getWorklogs().stream()
+                    .map(dto -> {
+                        WorklogEntity entity = new WorklogEntity();
+                        entity.setId(dto.getId());
+                        entity.setAuthor(dto.getAuthor());
+                        entity.setTicket(dto.getTicket());
+                        entity.setDate(dto.getDate());
+                        entity.setStartTime(dto.getStartTime());
+                        entity.setComment(dto.getComment());
+                        entity.setTimeSpentSeconds(dto.getTimeSpentSeconds());
+                        return entity;
+                    })
+                    .filter(entity -> worklogRepository.findById(entity.getId()).isEmpty()) // Skip if already exists
+                    .collect(Collectors.toList());
+
+                worklogRepository.saveAll(worklogEntities);
+            } catch (Exception e) {
+                // If repository is not available, just log the error
+                log.error("Error importing worklogs: {}", e.getMessage());
+            }
+        }
+
+        // Import external time logs if available
+        if (request.getExternalTimeLogs() != null && !request.getExternalTimeLogs().isEmpty()) {
+            try {
+                List<ExternalTimeLogEntity> externalTimeLogEntities = request.getExternalTimeLogs().stream()
+                    .map(dto -> {
+                        ExternalTimeLogEntity entity = new ExternalTimeLogEntity();
+                        entity.setId(dto.getId());
+                        entity.setDate(dto.getDate());
+                        entity.setStartTime(dto.getStartTime());
+                        entity.setEndTime(dto.getEndTime());
+                        entity.setDescription(dto.getDescription());
+                        return entity;
+                    })
+                    .filter(entity -> externalTimeLogRepository.findById(entity.getId()).isEmpty()) // Skip if already exists
+                    .collect(Collectors.toList());
+
+                externalTimeLogRepository.saveAll(externalTimeLogEntities);
+            } catch (Exception e) {
+                // If repository is not available, just log the error
+                log.error("Error importing external time logs: {}", e.getMessage());
+            }
+        }
+    }
+
 }
