@@ -15,13 +15,8 @@ spring:
     open-in-view: false
 
 multitenancy:
-  main:
-    liquibase:
-      change-log: db/changelog/main/main-changelog.yaml
   tenant:
     default-tenant: public
-    liquibase:
-      change-log: db/changelog/tenant/tenant-changelog.yaml
 
 app:
   config:

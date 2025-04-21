@@ -1,9 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: user-config-2
-      author: Andrii Snovyda
-      changes:
-        - modifyDataType:
-            tableName: config
-            columnName: external_service_time_cf
-            newDataType: double

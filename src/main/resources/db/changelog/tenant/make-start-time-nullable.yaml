@@ -1,8 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: make-start-time-nullable
-      author: Andrii Snovyda
-      changes:
-        - dropNotNullConstraint:
-            columnName: start_time
-            tableName: log_entries

@@ -16,6 +16,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogContentText,
   DialogActions,
   FormControl,
   InputLabel,
@@ -35,67 +36,68 @@ export default function AdminPage() {
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [roleToAdd, setRoleToAdd] = useState('ROLE_USER');
+  const [deleteInProgress, setDeleteInProgress] = useState(false);
 
   const pageSize = 10;
 
   const { data: users, isLoading: isLoadingUsers, refetch: refetchUsers } = useQuery({
-  queryKey: ['admin', 'users'],
-  queryFn: () => managerApi.getAllUsers(),
-  onError: (error) => {
-    addAlert({
-      text: error.displayMessage || 'Failed to load users',
-      type: 'error'
-    });
-  }
-});
+    queryKey: ['admin', 'users'],
+    queryFn: () => managerApi.getAllUsers(),
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage || 'Failed to load users',
+        type: 'error'
+      });
+    }
+  });
 
-const { data: tenants, isLoading: isLoadingTenants } = useQuery({
-  queryKey: ['admin', 'tenants'],
-  queryFn: () => managerApi.getAllTenants(),
-  onError: (error) => {
-    addAlert({
-      text: error.displayMessage || 'Failed to load tenants',
-      type: 'error'
-    });
-  }
-});
+  const { data: tenants, isLoading: isLoadingTenants } = useQuery({
+    queryKey: ['admin', 'tenants'],
+    queryFn: () => managerApi.getAllTenants(),
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage || 'Failed to load tenants',
+        type: 'error'
+      });
+    }
+  });
 
-const { data: roles, isLoading: isLoadingRoles } = useQuery({
-  queryKey: ['admin', 'roles'],
-  queryFn: () => adminApi.getAllRoles(),
-  onError: (error) => {
-    addAlert({
-      text: error.displayMessage || 'Failed to load roles',
-      type: 'error'
-    });
-  }
-});
+  const { data: roles, isLoading: isLoadingRoles } = useQuery({
+    queryKey: ['admin', 'roles'],
+    queryFn: () => adminApi.getAllRoles(),
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage || 'Failed to load roles',
+        type: 'error'
+      });
+    }
+  });
 
-const { data: auditLogs, isLoading: isLoadingAuditLogs } = useQuery({
-  queryKey: ['admin', 'audit', selectedTenant?.id, page],
-  queryFn: () => selectedTenant ? adminApi.getAuditLogs(selectedTenant.id, page, pageSize) : null,
-  enabled: !!selectedTenant,
-  onError: (error) => {
-    addAlert({
-      text: error.displayMessage || 'Failed to load audit logs',
-      type: 'error'
-    });
-  }
-});
+  const { data: auditLogs, isLoading: isLoadingAuditLogs } = useQuery({
+    queryKey: ['admin', 'audit', selectedTenant?.id, page],
+    queryFn: () => selectedTenant ? adminApi.getAuditLogs(selectedTenant.id, page, pageSize) : null,
+    enabled: !!selectedTenant,
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage || 'Failed to load audit logs',
+        type: 'error'
+      });
+    }
+  });
 
-const { data: userAuditLogs, isLoading: isLoadingUserAuditLogs } = useQuery({
-  queryKey: ['admin', 'userAudit', selectedUser?.id, page],
-  queryFn: () => selectedUser ? adminApi.getUserAuditLogs(selectedUser.id, page, pageSize) : null,
-  enabled: !!selectedUser && tabValue === 1,
-  onError: (error) => {
-    addAlert({
-      text: error.displayMessage || 'Failed to load user audit logs',
-      type: 'error'
-    });
-  }
-});
-
+  const { data: userAuditLogs, isLoading: isLoadingUserAuditLogs } = useQuery({
+    queryKey: ['admin', 'userAudit', selectedUser?.id, page],
+    queryFn: () => selectedUser ? adminApi.getUserAuditLogs(selectedUser.id, page, pageSize) : null,
+    enabled: !!selectedUser && tabValue === 1,
+    onError: (error) => {
+      addAlert({
+        text: error.displayMessage || 'Failed to load user audit logs',
+        type: 'error'
+      });
+    }
+  });
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -154,6 +156,30 @@ const { data: userAuditLogs, isLoading: isLoadingUserAuditLogs } = useQuery({
     }
   };
 
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+
+    setDeleteInProgress(true);
+
+    try {
+      await adminApi.deleteUserWithTenants(selectedUser.id);
+      addAlert({
+        text: `User ${selectedUser.email} and their tenants were successfully deleted`,
+        type: 'success'
+      });
+      setDeleteDialogOpen(false);
+      setSelectedUser(null);
+      refetchUsers();
+    } catch (error) {
+      addAlert({
+        text: error.displayMessage || 'Failed to delete user and tenants',
+        type: 'error'
+      });
+    } finally {
+      setDeleteInProgress(false);
+    }
+  };
+
   if (isLoadingUsers || isLoadingTenants || isLoadingRoles) {
     return <LoadingPage />;
   }
@@ -195,7 +221,6 @@ const { data: userAuditLogs, isLoading: isLoadingUserAuditLogs } = useQuery({
                       {user.roles?.map((role, idx) => (
                         <span key={idx} className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded mr-1 mb-1">
                           {role}
-
                         </span>
                       ))}
                     </TableCell>
@@ -205,7 +230,7 @@ const { data: userAuditLogs, isLoading: isLoadingUserAuditLogs } = useQuery({
                         color={user.active ? "error" : "success"}
                         size="small"
                         onClick={() => handleToggleUserActive(user.id)}
-                        className="mr-2"
+                        className="mr-2 mb-1"
                       >
                         {user.active ? 'Disable' : 'Enable'}
                       </Button>
@@ -213,6 +238,7 @@ const { data: userAuditLogs, isLoading: isLoadingUserAuditLogs } = useQuery({
                         variant="outlined"
                         color="primary"
                         size="small"
+                        className="mr-2 mb-1"
                         onClick={() => {
                           setSelectedUser(user);
                           setDialogOpen(true);
@@ -220,6 +246,19 @@ const { data: userAuditLogs, isLoading: isLoadingUserAuditLogs } = useQuery({
                       >
                         Change Role
                       </Button>
+                      {!user.roles.includes("ROLE_ADMIN") && <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        className="mb-1"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        Delete user with all tenants
+                      </Button>
+                      }
                     </TableCell>
                   </TableRow>
                 ))}
@@ -228,7 +267,6 @@ const { data: userAuditLogs, isLoading: isLoadingUserAuditLogs } = useQuery({
           </TableContainer>
         </Paper>
       )}
-
 
       {tabValue === 1 && (
         <Paper elevation={3} className="p-4">
@@ -256,38 +294,38 @@ const { data: userAuditLogs, isLoading: isLoadingUserAuditLogs } = useQuery({
           )}
 
           <TableContainer className="mt-8">
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>ID</TableCell>
-                      <TableCell>Action</TableCell>
-                      <TableCell>Entity</TableCell>
-                      <TableCell>Details</TableCell>
-                      <TableCell>IP Address</TableCell>
-                      <TableCell>Timestamp</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {userAuditLogs?.content?.map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell>{log.id}</TableCell>
-                        <TableCell>{log.action}</TableCell>
-                        <TableCell>{log.entityType} {log.entityId ? `#${log.entityId}` : ''}</TableCell>
-                        <TableCell>{log.details}</TableCell>
-                        <TableCell>{log.ipAddress}</TableCell>
-                        <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Box display="flex" justifyContent="center" mt={3}>
-                <Pagination
-                  count={userAuditLogs?.totalPages || 0}
-                  page={page + 1}
-                  onChange={(e, value) => setPage(value - 1)}
-                />
-              </Box>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Action</TableCell>
+                  <TableCell>Entity</TableCell>
+                  <TableCell>Details</TableCell>
+                  <TableCell>IP Address</TableCell>
+                  <TableCell>Timestamp</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {userAuditLogs?.content?.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>{log.id}</TableCell>
+                    <TableCell>{log.action}</TableCell>
+                    <TableCell>{log.entityType} {log.entityId ? `#${log.entityId}` : ''}</TableCell>
+                    <TableCell>{log.details}</TableCell>
+                    <TableCell>{log.ipAddress}</TableCell>
+                    <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Box display="flex" justifyContent="center" mt={3}>
+            <Pagination
+              count={userAuditLogs?.totalPages || 0}
+              page={page + 1}
+              onChange={(e, value) => setPage(value - 1)}
+            />
+          </Box>
         </Paper>
       )}
 
@@ -313,6 +351,36 @@ const { data: userAuditLogs, isLoading: isLoadingUserAuditLogs } = useQuery({
           <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleAddRole} color="primary" variant="contained">
             Change Role
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => !deleteInProgress && setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Delete User and Tenants</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete user <strong>{selectedUser?.email}</strong> and all their tenant schemas?
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            disabled={deleteInProgress}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteUser}
+            color="error"
+            variant="contained"
+            disabled={deleteInProgress}
+          >
+            {deleteInProgress ? 'Deleting...' : 'Delete User and Tenants'}
           </Button>
         </DialogActions>
       </Dialog>

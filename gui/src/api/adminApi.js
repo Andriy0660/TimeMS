@@ -42,6 +42,10 @@ const adminApi = {
     await axios.post(`/${key}/roles/user/${userId}/remove?roleName=${roleName}`, {}, {
       baseMsg: "Error removing role from user"
     });
+  },
+
+  deleteUserWithTenants: async (userId) => {
+    await axios.delete(`${key}/users/${userId}`, {})
   }
 };
 

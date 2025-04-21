@@ -25,7 +25,6 @@ import static com.example.timecraft.domain.multitenant.util.MultiTenantUtils.gen
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@Order(1) // Виконується перед RoleInitializer
 public class AdminCreator implements ApplicationRunner {
     private static final String ADMIN_EMAIL = "admin@gmail.com";
     private static final String ADMIN_PASSWORD = "admin1";

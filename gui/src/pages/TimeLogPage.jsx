@@ -140,8 +140,8 @@ export default function TimeLogPage() {
             {/*  </span>*/}
             {/*</Tooltip>*/}
             <div className="flex items-center mt-8">
-              <ImportButton className="mr-4" onImport={timeLogMutations.onImport} />
-              <ExportButton className="mr-4" processedTimeLogsArray={processedTimeLogsArray} />
+              {/*<ImportButton className="mr-4" onImport={timeLogMutations.onImport} />*/}
+              {/*<ExportButton className="mr-4" processedTimeLogsArray={processedTimeLogsArray} />*/}
               <ExportAllButton className="mr-4" />
               <ImportAllButton className="mr-4" />
 

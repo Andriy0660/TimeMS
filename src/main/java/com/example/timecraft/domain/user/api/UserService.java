@@ -10,4 +10,5 @@ public interface UserService {
   UserEntity save(final UserEntity user);
 
   boolean existsByEmail(final String email);
+
 }
